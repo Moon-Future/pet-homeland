@@ -1,0 +1,40 @@
+page {
+  min-height: 100vh;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 48rpx 32rpx;
+  background: #f7f8fa;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 36rpx;
+}
+
+.eyebrow {
+  color: #5b6575;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.title {
+  color: #172033;
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.main {
+  width: 100%;
+}
+
+.panel {
+  min-height: 360rpx;
+  border: 2rpx solid #e1e6ef;
+  border-radius: 16rpx;
+  background: #ffffff;
+}

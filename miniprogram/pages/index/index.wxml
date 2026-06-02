@@ -1,0 +1,10 @@
+<view class="page">
+  <view class="header">
+    <text class="eyebrow">Home</text>
+    <text class="title">{{appName}}</text>
+  </view>
+
+  <view class="main">
+    <view class="panel"></view>
+  </view>
+</view>
