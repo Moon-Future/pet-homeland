@@ -54,7 +54,7 @@ page {
   position: absolute;
   left: 118rpx;
   right: 118rpx;
-  bottom: 500rpx;
+  bottom: 520rpx;
   height: 86rpx;
   display: flex;
   align-items: center;
@@ -85,8 +85,8 @@ page {
   position: absolute;
   left: 34rpx;
   right: 34rpx;
-  bottom: 200rpx;
-  min-height: 230rpx;
+  bottom: 160rpx;
+  min-height: 282rpx;
   padding: 24rpx 24rpx 22rpx;
   border: 3rpx solid rgba(255, 255, 255, 0.56);
   border-radius: 30rpx;
@@ -104,6 +104,46 @@ page {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 18rpx;
+}
+
+.pet-filter-scroll {
+  width: 100%;
+  margin-bottom: 18rpx;
+  white-space: nowrap;
+}
+
+.pet-filter-list {
+  display: flex;
+  gap: 12rpx;
+}
+
+.pet-filter {
+  height: 54rpx;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 18rpx 0 8rpx;
+  border: 2rpx solid rgba(147, 104, 235, 0.18);
+  border-radius: 999rpx;
+  color: #74668f;
+  background: rgba(255, 255, 255, 0.58);
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.pet-filter.active {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, #b46dff, #8b5cf6);
+  box-shadow: 0 8rpx 18rpx rgba(126, 84, 230, 0.24);
+}
+
+.filter-avatar {
+  width: 38rpx;
+  height: 38rpx;
+  border: 2rpx solid #ffffff;
+  border-radius: 50%;
 }
 
 .card-title {
@@ -165,6 +205,25 @@ page {
   font-size: 30rpx;
   font-weight: 900;
   line-height: 1.2;
+}
+
+.status-pill {
+  height: 32rpx;
+  padding: 0 10rpx;
+  display: flex;
+  align-items: center;
+  border-radius: 999rpx;
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 800;
+}
+
+.status-with-me {
+  background: linear-gradient(135deg, #ff9bbb, #8b5cf6);
+}
+
+.status-in-stars {
+  background: linear-gradient(135deg, #7f8cff, #5549bd);
 }
 
 .sparkle-icon {

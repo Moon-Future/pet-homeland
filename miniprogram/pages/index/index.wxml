@@ -4,35 +4,51 @@
   <view class="content">
     <view class="hero-copy">
       <text class="hero-title">星宠乡 🌈</text>
-      <text class="hero-subtitle">他们只是去了更远的地方</text>
+      <text class="hero-subtitle">记录陪伴，也安放心念</text>
     </view>
 
     <button class="create-button" bindtap="onCreateMemorial">
       <image class="create-icon" src="/assets/icons/plus.svg" mode="aspectFit"></image>
-      <text class="create-lable">创建纪念馆</text>
+      <text class="create-lable">创建宠物小窝</text>
     </button>
 
     <view class="recent-card">
       <view class="card-head">
-        <text class="card-title">最近思念</text>
+        <text class="card-title">{{featuredPet.recentTitle}}</text>
         <view class="view-all" bindtap="onViewAll">
           <text>查看全部</text>
           <image class="arrow-icon" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
       </view>
 
+      <scroll-view class="pet-filter-scroll" scroll-x enable-flex>
+        <view class="pet-filter-list">
+          <view
+            wx:for="{{petSpaces}}"
+            wx:key="id"
+            class="pet-filter {{item.active ? 'active' : ''}}"
+            data-name="{{item.petName}}"
+            bindtap="onSelectPet"
+          >
+            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+            <text>{{item.petName}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
       <view class="card-body">
-        <image class="pet-avatar" src="{{recentMemorial.avatar}}" mode="aspectFill"></image>
+        <image class="pet-avatar" src="{{featuredPet.avatar}}" mode="aspectFill"></image>
 
         <view class="pet-info">
           <view class="pet-name-row">
-            <text class="pet-name">{{recentMemorial.petName}}</text>
+            <text class="pet-name">{{featuredPet.petName}}</text>
+            <text class="status-pill {{featuredPet.statusClass}}">{{featuredPet.statusText}}</text>
             <image class="sparkle-icon" src="/assets/icons/sparkle.svg" mode="aspectFit"></image>
           </view>
-          <text class="pet-days">离开 {{recentMemorial.relationDays}} 天</text>
-          <text class="pet-message">{{recentMemorial.message}}</text>
+          <text class="pet-days">{{featuredPet.dayLabel}} {{featuredPet.relationDays}} 天</text>
+          <text class="pet-message">{{featuredPet.message}}</text>
           <view class="supporters">
-            <view wx:for="{{recentMemorial.supporters}}" wx:key="*this" class="supporter">{{item}}</view>
+            <view wx:for="{{featuredPet.supporters}}" wx:key="*this" class="supporter">{{item}}</view>
           </view>
         </view>
 
