@@ -1,7 +1,7 @@
 <view class="page">
   <text class="title">AI 写给主人一封信</text>
   <view class="bottle">
-    <image class="pet" src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+    <image class="pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
     <text class="tag">奶球</text>
   </view>
   <view class="paper">

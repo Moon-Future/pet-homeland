@@ -10,7 +10,7 @@ Page({
       dayLabel: "陪伴",
       relationDays: 2116,
       message: "今天记录了一段新的陪伴",
-      avatar: "/assets/home/default-pet.svg",
+      avatar: "/assets/home/default-pet.png",
       supporters: ["晴", "安", "夏", "米"],
     },
     petSpaces: [
@@ -22,7 +22,7 @@ Page({
         statusClass: "status-with-me",
         dayLabel: "陪伴",
         days: 2116,
-        avatar: "/assets/home/default-pet.svg",
+        avatar: "/assets/home/default-pet.png",
       },
       {
         id: "pet-2",
@@ -31,7 +31,7 @@ Page({
         statusClass: "status-in-stars",
         dayLabel: "离开",
         days: 721,
-        avatar: "/assets/home/default-pet.svg",
+        avatar: "/assets/home/default-pet.png",
       },
       {
         id: "pet-3",
@@ -40,7 +40,7 @@ Page({
         statusClass: "status-with-me",
         dayLabel: "陪伴",
         days: 980,
-        avatar: "/assets/home/default-pet.svg",
+        avatar: "/assets/home/default-pet.png",
       },
     ],
     navItems: [

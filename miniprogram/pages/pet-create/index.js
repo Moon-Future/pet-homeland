@@ -33,7 +33,7 @@ Page({
       },
     ],
     selectedTheme: "rainbow",
-    petPreview: "/assets/home/default-pet.svg",
+    petPreview: "/assets/home/default-pet.png",
   },
 
   goStep(e) {

@@ -6,7 +6,7 @@ Page({
       birthday: "2018.05.03",
       today: "2026.06.03",
       days: 2911,
-      avatar: "/assets/home/default-pet.svg",
+      avatar: "/assets/home/default-pet.png",
       cover: "https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png",
       story: "你是我每天醒来都会想抱抱的小太阳。今天也要一起散步、吃饭、晒太阳，把普通日子过成闪闪发光的回忆。",
     },

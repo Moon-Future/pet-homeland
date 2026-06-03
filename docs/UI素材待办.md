@@ -3,7 +3,7 @@
 ## 首页阶段已制作
 
 * `miniprogram/assets/home/hero-rainbow.svg`：首页彩虹桥主视觉草稿
-* `miniprogram/assets/home/default-pet.svg`：默认宠物头像
+* `miniprogram/assets/home/default-pet.png`：默认宠物头像
 * `miniprogram/assets/icons/*.svg`：首页需要的基础图标
 * 首页已接入远程背景图：`https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png`
 * `miniprogram/assets/themes/*.svg`：创建宠物小窝页面使用的主题占位图

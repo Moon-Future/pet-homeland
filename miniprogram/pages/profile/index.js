@@ -1,6 +1,6 @@
 Page({
   data: {
-    user: { name: "奶球", avatar: "/assets/home/default-pet.svg", vip: true, date: "2018.05.03 - 2026.04.18" },
+    user: { name: "奶球", avatar: "/assets/home/default-pet.png", vip: true, date: "2018.05.03 - 2026.04.18" },
     stats: [
       { label: "宠物", value: 3 },
       { label: "关注", value: 12 },

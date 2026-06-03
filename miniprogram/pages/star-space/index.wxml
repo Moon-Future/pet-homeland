@@ -3,10 +3,10 @@
   <text class="subtitle">在这里，每一颗星星都是一个想念</text>
   <view class="sky">
     <view wx:for="{{stars}}" wx:key="name" class="star-dot" style="left: {{item.x}}%; top: {{item.y}}%;">
-      <image src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+      <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
     </view>
     <view class="center-card">
-      <image src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+      <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
       <view>
         <text class="pet-name">奶球 ✨</text>
         <text class="pet-meta">陪伴 2911 天</text>
