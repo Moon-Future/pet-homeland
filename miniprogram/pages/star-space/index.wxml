@@ -1,5 +1,5 @@
 <view class="page">
-  <text class="title">彩虹桥星空</text>
+  <text class="title">星宠乡星空</text>
   <text class="subtitle">在这里，每一颗星星都是一个想念</text>
   <view class="sky">
     <view wx:for="{{stars}}" wx:key="name" class="star-dot" style="left: {{item.x}}%; top: {{item.y}}%;">

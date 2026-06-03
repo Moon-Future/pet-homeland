@@ -8,7 +8,7 @@ page { min-height: 100vh; background: #fff7f2; }
 .name { font-size: 58rpx; font-weight: 900; }
 .date { margin-top: 12rpx; font-size: 25rpx; font-weight: 700; }
 .pill { align-self: flex-start; margin-top: 18rpx; padding: 12rpx 20rpx; border-radius: 999rpx; background: #ff7898; font-size: 24rpx; font-weight: 900; }
-.sheet { position: relative; z-index: 2; margin: 50rpx 24rpx 0; padding-bottom: 32rpx; }
+.sheet { position: relative; z-index: 2; margin: 90rpx 24rpx 0; padding-bottom: 32rpx; }
 .actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 16rpx; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 10rpx; color: #5e526f; font-size: 22rpx; font-weight: 800; }
 .action-icon { width: 82rpx; height: 82rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.84); box-shadow: 0 8rpx 22rpx rgba(126,84,230,.16); }
