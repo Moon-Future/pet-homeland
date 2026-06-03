@@ -1,10 +1,57 @@
 <view class="page">
-  <view class="header">
-    <text class="eyebrow">Home</text>
-    <text class="title">{{appName}}</text>
-  </view>
+  <image class="page-bg" src="{{homeBg}}" mode="aspectFill"></image>
 
-  <view class="main">
-    <view class="panel"></view>
+  <view class="content">
+    <view class="hero-copy">
+      <text class="hero-title">星宠乡 🌈</text>
+      <text class="hero-subtitle">他们只是去了更远的地方</text>
+    </view>
+
+    <button class="create-button" bindtap="onCreateMemorial">
+      <image class="create-icon" src="/assets/icons/plus.svg" mode="aspectFit"></image>
+      <text class="create-lable">创建纪念馆</text>
+    </button>
+
+    <view class="recent-card">
+      <view class="card-head">
+        <text class="card-title">最近思念</text>
+        <view class="view-all" bindtap="onViewAll">
+          <text>查看全部</text>
+          <image class="arrow-icon" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <view class="card-body">
+        <image class="pet-avatar" src="{{recentMemorial.avatar}}" mode="aspectFill"></image>
+
+        <view class="pet-info">
+          <view class="pet-name-row">
+            <text class="pet-name">{{recentMemorial.petName}}</text>
+            <image class="sparkle-icon" src="/assets/icons/sparkle.svg" mode="aspectFit"></image>
+          </view>
+          <text class="pet-days">离开 {{recentMemorial.relationDays}} 天</text>
+          <text class="pet-message">{{recentMemorial.message}}</text>
+          <view class="supporters">
+            <view wx:for="{{recentMemorial.supporters}}" wx:key="*this" class="supporter">{{item}}</view>
+          </view>
+        </view>
+
+        <view class="heart-main">
+          <image class="heart-icon" src="/assets/icons/heart.svg" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <view class="heart-more">
+        <image class="heart-small" src="/assets/icons/heart.svg" mode="aspectFit"></image>
+        <text>»</text>
+      </view>
+    </view>
+
+    <view class="bottom-nav">
+      <view wx:for="{{navItems}}" wx:key="label" class="nav-item {{item.active ? 'active' : ''}}">
+        <image class="nav-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <text>{{item.label}}</text>
+      </view>
+    </view>
   </view>
 </view>

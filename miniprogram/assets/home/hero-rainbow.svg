@@ -1,0 +1,36 @@
+<svg width="750" height="760" viewBox="0 0 750 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="750" height="760" fill="#8AA0FF"/>
+  <path d="M0 0H750V760H0V0Z" fill="url(#sky)"/>
+  <circle cx="623" cy="143" r="48" fill="#FFE9A8"/>
+  <path d="M589 132C604 155 635 160 659 145C648 176 609 185 581 163C569 153 574 137 589 132Z" fill="#879CFF"/>
+  <path d="M-20 575C120 451 260 408 376 408C516 408 642 472 770 592V760H-20V575Z" fill="#FFD9E8"/>
+  <path d="M-10 613C130 520 267 485 381 485C513 485 638 535 760 629V760H-10V613Z" fill="#FFF0F7"/>
+  <path d="M112 438C171 300 271 226 375 226C479 226 579 300 638 438" stroke="#FF89B3" stroke-width="28" stroke-linecap="round"/>
+  <path d="M147 438C202 323 286 263 375 263C464 263 548 323 603 438" stroke="#FFC86E" stroke-width="28" stroke-linecap="round"/>
+  <path d="M182 438C233 348 298 299 375 299C452 299 517 348 568 438" stroke="#FFF4A8" stroke-width="28" stroke-linecap="round"/>
+  <path d="M217 438C262 375 316 338 375 338C434 338 488 375 533 438" stroke="#8BE2D5" stroke-width="28" stroke-linecap="round"/>
+  <path d="M252 438C289 398 329 374 375 374C421 374 461 398 498 438" stroke="#9CA7FF" stroke-width="28" stroke-linecap="round"/>
+  <ellipse cx="273" cy="563" rx="86" ry="38" fill="#C9D4FF"/>
+  <ellipse cx="478" cy="565" rx="86" ry="38" fill="#C9D4FF"/>
+  <path d="M285 520C285 485 309 458 341 458C374 458 398 485 398 520V585H285V520Z" fill="#F8F1EC"/>
+  <circle cx="325" cy="497" r="8" fill="#4C3A38"/>
+  <circle cx="361" cy="497" r="8" fill="#4C3A38"/>
+  <path d="M339 512C344 517 350 517 355 512" stroke="#4C3A38" stroke-width="5" stroke-linecap="round"/>
+  <path d="M468 531C468 492 495 462 532 462C569 462 596 492 596 531V590H468V531Z" fill="#7B746D"/>
+  <path d="M485 472L503 438L515 478" fill="#7B746D"/>
+  <path d="M578 472L560 438L548 478" fill="#7B746D"/>
+  <circle cx="518" cy="508" r="8" fill="#2F2928"/>
+  <circle cx="552" cy="508" r="8" fill="#2F2928"/>
+  <path d="M533 525C538 531 544 531 549 525" stroke="#2F2928" stroke-width="5" stroke-linecap="round"/>
+  <path d="M93 128L99 145L116 151L99 157L93 174L87 157L70 151L87 145L93 128Z" fill="#FFE48A"/>
+  <path d="M673 285L678 299L692 304L678 309L673 323L668 309L654 304L668 299L673 285Z" fill="#FFE48A"/>
+  <path d="M148 237L152 249L164 253L152 257L148 269L144 257L132 253L144 249L148 237Z" fill="#FFF7C7"/>
+  <defs>
+    <linearGradient id="sky" x1="375" y1="0" x2="375" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E80F5"/>
+      <stop offset="0.46" stop-color="#B9A7FF"/>
+      <stop offset="0.78" stop-color="#FFD0DF"/>
+      <stop offset="1" stop-color="#FFF3E3"/>
+    </linearGradient>
+  </defs>
+</svg>
