@@ -16,5 +16,4 @@ page { min-height: 100vh; background: #f4e9ff; }
 .grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20rpx 12rpx; margin-top: 22rpx; }
 .tool { display: flex; flex-direction: column; align-items: center; gap: 10rpx; color: #5e526f; font-size: 21rpx; font-weight: 800; }
 .tool image { width: 48rpx; height: 48rpx; }
-.tabbar { position: fixed; left: 24rpx; right: 24rpx; bottom: 24rpx; height: 98rpx; display: grid; grid-template-columns: repeat(4,1fr); align-items: center; text-align: center; border-radius: 30rpx; color: #8b83a0; background: rgba(255,255,255,.92); font-size: 22rpx; font-weight: 900; box-shadow: 0 14rpx 30rpx rgba(83,70,166,.18); }
 .active { color: #8b5cf6; }

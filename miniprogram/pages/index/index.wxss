@@ -54,7 +54,7 @@ page {
   position: absolute;
   left: 118rpx;
   right: 118rpx;
-  bottom: 520rpx;
+  bottom: 430rpx;
   height: 86rpx;
   line-height: 86rpx;
   padding: 0;
@@ -87,7 +87,7 @@ page {
   position: absolute;
   left: 34rpx;
   right: 34rpx;
-  bottom: 160rpx;
+  bottom: 60rpx;
   min-height: 282rpx;
   padding: 24rpx 24rpx 22rpx;
   border: 3rpx solid rgba(255, 255, 255, 0.56);
@@ -313,39 +313,4 @@ page {
 .heart-small {
   width: 34rpx;
   height: 34rpx;
-}
-
-.bottom-nav {
-  position: absolute;
-  left: 34rpx;
-  right: 34rpx;
-  bottom: 28rpx;
-  height: 102rpx;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border: 2rpx solid rgba(255, 255, 255, 0.52);
-  border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 14rpx 30rpx rgba(83, 70, 166, 0.22);
-  backdrop-filter: blur(12px);
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4rpx;
-  color: #8b83a0;
-  font-size: 21rpx;
-  font-weight: 800;
-}
-
-.nav-item.active {
-  color: #7a53e8;
-}
-
-.nav-icon {
-  width: 42rpx;
-  height: 42rpx;
 }

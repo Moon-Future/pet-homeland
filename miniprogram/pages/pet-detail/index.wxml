@@ -3,7 +3,6 @@
   <view class="shade"></view>
 
   <view class="topbar">
-    <text class="back">‹</text>
     <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
   </view>
 

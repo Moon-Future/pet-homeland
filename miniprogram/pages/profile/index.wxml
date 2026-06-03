@@ -22,7 +22,4 @@
       <view wx:for="{{more}}" wx:key="label" class="tool"><image src="{{item.icon}}"></image><text>{{item.label}}</text></view>
     </view>
   </view>
-  <view class="tabbar">
-    <text>首页</text><text>小窝</text><text>发现</text><text class="active">我的</text>
-  </view>
 </view>
