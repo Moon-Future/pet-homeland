@@ -44,10 +44,10 @@ Page({
       },
     ],
     navItems: [
-      { label: "首页", icon: "/assets/icons/sparkle.svg", active: true },
-      { label: "小窝", icon: "/assets/icons/memorial.svg" },
-      { label: "发现", icon: "/assets/icons/star.svg" },
-      { label: "我的", icon: "/assets/icons/paw.svg" },
+      { label: "首页", icon: "/assets/icons/sparkle.svg", active: true, url: "/pages/index/index" },
+      { label: "小窝", icon: "/assets/icons/memorial.svg", url: "/pages/pet-detail/index" },
+      { label: "发现", icon: "/assets/icons/star.svg", url: "/pages/star-space/index" },
+      { label: "我的", icon: "/assets/icons/paw.svg", url: "/pages/profile/index" },
     ],
   },
 
@@ -66,9 +66,16 @@ Page({
 
   onSelectPet(e) {
     const { name } = e.currentTarget.dataset;
-    wx.showToast({
-      title: `${name} 的小窝开发中`,
-      icon: "none",
+    wx.navigateTo({
+      url: `/pages/pet-detail/index?name=${name}`,
     });
+  },
+
+  onNavTap(e) {
+    const { url } = e.currentTarget.dataset;
+    if (!url || url === "/pages/index/index") {
+      return;
+    }
+    wx.navigateTo({ url });
   },
 });

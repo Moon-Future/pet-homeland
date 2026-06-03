@@ -64,7 +64,7 @@
     </view>
 
     <view class="bottom-nav">
-      <view wx:for="{{navItems}}" wx:key="label" class="nav-item {{item.active ? 'active' : ''}}">
+      <view wx:for="{{navItems}}" wx:key="label" class="nav-item {{item.active ? 'active' : ''}}" data-url="{{item.url}}" bindtap="onNavTap">
         <image class="nav-icon" src="{{item.icon}}" mode="aspectFit"></image>
         <text>{{item.label}}</text>
       </view>

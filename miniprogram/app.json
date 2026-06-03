@@ -1,7 +1,14 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/pet-create/index"
+    "pages/pet-create/index",
+    "pages/pet-detail/index",
+    "pages/timeline/index",
+    "pages/album/index",
+    "pages/ai-book/index",
+    "pages/ai-letter/index",
+    "pages/star-space/index",
+    "pages/profile/index"
   ],
   "window": {
     "backgroundColor": "#F7F8FA",

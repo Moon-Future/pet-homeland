@@ -1,0 +1,21 @@
+<view class="page">
+  <text class="title">彩虹桥星空</text>
+  <text class="subtitle">在这里，每一颗星星都是一个想念</text>
+  <view class="sky">
+    <view wx:for="{{stars}}" wx:key="name" class="star-dot" style="left: {{item.x}}%; top: {{item.y}}%;">
+      <image src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+    </view>
+    <view class="center-card">
+      <image src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+      <view>
+        <text class="pet-name">奶球 ✨</text>
+        <text class="pet-meta">陪伴 2911 天</text>
+      </view>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <button class="sub">星空榜单</button>
+    <button class="main" bindtap="lightStar">点亮一颗星</button>
+    <button class="sub">我的星球</button>
+  </view>
+</view>

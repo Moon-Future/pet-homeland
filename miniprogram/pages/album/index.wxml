@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="header">
+    <text class="title">回忆相册 🌸</text>
+    <view class="add">＋</view>
+  </view>
+  <scroll-view class="filters" scroll-x>
+    <view class="filter-list">
+      <view wx:for="{{filters}}" wx:key="*this" class="filter {{index === 0 ? 'active' : ''}}">{{item}}</view>
+    </view>
+  </scroll-view>
+  <view class="collage">
+    <view wx:for="{{photos}}" wx:key="*this" class="photo photo-{{index}}">
+      <image src="{{item}}" mode="aspectFill"></image>
+    </view>
+    <text class="miss">I miss you ♥</text>
+  </view>
+</view>

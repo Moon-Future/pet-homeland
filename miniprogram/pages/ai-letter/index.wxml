@@ -1,0 +1,13 @@
+<view class="page">
+  <text class="title">AI 写给主人一封信</text>
+  <view class="bottle">
+    <image class="pet" src="/assets/home/default-pet.svg" mode="aspectFill"></image>
+    <text class="tag">奶球</text>
+  </view>
+  <view class="paper">
+    <text class="to">亲爱的主人：</text>
+    <text class="letter">{{letter}}</text>
+    <text class="sign">— 奶球</text>
+  </view>
+  <button class="button" bindtap="regenerate">再来一封信 ↻</button>
+</view>

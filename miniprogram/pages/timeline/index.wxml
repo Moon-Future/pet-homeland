@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="title">奶球的时间轴 🌈</view>
+  <scroll-view class="tabs" scroll-x>
+    <view class="tab-list">
+      <view wx:for="{{tabs}}" wx:key="*this" class="tab {{item === activeTab ? 'active' : ''}}">{{item}}</view>
+    </view>
+  </scroll-view>
+  <view class="timeline">
+    <view wx:for="{{memories}}" wx:key="title" class="memory">
+      <view class="axis"><view class="dot"></view></view>
+      <view class="year-box"><text class="year">{{item.year}}</text><text class="date">{{item.date}}</text></view>
+      <view class="memory-card">
+        <view class="memory-copy"><text class="memory-title">{{item.title}}</text><text class="memory-desc">{{item.desc}}</text></view>
+        <image class="memory-img" src="{{item.img}}" mode="aspectFill"></image>
+      </view>
+    </view>
+  </view>
+</view>

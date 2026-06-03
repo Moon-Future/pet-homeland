@@ -1,0 +1,10 @@
+<view class="page">
+  <view class="book">
+    <text class="book-title">《{{pet.name}}的一生》</text>
+    <text class="book-subtitle">记录我们最美好的时光</text>
+    <view class="portrait"><image src="{{pet.avatar}}" mode="aspectFill"></image></view>
+    <text class="pet-name">{{pet.name}} ♥</text>
+    <text class="date">{{pet.date}}</text>
+    <button class="button" bindtap="startRead">开始阅读</button>
+  </view>
+</view>
