@@ -8,7 +8,8 @@
     "pages/ai-book/index",
     "pages/ai-letter/index",
     "pages/star-space/index",
-    "pages/profile/index"
+    "pages/profile/index",
+    "pages/profile-edit/index"
   ],
   "window": {
     "backgroundColor": "#F7F8FA",

@@ -1,25 +1,65 @@
 <view class="page">
-  <view class="profile-head">
-    <image class="avatar" src="{{user.avatar}}" mode="aspectFill"></image>
-    <view class="user-copy">
-      <view class="name-row"><text class="name">{{user.name}}</text><text class="vip">VIP</text></view>
-      <text class="date">{{user.date}}</text>
+  <view wx:if="{{loading}}" class="loading-panel">
+    <text>正在读取微信登录态...</text>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{isLoggedIn}}" class="profile-head">
+      <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+      <view class="user-copy">
+        <view class="name-row">
+          <text class="name">{{hasProfile ? user.nickname : '微信用户'}}</text>
+          <text wx:if="{{user.vip}}" class="vip">VIP</text>
+        </view>
+        <text class="date">{{user.createdAtText}}</text>
+      </view>
+      <button class="settings-button" bindtap="goEditProfile">
+        <image class="settings-icon" src="/assets/icons/settings.svg" mode="aspectFit"></image>
+      </button>
     </view>
-    <text class="settings">⚙</text>
-  </view>
-  <view class="stats">
-    <view wx:for="{{stats}}" wx:key="label" class="stat"><text class="value">{{item.value}}</text><text>{{item.label}}</text></view>
-  </view>
-  <view class="panel">
-    <text class="panel-title">我的服务</text>
-    <view class="grid">
-      <view wx:for="{{services}}" wx:key="label" class="tool" data-url="{{item.url}}" bindtap="go"><image src="{{item.icon}}"></image><text>{{item.label}}</text></view>
+
+    <view wx:else class="profile-head unsigned" bindtap="loginByAvatar">
+      <button class="login-avatar">
+        <image class="empty-avatar" src="/assets/icons/user.svg" mode="aspectFit"></image>
+        <view wx:if="{{loggingIn}}" class="avatar-mask">登录中</view>
+      </button>
+      <view class="user-copy">
+        <text class="unsigned-title">{{loggingIn ? '登录中...' : '点击头像登录'}}</text>
+        <text class="date">登录后查看和管理资料</text>
+      </view>
     </view>
-  </view>
-  <view class="panel">
-    <text class="panel-title">更多功能</text>
-    <view class="grid">
-      <view wx:for="{{more}}" wx:key="label" class="tool"><image src="{{item.icon}}"></image><text>{{item.label}}</text></view>
+
+    <view class="stats {{isLoggedIn ? '' : 'muted'}}">
+      <view wx:for="{{stats}}" wx:key="label" class="stat">
+        <text class="value">{{item.value}}</text>
+        <text>{{item.label}}</text>
+      </view>
     </view>
-  </view>
+
+    <view class="panel">
+      <text class="panel-title">我的服务</text>
+      <view class="grid">
+        <view wx:for="{{services}}" wx:key="label" class="tool {{isLoggedIn ? '' : 'locked'}}" data-url="{{item.url}}" bindtap="go">
+          <image src="{{item.icon}}"></image>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel">
+      <text class="panel-title">更多功能</text>
+      <view class="grid">
+        <view wx:for="{{more}}" wx:key="label" class="tool {{isLoggedIn ? '' : 'locked'}}" data-url="{{item.url}}" bindtap="go">
+          <image src="{{item.icon}}"></image>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{isLoggedIn}}" class="action-list">
+      <button class="action-row danger" bindtap="logout">
+        <text>退出登录</text>
+      </button>
+    </view>
+  </block>
 </view>

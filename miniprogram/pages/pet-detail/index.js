@@ -1,3 +1,5 @@
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     pet: {
@@ -24,19 +26,41 @@ Page({
     ],
   },
 
+  onLoad() {
+    auth.requireLogin({
+      redirectToProfile: true,
+    })
+  },
+
   goTimeline() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.navigateTo({ url: '/pages/timeline/index' })
   },
 
   goAlbum() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.navigateTo({ url: '/pages/album/index' })
   },
 
   goLetter() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.navigateTo({ url: '/pages/ai-letter/index' })
   },
 
   goBook() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.navigateTo({ url: '/pages/ai-book/index' })
   },
 

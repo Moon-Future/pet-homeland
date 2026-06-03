@@ -1,19 +1,266 @@
-page { min-height: 100vh; background: #f4e9ff; }
-.page { min-height: 100vh; padding: 44rpx 26rpx 140rpx; background: linear-gradient(180deg,#dfcaff,#fff7fb); }
-.profile-head { display: flex; align-items: center; position: relative; }
-.avatar { width: 132rpx; height: 132rpx; border: 8rpx solid rgba(255,255,255,.8); border-radius: 50%; }
-.user-copy { margin-left: 20rpx; }
-.name-row { display: flex; align-items: center; gap: 12rpx; }
-.name { color: #2f2940; font-size: 36rpx; font-weight: 900; }
-.vip { padding: 4rpx 12rpx; border-radius: 999rpx; color: #fff; background: #ffc85c; font-size: 18rpx; font-weight: 900; }
-.date { display: block; margin-top: 10rpx; color: #6f6090; font-size: 23rpx; font-weight: 800; }
-.settings { position: absolute; right: 8rpx; top: 8rpx; font-size: 36rpx; }
-.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12rpx; margin-top: 28rpx; padding: 22rpx 0; border-radius: 22rpx; background: rgba(255,255,255,.72); }
-.stat { display: flex; flex-direction: column; align-items: center; color: #6f6090; font-size: 22rpx; font-weight: 800; }
-.value { color: #2f2940; font-size: 30rpx; font-weight: 900; }
-.panel { margin-top: 22rpx; padding: 24rpx; border-radius: 24rpx; background: rgba(255,255,255,.72); }
-.panel-title { color: #2f2940; font-size: 27rpx; font-weight: 900; }
-.grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20rpx 12rpx; margin-top: 22rpx; }
-.tool { display: flex; flex-direction: column; align-items: center; gap: 10rpx; color: #5e526f; font-size: 21rpx; font-weight: 800; }
-.tool image { width: 48rpx; height: 48rpx; }
-.active { color: #8b5cf6; }
+page {
+  min-height: 100vh;
+  background: #f6f0ff;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 44rpx 26rpx 140rpx;
+  background: linear-gradient(180deg, #dfcaff, #fff7fb);
+  box-sizing: border-box;
+}
+
+.loading-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 360rpx;
+  color: #6f6090;
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 132rpx;
+}
+
+.avatar {
+  flex: none;
+  width: 132rpx;
+  height: 132rpx;
+  border: 8rpx solid rgba(255, 255, 255, .86);
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: 0 14rpx 30rpx rgba(126, 86, 194, .18);
+}
+
+.profile-head .login-avatar {
+  position: relative;
+  flex: none;
+  width: 132rpx;
+  height: 132rpx;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.profile-head .login-avatar::after {
+  border: 0;
+}
+
+.empty-avatar {
+  width: 132rpx;
+  height: 132rpx;
+  padding: 30rpx;
+  border: 8rpx solid rgba(255, 255, 255, .86);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .78);
+  box-sizing: border-box;
+  box-shadow: 0 14rpx 30rpx rgba(126, 86, 194, .18);
+}
+
+.avatar-mask {
+  position: absolute;
+  left: 8rpx;
+  top: 8rpx;
+  right: 8rpx;
+  bottom: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(47, 41, 64, .48);
+  font-size: 20rpx;
+  font-weight: 900;
+}
+
+.user-copy {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.name {
+  max-width: 330rpx;
+  overflow: hidden;
+  color: #2f2940;
+  font-size: 36rpx;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vip {
+  flex: none;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  background: #ffc85c;
+  font-size: 18rpx;
+  font-weight: 900;
+}
+
+.date {
+  display: block;
+  margin-top: 10rpx;
+  color: #6f6090;
+  font-size: 23rpx;
+  font-weight: 800;
+}
+
+.profile-head .settings-button {
+  flex: none;
+  width: 56rpx;
+  height: 56rpx;
+  margin-left: 12rpx;
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+  line-height: 1;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.profile-head .settings-button::after {
+  border: 0;
+}
+
+.settings-icon {
+  width: 42rpx;
+  height: 42rpx;
+}
+
+.unsigned-title {
+  display: block;
+  color: #2f2940;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+  margin-top: 28rpx;
+  padding: 22rpx 0;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 16rpx 34rpx rgba(126, 86, 194, .1);
+}
+
+.stats.muted {
+  opacity: .66;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #6f6090;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.value {
+  color: #2f2940;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.panel {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 16rpx 34rpx rgba(126, 86, 194, .1);
+}
+
+.panel-title {
+  color: #2f2940;
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx 12rpx;
+  margin-top: 22rpx;
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+  color: #5e526f;
+  font-size: 21rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tool image {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.tool text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool.locked {
+  opacity: .48;
+}
+
+.action-list {
+  margin-top: 22rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 16rpx 34rpx rgba(126, 86, 194, .1);
+}
+
+.action-list .action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 82rpx;
+  padding: 0 24rpx;
+  border-radius: 0;
+  background: transparent;
+  color: #5e526f;
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 82rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.action-list .action-row::after {
+  border: 0;
+}
+
+.action-list .action-row.danger {
+  color: #d85b6a;
+}

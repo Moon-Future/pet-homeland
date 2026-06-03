@@ -1,3 +1,5 @@
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     filters: ['全部', '可爱瞬间', '旅行', '日常', '视频'],
@@ -9,5 +11,11 @@ Page({
       '/assets/themes/starry-night.svg',
       '/assets/home/default-pet.png',
     ],
+  },
+
+  onLoad() {
+    auth.requireLogin({
+      redirectToProfile: true,
+    })
   },
 })

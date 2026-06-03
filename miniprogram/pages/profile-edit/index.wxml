@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="avatar-section">
+    <view class="avatar-wrap">
+      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
+        <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill" />
+      </button>
+      <button class="camera-button" bindtap="uploadLocalAvatar">
+        <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
+      </button>
+    </view>
+  </view>
+
+  <view class="form-panel">
+    <text class="label">昵称</text>
+    <input
+      class="nickname-input"
+      type="nickname"
+      placeholder="选择微信昵称或自己输入"
+      value="{{form.nickname}}"
+      bindinput="onNicknameInput"
+    />
+  </view>
+
+  <button class="save-button" disabled="{{saving}}" bindtap="saveProfile">
+    <text>{{saving ? '保存中...' : '保存资料'}}</text>
+  </button>
+</view>

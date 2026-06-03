@@ -1,3 +1,5 @@
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     homeBg: 'https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png',
@@ -46,6 +48,10 @@ Page({
   },
 
   onCreateMemorial() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.navigateTo({
       url: '/pages/pet-create/index',
     })
@@ -58,6 +64,10 @@ Page({
   },
 
   onSelectPet() {
+    if (!auth.requireLogin()) {
+      return
+    }
+
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

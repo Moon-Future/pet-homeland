@@ -1,3 +1,5 @@
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     tabs: ['全部', '成长', '旅行', '日常', '里程碑'],
@@ -8,5 +10,11 @@ Page({
       { year: '2020', date: '6月1日', title: '第一次旅行', desc: '一起去看海。', img: '/assets/themes/cloud-garden.svg' },
       { year: '2023', date: '3月10日', title: '学会握手', desc: '是超级聪明的小狗。', img: '/assets/themes/sakura-forest.svg' },
     ],
+  },
+
+  onLoad() {
+    auth.requireLogin({
+      redirectToProfile: true,
+    })
   },
 })

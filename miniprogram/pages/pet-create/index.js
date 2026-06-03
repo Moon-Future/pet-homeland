@@ -1,3 +1,5 @@
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     currentStep: 1,
@@ -34,6 +36,12 @@ Page({
     ],
     selectedTheme: 'rainbow',
     petPreview: '/assets/home/default-pet.png',
+  },
+
+  onLoad() {
+    auth.requireLogin({
+      redirectToProfile: true,
+    })
   },
 
   goStep(e) {
