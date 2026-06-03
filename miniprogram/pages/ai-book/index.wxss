@@ -7,5 +7,5 @@ page { min-height: 100vh; background: #f7efff; }
 .portrait image { width: 100%; height: 100%; border-radius: 50%; }
 .pet-name { margin-top: 44rpx; color: #7b4a70; font-size: 42rpx; font-weight: 900; }
 .date { margin-top: 26rpx; color: #8e7b8a; font-size: 24rpx; font-weight: 700; }
-.button { width: 300rpx; height: 78rpx; margin-top: auto; border-radius: 999rpx; color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); font-size: 28rpx; font-weight: 900; }
+.button { width: 300rpx; height: 78rpx; line-height: 78rpx; margin-top: auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 999rpx; color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); font-size: 28rpx; font-weight: 900; }
 .button::after { border: 0; }

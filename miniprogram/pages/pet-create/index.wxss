@@ -300,6 +300,7 @@ page {
 .prev-button,
 .next-button {
   height: 84rpx;
+  line-height: 84rpx;
   margin: 0;
   padding: 0;
   display: flex;

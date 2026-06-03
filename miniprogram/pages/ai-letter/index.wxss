@@ -8,5 +8,5 @@ page { min-height: 100vh; background: #151d62; }
 .to,.letter,.sign { display: block; color: #5a3c48; font-size: 27rpx; font-weight: 800; line-height: 1.8; white-space: pre-line; }
 .letter { margin-top: 14rpx; }
 .sign { text-align: right; margin-top: 18rpx; }
-.button { width: 320rpx; height: 82rpx; margin: 56rpx auto 0; border-radius: 999rpx; color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); font-size: 28rpx; font-weight: 900; }
+.button { width: 320rpx; height: 82rpx; line-height: 82rpx; margin: 56rpx auto 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 999rpx; color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); font-size: 28rpx; font-weight: 900; }
 .button::after { border: 0; }

@@ -58,9 +58,8 @@ Page({
   },
 
   onViewAll() {
-    wx.showToast({
-      title: "宠物小窝列表开发中",
-      icon: "none",
+    wx.navigateTo({
+      url: "/pages/profile/index",
     });
   },
 

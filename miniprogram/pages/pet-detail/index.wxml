@@ -10,7 +10,7 @@
   <view class="hero">
     <text class="name">{{pet.name}} ✨</text>
     <text class="date">{{pet.birthday}} - {{pet.today}}</text>
-    <text class="pill">{{pet.status}} {{pet.days}} 天</text>
+      <text class="pill">陪伴第 {{pet.days}} 天</text>
   </view>
 
   <view class="sheet">
@@ -30,7 +30,7 @@
 
     <view class="story-card">
       <view class="story-head">
-        <text>关于{{pet.name}}</text>
+        <text>{{pet.name}}的小日常</text>
         <text class="edit">编辑 ›</text>
       </view>
       <text class="story">{{pet.story}}</text>
