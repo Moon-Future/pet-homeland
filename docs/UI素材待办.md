@@ -6,6 +6,7 @@
 * `miniprogram/assets/home/default-pet.svg`：默认宠物头像
 * `miniprogram/assets/icons/*.svg`：首页需要的基础图标
 * 首页已接入远程背景图：`https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png`
+* `miniprogram/assets/themes/*.svg`：创建宠物小窝页面使用的主题占位图
 
 ## 仍需准备
 
@@ -13,6 +14,8 @@
 * 小程序头像：建议单独做 1024 x 1024 PNG
 * 真实宠物默认照片：当前 SVG 头像只适合占位
 * 四套主题高清背景：彩虹桥、云朵花园、星河夜空、樱花森林
+* 创建页上传头像区域的真实宠物示例图：当前使用 SVG 默认头像占位
+* 创建页主题卡片高清图：当前使用 SVG 占位，后续需要替换成正式插画或 CDN 图片
 * 分享卡片背景：需要按照微信分享图比例单独设计
 * 分享海报背景：需要竖版长图构图
 * 空时间轴插画：用于没有回忆时的空状态

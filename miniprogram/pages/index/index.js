@@ -52,9 +52,8 @@ Page({
   },
 
   onCreateMemorial() {
-    wx.showToast({
-      title: "创建宠物小窝开发中",
-      icon: "none",
+    wx.navigateTo({
+      url: "/pages/pet-create/index",
     });
   },
 

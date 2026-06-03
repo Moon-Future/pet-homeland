@@ -1,0 +1,67 @@
+<view class="page">
+  <view class="panel">
+    <view class="title-group">
+      <text class="title">创建宠物小窝</text>
+      <text class="subtitle">{{currentStep === 3 ? '为宝贝选择一个温暖的家' : '把最喜欢的一张照片放在这里'}}</text>
+    </view>
+
+    <view class="stepper">
+      <view wx:for="{{steps}}" wx:key="id" class="step-item {{currentStep >= item.id ? 'active' : ''}}" data-step="{{item.id}}" bindtap="goStep">
+        <view class="step-dot">{{item.id}}</view>
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{currentStep === 1}}" class="upload-step">
+      <view class="avatar-wrap" bindtap="choosePhoto">
+        <image class="pet-avatar" src="{{petPreview}}" mode="aspectFill"></image>
+        <view class="camera-badge">
+          <image src="/assets/icons/camera.svg" mode="aspectFit"></image>
+        </view>
+      </view>
+      <text class="upload-title">上传毛孩子</text>
+      <text class="upload-subtitle">最喜欢的一张照片</text>
+      <view class="paw paw-left"></view>
+      <view class="paw paw-right"></view>
+    </view>
+
+    <view wx:elif="{{currentStep === 2}}" class="form-step">
+      <view class="field">
+        <text class="field-label">宝贝名字</text>
+        <input class="input" value="{{form.petName}}" placeholder="输入宠物名字" bindinput="onNameInput" />
+      </view>
+
+      <view class="field">
+        <text class="field-label">宠物状态</text>
+        <view class="status-options">
+          <view class="status-option {{form.lifeStatus === 'with_me' ? 'active' : ''}}" data-status="with_me" bindtap="setLifeStatus">
+            <text>陪伴中</text>
+            <text class="option-note">记录每天的陪伴</text>
+          </view>
+          <view class="status-option {{form.lifeStatus === 'in_stars' ? 'active' : ''}}" data-status="in_stars" bindtap="setLifeStatus">
+            <text>已去星星</text>
+            <text class="option-note">安放珍贵的想念</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="theme-step">
+      <view class="theme-grid">
+        <view wx:for="{{themes}}" wx:key="id" class="theme-card {{selectedTheme === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectTheme">
+          <image class="theme-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="theme-name">{{item.name}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer-actions {{currentStep === 1 ? 'single' : ''}}">
+      <button wx:if="{{currentStep > 1}}" class="prev-button" bindtap="prevStep">
+        <text>上一步</text>
+      </button>
+      <button class="next-button" bindtap="nextStep">
+        <text>{{currentStep === 3 ? '完成创建' : '下一步'}}</text>
+      </button>
+    </view>
+  </view>
+</view>
