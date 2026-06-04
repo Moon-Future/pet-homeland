@@ -3,9 +3,9 @@
     <view class="avatar-wrap">
       <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
         <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill" />
-      </button>
-      <button class="camera-button" bindtap="uploadLocalAvatar">
-        <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
+        <view class="camera-button">
+          <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
+        </view>
       </button>
     </view>
   </view>
