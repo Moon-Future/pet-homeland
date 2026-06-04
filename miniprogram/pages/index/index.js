@@ -60,8 +60,16 @@ Page({
         throw new Error((result && result.message) || '读取宠物小窝失败')
       }
 
-      const petSpaces = (result.petSpaces || []).map((item, index) => this.normalizePetSpace(item, index))
-      const featuredPet = petSpaces[0] ? this.normalizeFeaturedPet(petSpaces[0]) : null
+      const savedId = wx.getStorageSync('selectedPetSpaceId')
+      const rawList = result.petSpaces || []
+      const selectedRaw = rawList.find((item) => item._id === savedId) || rawList[0]
+      const selectedId = selectedRaw && selectedRaw._id
+      const petSpaces = rawList.map((item) => this.normalizePetSpace(item, item._id === selectedId))
+      const featuredPet = selectedRaw ? this.normalizeFeaturedPet(this.normalizePetSpace(selectedRaw, true)) : null
+
+      if (selectedId) {
+        wx.setStorageSync('selectedPetSpaceId', selectedId)
+      }
 
       this.setData({
         loadingPets: false,
@@ -78,20 +86,34 @@ Page({
     }
   },
 
-  normalizePetSpace(item = {}, index = 0) {
+  normalizePetSpace(item = {}, active = false) {
     const lifeStatus = item.lifeStatus || 'with_me'
     const isInStars = lifeStatus === 'in_stars'
-    const days = this.getRelationDays(item)
+    const ageText = this.getAgeText(item.birthDate)
+    const companionDays = this.getDaysSince(item.arrivalDate)
+    const awayDays = this.getDaysSince(item.deathDate)
+    const metrics = []
+
+    if (ageText) {
+      metrics.push(`${ageText}`)
+    }
+
+    if (companionDays !== null) {
+      metrics.push(`陪伴 ${companionDays} 天`)
+    }
+
+    if (isInStars && awayDays !== null) {
+      metrics.push(`离开 ${awayDays} 天`)
+    }
 
     return {
       id: item._id,
       raw: item,
       petName: item.petName || '未命名小窝',
-      active: index === 0,
+      active,
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
-      dayLabel: isInStars ? '离开' : '陪伴',
-      days,
+      metrics,
       avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
       cover: item.coverFileId || item.avatarFileId || defaultPetImage,
       story: item.story || '',
@@ -102,24 +124,56 @@ Page({
     return {
       ...pet,
       recentTitle: pet.raw.lifeStatus === 'in_stars' ? '最近思念' : '最近陪伴',
-      relationDays: pet.days,
+      metricText: pet.metrics.length ? pet.metrics.join(' · ') : '日期待补充',
       message: pet.story || '还没有记录，去写下第一段回忆吧',
     }
   },
 
-  getRelationDays(item = {}) {
-    const baseDate = item.lifeStatus === 'in_stars' ? item.deathDate : item.birthDate
-    if (!baseDate) {
-      return 0
+  getDaysSince(dateText) {
+    if (!dateText) {
+      return null
     }
-
+    const baseDate = dateText
     const date = new Date(baseDate)
     if (Number.isNaN(date.getTime())) {
-      return 0
+      return null
     }
 
     const diff = Date.now() - date.getTime()
     return Math.max(0, Math.floor(diff / 86400000))
+  },
+
+  getAgeText(birthDate) {
+    if (!birthDate) {
+      return ''
+    }
+
+    const birth = new Date(birthDate)
+    const now = new Date()
+
+    if (Number.isNaN(birth.getTime()) || birth > now) {
+      return ''
+    }
+
+    let years = now.getFullYear() - birth.getFullYear()
+    let months = now.getMonth() - birth.getMonth()
+
+    if (now.getDate() < birth.getDate()) {
+      months -= 1
+    }
+
+    if (months < 0) {
+      years -= 1
+      months += 12
+    }
+
+    const totalMonths = Math.max(0, years * 12 + months)
+
+    if (years > 0) {
+      return months > 0 ? `${years}岁${months}个月` : `${years}岁`
+    }
+
+    return `${totalMonths || 1}个月`
   },
 
   onCreateMemorial() {
@@ -144,12 +198,21 @@ Page({
     }
 
     const { id } = e.currentTarget.dataset
-    if (id) {
-      wx.setStorageSync('selectedPetSpaceId', id)
+    if (!id) {
+      return
     }
 
-    wx.switchTab({
-      url: '/pages/pet-detail/index',
+    wx.setStorageSync('selectedPetSpaceId', id)
+
+    const petSpaces = this.data.petSpaces.map((item) => ({
+      ...item,
+      active: item.id === id,
+    }))
+    const selectedPet = petSpaces.find((item) => item.id === id)
+
+    this.setData({
+      petSpaces,
+      featuredPet: selectedPet ? this.normalizeFeaturedPet(selectedPet) : this.data.featuredPet,
     })
   },
 

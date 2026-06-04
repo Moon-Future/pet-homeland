@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "创建宠物小窝",
   "navigationBarBackgroundColor": "#F7F0FF",
-  "navigationBarTextStyle": "black"
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "image-uploader": "/components/image-uploader/index"
+  }
 }

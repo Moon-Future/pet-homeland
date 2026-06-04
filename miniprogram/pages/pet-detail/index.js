@@ -93,15 +93,15 @@ Page({
     const lifeStatus = item.lifeStatus || 'with_me'
     const isInStars = lifeStatus === 'in_stars'
     const dateText = this.getDateText(item)
-    const days = this.getRelationDays(item)
+    const metrics = this.getPetMetrics(item)
 
     return {
       id: item._id,
       name: item.petName || '未命名小窝',
       status: isInStars ? '已去星星' : '陪伴中',
       dateText,
-      days,
-      dayText: isInStars ? `离开 ${days} 天` : `陪伴第 ${days} 天`,
+      metrics,
+      dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
       avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
       cover: item.coverFileId || item.avatarFileId || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
@@ -118,27 +118,90 @@ Page({
   },
 
   getDateText(item = {}) {
-    const start = item.birthDate || '日期待补充'
-    const end = item.lifeStatus === 'in_stars'
-      ? (item.deathDate || '日期待补充')
-      : '现在'
+    const dates = []
 
-    return `${start} - ${end}`
-  },
-
-  getRelationDays(item = {}) {
-    const baseDate = item.lifeStatus === 'in_stars' ? item.deathDate : item.birthDate
-    if (!baseDate) {
-      return 0
+    if (item.birthDate) {
+      dates.push(`出生 ${item.birthDate}`)
     }
 
-    const date = new Date(baseDate)
+    if (item.arrivalDate) {
+      dates.push(`来到身边 ${item.arrivalDate}`)
+    }
+
+    if (item.lifeStatus === 'in_stars' && item.deathDate) {
+      dates.push(`离去 ${item.deathDate}`)
+    }
+
+    return dates.length ? dates.join(' · ') : '日期待补充'
+  },
+
+  getPetMetrics(item = {}) {
+    const isInStars = item.lifeStatus === 'in_stars'
+    const ageText = this.getAgeText(item.birthDate)
+    const companionDays = this.getDaysSince(item.arrivalDate)
+    const awayDays = this.getDaysSince(item.deathDate)
+    const metrics = []
+
+    if (ageText) {
+      metrics.push(`年龄 ${ageText}`)
+    }
+
+    if (companionDays !== null) {
+      metrics.push(`陪伴 ${companionDays} 天`)
+    }
+
+    if (isInStars && awayDays !== null) {
+      metrics.push(`离开 ${awayDays} 天`)
+    }
+
+    return metrics
+  },
+
+  getDaysSince(dateText) {
+    if (!dateText) {
+      return null
+    }
+
+    const date = new Date(dateText)
     if (Number.isNaN(date.getTime())) {
-      return 0
+      return null
     }
 
     const diff = Date.now() - date.getTime()
     return Math.max(0, Math.floor(diff / 86400000))
+  },
+
+  getAgeText(birthDate) {
+    if (!birthDate) {
+      return ''
+    }
+
+    const birth = new Date(birthDate)
+    const now = new Date()
+
+    if (Number.isNaN(birth.getTime()) || birth > now) {
+      return ''
+    }
+
+    let years = now.getFullYear() - birth.getFullYear()
+    let months = now.getMonth() - birth.getMonth()
+
+    if (now.getDate() < birth.getDate()) {
+      months -= 1
+    }
+
+    if (months < 0) {
+      years -= 1
+      months += 12
+    }
+
+    const totalMonths = Math.max(0, years * 12 + months)
+
+    if (years > 0) {
+      return months > 0 ? `${years}岁${months}个月` : `${years}岁`
+    }
+
+    return `${totalMonths || 1}个月`
   },
 
   goLogin() {

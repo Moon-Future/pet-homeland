@@ -1,0 +1,9 @@
+{
+  "name": "createPetSpace",
+  "version": "1.0.0",
+  "description": "创建当前用户的真实宠物小窝",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

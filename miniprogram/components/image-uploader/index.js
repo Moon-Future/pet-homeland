@@ -83,6 +83,35 @@ Component({
       this.openCropper(avatarUrl)
     },
 
+    chooseLocalImage() {
+      if (wx.chooseMedia) {
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: ['album', 'camera'],
+          success: (res) => {
+            const file = res.tempFiles && res.tempFiles[0]
+            if (file && file.tempFilePath) {
+              this.openCropper(file.tempFilePath)
+            }
+          },
+        })
+        return
+      }
+
+      wx.chooseImage({
+        count: 1,
+        sourceType: ['album', 'camera'],
+        sizeType: ['original', 'compressed'],
+        success: (res) => {
+          const filePath = res.tempFilePaths && res.tempFilePaths[0]
+          if (filePath) {
+            this.openCropper(filePath)
+          }
+        },
+      })
+    },
+
     async openCropper(filePath) {
       try {
         const imageInfo = await this.getImageInfo(filePath)
@@ -318,6 +347,7 @@ Component({
       return {
         avatarUrl: upload.fileID,
         avatarFileId: upload.fileID,
+        fileId: upload.fileID,
       }
     },
 

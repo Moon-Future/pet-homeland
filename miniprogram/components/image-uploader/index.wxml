@@ -1,7 +1,13 @@
-<view class="image-uploader">
+<view class="image-uploader type-{{imageType}}">
   <view class="avatar-section">
     <view class="avatar-wrap">
-      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
+      <button wx:if="{{imageType === 'avatar'}}" class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
+        <image class="avatar" src="{{displayUrl}}" mode="aspectFill" />
+        <view class="camera-button">
+          <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
+        </view>
+      </button>
+      <button wx:else class="avatar-button" bindtap="chooseLocalImage">
         <image class="avatar" src="{{displayUrl}}" mode="aspectFill" />
         <view class="camera-button">
           <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />

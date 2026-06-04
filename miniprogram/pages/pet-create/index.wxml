@@ -2,7 +2,7 @@
   <view class="panel">
     <view class="title-group">
       <text class="title">创建宠物小窝</text>
-      <text class="subtitle">{{currentStep === 3 ? '为宝贝选择一个温暖的家' : '把最喜欢的一张照片放在这里'}}</text>
+      <text class="subtitle">{{currentStep === 3 ? '为宝贝选择一个温暖的家' : currentStep === 2 ? '补全宝贝的基础资料' : '把最喜欢的一张照片放在这里'}}</text>
     </view>
 
     <view class="stepper">
@@ -12,23 +12,47 @@
       </view>
     </view>
 
-    <view wx:if="{{currentStep === 1}}" class="upload-step">
-      <view class="avatar-wrap" bindtap="choosePhoto">
-        <image class="pet-avatar" src="{{petPreview}}" mode="aspectFill"></image>
-        <view class="camera-badge">
-          <image src="/assets/icons/camera.svg" mode="aspectFit"></image>
-        </view>
+    <view class="upload-step" hidden="{{currentStep !== 1}}">
+      <image-uploader
+        id="petCoverUploader"
+        value="{{form.coverUrl}}"
+        file-id="{{form.coverFileId}}"
+        image-type="petCover"
+        crop-ratio="1:1"
+        tip="点击照片拍照或从相册选择"
+        bindchange="onPetPhotoChange"
+      />
+      <view class="paw paw-left">
+        <image src="/assets/icons/paw.svg" mode="aspectFit"></image>
       </view>
-      <text class="upload-title">上传毛孩子</text>
-      <text class="upload-subtitle">最喜欢的一张照片</text>
-      <view class="paw paw-left"></view>
-      <view class="paw paw-right"></view>
+      <view class="paw paw-right">
+        <image src="/assets/icons/paw.svg" mode="aspectFit"></image>
+      </view>
     </view>
 
-    <view wx:elif="{{currentStep === 2}}" class="form-step">
+    <view class="form-step" hidden="{{currentStep !== 2}}">
       <view class="field">
         <text class="field-label">宝贝名字</text>
-        <input class="input" value="{{form.petName}}" placeholder="输入宠物名字" bindinput="onNameInput" />
+        <input class="input" value="{{form.petName}}" placeholder="输入宠物名字" bindinput="onNameInput" maxlength="24" />
+      </view>
+
+      <view class="field">
+        <text class="field-label">宠物类型</text>
+        <view class="chip-row">
+          <view wx:for="{{petTypes}}" wx:key="id" class="chip {{form.petType === item.id ? 'active' : ''}}" data-type="{{item.id}}" bindtap="setPetType">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="field-label">性别</text>
+        <view class="chip-row compact">
+          <view wx:for="{{genders}}" wx:key="id" class="chip {{form.gender === item.id ? 'active' : ''}}" data-gender="{{item.id}}" bindtap="setGender">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="field-label">品种</text>
+        <input class="input" value="{{form.breed}}" placeholder="可不填" bindinput="onBreedInput" maxlength="24" />
       </view>
 
       <view class="field">
@@ -44,9 +68,35 @@
           </view>
         </view>
       </view>
+
+      <view class="field">
+        <text class="field-label">出生日期</text>
+        <picker mode="date" end="{{today}}" value="{{form.birthDate}}" data-field="birthDate" bindchange="onDateChange">
+          <view class="date-input">{{form.birthDate || '选择出生日期，可不填'}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">来到身边日期</text>
+        <picker mode="date" end="{{today}}" value="{{form.arrivalDate}}" data-field="arrivalDate" bindchange="onDateChange">
+          <view class="date-input">{{form.arrivalDate || '选择来到身边的日期，可不填'}}</view>
+        </picker>
+      </view>
+
+      <view wx:if="{{form.lifeStatus === 'in_stars'}}" class="field">
+        <text class="field-label">离去日期</text>
+        <picker mode="date" end="{{today}}" value="{{form.deathDate}}" data-field="deathDate" bindchange="onDateChange">
+          <view class="date-input">{{form.deathDate || '选择离去日期'}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">一句话介绍</text>
+        <textarea class="textarea" value="{{form.story}}" placeholder="写下你最想记住的它" bindinput="onStoryInput" maxlength="120" />
+      </view>
     </view>
 
-    <view wx:else class="theme-step">
+    <view class="theme-step" hidden="{{currentStep !== 3}}">
       <view class="theme-grid">
         <view wx:for="{{themes}}" wx:key="id" class="theme-card {{selectedTheme === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectTheme">
           <image class="theme-image" src="{{item.image}}" mode="aspectFill"></image>
@@ -56,11 +106,11 @@
     </view>
 
     <view class="footer-actions {{currentStep === 1 ? 'single' : ''}}">
-      <button wx:if="{{currentStep > 1}}" class="prev-button" bindtap="prevStep">
+      <button wx:if="{{currentStep > 1}}" class="prev-button" disabled="{{saving}}" bindtap="prevStep">
         <text>上一步</text>
       </button>
-      <button class="next-button" bindtap="nextStep">
-        <text>{{currentStep === 3 ? '完成创建' : '下一步'}}</text>
+      <button class="next-button" disabled="{{saving}}" bindtap="nextStep">
+        <text>{{saving ? '创建中...' : (currentStep === 3 ? '完成创建' : '下一步')}}</text>
       </button>
     </view>
   </view>
