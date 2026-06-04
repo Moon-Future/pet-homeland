@@ -1,0 +1,54 @@
+<view class="image-uploader">
+  <view class="avatar-section">
+    <view class="avatar-wrap">
+      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
+        <image class="avatar" src="{{displayUrl}}" mode="aspectFill" />
+        <view class="camera-button">
+          <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
+        </view>
+      </button>
+    </view>
+    <text class="avatar-tip">{{tip}}</text>
+  </view>
+
+  <view wx:if="{{cropVisible}}" class="crop-overlay">
+    <view class="crop-panel">
+      <view class="crop-stage" bindtouchmove="noop">
+        <image
+          wx:if="{{sourceImage}}"
+          class="crop-image"
+          src="{{sourceImage}}"
+          mode="aspectFit"
+          style="left: {{imageRect.left}}px; top: {{imageRect.top}}px; width: {{imageRect.width}}px; height: {{imageRect.height}}px;"
+        />
+        <view
+          class="crop-box"
+          catchtouchstart="onCropTouchStart"
+          catchtouchmove="onCropTouchMove"
+          style="left: {{cropBox.left}}px; top: {{cropBox.top}}px; width: {{cropBox.width}}px; height: {{cropBox.height}}px;"
+        >
+          <view class="crop-grid horizontal top"></view>
+          <view class="crop-grid horizontal bottom"></view>
+          <view class="crop-grid vertical left"></view>
+          <view class="crop-grid vertical right"></view>
+          <view
+            class="resize-handle"
+            catchtouchstart="onResizeTouchStart"
+            catchtouchmove="onResizeTouchMove"
+          ></view>
+        </view>
+      </view>
+
+      <view class="crop-actions">
+        <button class="crop-action secondary" bindtap="cancelCrop">取消</button>
+        <button class="crop-action primary" bindtap="confirmCrop">使用裁剪</button>
+      </view>
+    </view>
+  </view>
+
+  <canvas
+    canvas-id="cropCanvas"
+    class="crop-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+  ></canvas>
+</view>

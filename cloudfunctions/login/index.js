@@ -6,6 +6,7 @@ cloud.init({
 
 const db = cloud.database()
 const users = db.collection('users')
+const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
 
 exports.main = async (event = {}) => {
   const wxContext = cloud.getWXContext()
@@ -31,7 +32,7 @@ exports.main = async (event = {}) => {
       unionid: wxContext.UNIONID || '',
       appid: wxContext.APPID || '',
       nickname: profile.nickname || '',
-      avatarUrl: profile.avatarUrl || '',
+      avatarUrl: profile.avatarUrl || defaultAvatar,
       avatarFileId: profile.avatarFileId || '',
       vip: false,
       stats: {
@@ -67,6 +68,8 @@ exports.main = async (event = {}) => {
 
   if (profile.avatarUrl) {
     updateData.avatarUrl = profile.avatarUrl
+  } else if (!current.avatarUrl) {
+    updateData.avatarUrl = defaultAvatar
   }
 
   if (profile.avatarFileId) {

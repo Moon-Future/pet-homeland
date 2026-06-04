@@ -1,4 +1,4 @@
-const defaultAvatar = '/assets/home/default-pet.png'
+const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
 const auth = require('../../utils/auth')
 
 Page({
@@ -70,41 +70,12 @@ Page({
     })
   },
 
-  onChooseWechatAvatar(e) {
-    const avatarUrl = e.detail && e.detail.avatarUrl
-    if (!avatarUrl) {
-      return
-    }
-
+  onAvatarChange(e) {
     this.setData({
-      'form.avatarUrl': avatarUrl,
-      'form.avatarTempPath': avatarUrl,
+      'form.avatarUrl': e.detail.tempFilePath,
+      'form.avatarTempPath': e.detail.tempFilePath,
       'form.avatarChanged': true,
     })
-  },
-
-  async uploadLocalAvatar() {
-    try {
-      const { tempFiles } = await wx.chooseMedia({
-        count: 1,
-        mediaType: ['image'],
-        sourceType: ['album', 'camera'],
-        sizeType: ['compressed'],
-      })
-
-      const file = tempFiles && tempFiles[0]
-      if (!file || !file.tempFilePath) {
-        return
-      }
-
-      this.setData({
-        'form.avatarUrl': file.tempFilePath,
-        'form.avatarTempPath': file.tempFilePath,
-        'form.avatarChanged': true,
-      })
-    } catch (error) {
-      wx.showToast({ title: '已取消上传头像', icon: 'none' })
-    }
   },
 
   async saveProfile() {
@@ -118,7 +89,13 @@ Page({
     this.setData({ saving: true })
 
     try {
-      const avatar = await this.ensureAvatarUploaded()
+      const avatarUploader = this.selectComponent('#avatarUploader')
+      const avatar = avatarUploader
+        ? await avatarUploader.uploadCroppedImage()
+        : {
+            avatarUrl: this.data.form.avatarUrl,
+            avatarFileId: this.data.form.avatarFileId,
+          }
       const { result } = await wx.cloud.callFunction({
         name: 'login',
         data: {
@@ -158,37 +135,5 @@ Page({
         icon: 'none',
       })
     }
-  },
-
-  async ensureAvatarUploaded() {
-    const { form } = this.data
-
-    if (!form.avatarChanged || !form.avatarTempPath) {
-      return {
-        avatarUrl: form.avatarUrl,
-        avatarFileId: form.avatarFileId,
-      }
-    }
-
-    const ext = this.getFileExt(form.avatarTempPath)
-    const cloudPath = `users/avatars/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const upload = await wx.cloud.uploadFile({
-      cloudPath,
-      filePath: form.avatarTempPath,
-    })
-
-    return {
-      avatarUrl: upload.fileID,
-      avatarFileId: upload.fileID,
-    }
-  },
-
-  getFileExt(filePath) {
-    const matched = /\.([a-z0-9]+)(?:\?|$)/i.exec(filePath)
-    return matched ? matched[1].toLowerCase() : 'jpg'
-  },
-
-  isLocalFilePath(filePath) {
-    return /^wxfile:|^http:\/\/tmp\//.test(filePath || '')
   },
 })

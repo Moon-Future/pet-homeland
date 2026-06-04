@@ -1,14 +1,12 @@
 <view class="page">
-  <view class="avatar-section">
-    <view class="avatar-wrap">
-      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar">
-        <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill" />
-        <view class="camera-button">
-          <image class="camera-icon" src="/assets/icons/camera.svg" mode="aspectFit" />
-        </view>
-      </button>
-    </view>
-  </view>
+  <image-uploader
+    id="avatarUploader"
+    value="{{form.avatarUrl}}"
+    file-id="{{form.avatarFileId}}"
+    image-type="avatar"
+    crop-ratio="1:1"
+    bindchange="onAvatarChange"
+  />
 
   <view class="form-panel">
     <text class="label">昵称</text>
