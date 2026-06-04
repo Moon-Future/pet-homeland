@@ -115,6 +115,67 @@ page {
   backdrop-filter: blur(12px);
 }
 
+.empty-card {
+  position: absolute;
+  left: 34rpx;
+  right: 34rpx;
+  bottom: 60rpx;
+  min-height: 300rpx;
+  padding: 30rpx 24rpx 26rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 3rpx solid rgba(255, 255, 255, 0.56);
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(236,231,255,.74));
+  box-shadow: 0 18rpx 38rpx rgba(83, 70, 166, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.empty-image {
+  width: 108rpx;
+  height: 108rpx;
+  border: 6rpx solid rgba(255,255,255,.92);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 10rpx 24rpx rgba(126,84,230,.16);
+}
+
+.empty-title {
+  margin-top: 18rpx;
+  color: #2f2940;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.empty-desc {
+  margin-top: 8rpx;
+  color: #74668f;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.empty-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 64rpx;
+  margin-top: 20rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  background: #8b5cf6;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 0 12rpx 24rpx rgba(139,92,246,.24);
+}
+
+.empty-action image {
+  width: 30rpx;
+  height: 30rpx;
+}
+
 .guide-title {
   display: block;
   color: #2f2940;
@@ -326,27 +387,6 @@ page {
   font-size: 24rpx;
   font-weight: 700;
   line-height: 1.25;
-}
-
-.supporters {
-  display: flex;
-  margin-top: 13rpx;
-  padding-left: 8rpx;
-}
-
-.supporter {
-  width: 36rpx;
-  height: 36rpx;
-  margin-left: -8rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3rpx solid #ffffff;
-  border-radius: 50%;
-  color: #ffffff;
-  background: linear-gradient(135deg, #2f2940, #ff9bbb);
-  font-size: 20rpx;
-  font-weight: 800;
 }
 
 .heart-main {

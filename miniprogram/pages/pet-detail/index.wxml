@@ -1,5 +1,5 @@
 <view class="page">
-  <block wx:if="{{isLoggedIn}}">
+  <block wx:if="{{isLoggedIn && hasPet}}">
     <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="shade"></view>
 
@@ -9,8 +9,8 @@
 
     <view class="hero">
       <text class="name">{{pet.name}} ✨</text>
-      <text class="date">{{pet.birthday}} - {{pet.today}}</text>
-      <text class="pill">陪伴第 {{pet.days}} 天</text>
+      <text class="date">{{pet.dateText}}</text>
+      <text class="pill">{{pet.dayText}}</text>
     </view>
 
     <view class="sheet">
@@ -45,6 +45,13 @@
       </view>
     </view>
   </block>
+
+  <view wx:elif="{{isLoggedIn && !hasPet}}" class="login-empty">
+    <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text class="empty-title">还没有宠物小窝</text>
+    <text class="empty-desc">创建后，这里会展示真实宠物资料。</text>
+    <button class="login-button" bindtap="goCreate">创建宠物小窝</button>
+  </view>
 
   <view wx:else class="login-empty">
     <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>

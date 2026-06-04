@@ -1,0 +1,9 @@
+{
+  "name": "getMyPetSpaces",
+  "version": "1.0.0",
+  "description": "读取当前用户的真实宠物小窝列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -1,49 +1,155 @@
 const auth = require('../../utils/auth')
 
+const defaultPetImage = '/assets/home/default-pet.png'
+
 Page({
   data: {
     isLoggedIn: false,
-    pet: {
-      name: '奶球',
-      status: '陪伴中',
-      birthday: '2018.05.03',
-      today: '2026.06.03',
-      days: 2911,
-      avatar: '/assets/home/default-pet.png',
-      cover: 'https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png',
-      story: '你是我每天醒来都会想抱抱的小太阳。今天也要一起散步、吃饭、晒太阳，把普通日子过成闪闪发光的回忆。',
-    },
+    loadingPet: false,
+    hasPet: false,
+    pet: null,
     actions: [
-      { label: '贴贴', icon: '/assets/icons/heart.svg' },
-      { label: '记录今天', icon: '/assets/icons/flower.svg' },
-      { label: '收藏星光', icon: '/assets/icons/star.svg' },
-      { label: '送零食', icon: '/assets/icons/paw.svg' },
+      { label: '想你了', icon: '/assets/icons/heart.svg' },
+      { label: '送花', icon: '/assets/icons/flower.svg' },
+      { label: '点亮星光', icon: '/assets/icons/star.svg' },
     ],
-    stats: [
-      { label: '贴贴', value: 528 },
-      { label: '回忆', value: 221 },
-      { label: '星光', value: 167 },
-      { label: '零食', value: 98 },
-    ],
+    stats: [],
   },
 
   onLoad() {
-    this.syncLoginState()
+    this.refreshPetDetail()
   },
 
   onShow() {
-    this.syncLoginState()
+    this.refreshPetDetail()
   },
 
-  syncLoginState() {
-    this.setData({
-      isLoggedIn: auth.isLoggedIn(),
-    })
+  refreshPetDetail() {
+    const isLoggedIn = auth.isLoggedIn()
+    this.setData({ isLoggedIn })
+
+    if (!isLoggedIn) {
+      this.setData({
+        loadingPet: false,
+        hasPet: false,
+        pet: null,
+        stats: [],
+      })
+      return
+    }
+
+    this.loadPetDetail()
+  },
+
+  async loadPetDetail() {
+    if (!wx.cloud) {
+      wx.showToast({ title: '请先开通云开发', icon: 'none' })
+      return
+    }
+
+    this.setData({ loadingPet: true })
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyPetSpaces',
+        data: {},
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '读取宠物小窝失败')
+      }
+
+      const rawList = result.petSpaces || []
+      const selectedId = wx.getStorageSync('selectedPetSpaceId')
+      const rawPet = rawList.find((item) => item._id === selectedId) || rawList[0]
+
+      if (!rawPet) {
+        this.setData({
+          loadingPet: false,
+          hasPet: false,
+          pet: null,
+          stats: [],
+        })
+        return
+      }
+
+      const pet = this.normalizePet(rawPet)
+      this.setData({
+        loadingPet: false,
+        hasPet: true,
+        pet,
+        stats: this.normalizeStats(rawPet.stats),
+      })
+    } catch (error) {
+      this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [] })
+      wx.showToast({
+        title: error.message || '读取宠物小窝失败',
+        icon: 'none',
+      })
+    }
+  },
+
+  normalizePet(item = {}) {
+    const lifeStatus = item.lifeStatus || 'with_me'
+    const isInStars = lifeStatus === 'in_stars'
+    const dateText = this.getDateText(item)
+    const days = this.getRelationDays(item)
+
+    return {
+      id: item._id,
+      name: item.petName || '未命名小窝',
+      status: isInStars ? '已去星星' : '陪伴中',
+      dateText,
+      days,
+      dayText: isInStars ? `离开 ${days} 天` : `陪伴第 ${days} 天`,
+      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
+      cover: item.coverFileId || item.avatarFileId || defaultPetImage,
+      story: item.story || '还没有故事，去写下第一段回忆吧。',
+    }
+  },
+
+  normalizeStats(stats = {}) {
+    return [
+      { label: '想念', value: stats.missCount || 0 },
+      { label: '回忆', value: stats.memoryCount || 0 },
+      { label: '星光', value: stats.starCount || 0 },
+      { label: '相册', value: stats.mediaCount || 0 },
+    ]
+  },
+
+  getDateText(item = {}) {
+    const start = item.birthDate || '日期待补充'
+    const end = item.lifeStatus === 'in_stars'
+      ? (item.deathDate || '日期待补充')
+      : '现在'
+
+    return `${start} - ${end}`
+  },
+
+  getRelationDays(item = {}) {
+    const baseDate = item.lifeStatus === 'in_stars' ? item.deathDate : item.birthDate
+    if (!baseDate) {
+      return 0
+    }
+
+    const date = new Date(baseDate)
+    if (Number.isNaN(date.getTime())) {
+      return 0
+    }
+
+    const diff = Date.now() - date.getTime()
+    return Math.max(0, Math.floor(diff / 86400000))
   },
 
   goLogin() {
     wx.switchTab({
       url: '/pages/profile/index',
+    })
+  },
+
+  goCreate() {
+    wx.navigateTo({
+      url: '/pages/pet-create/index',
     })
   },
 

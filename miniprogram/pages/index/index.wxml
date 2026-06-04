@@ -7,17 +7,17 @@
       <text class="hero-subtitle">记录陪伴，也安放心念</text>
     </view>
 
-    <button wx:if="{{isLoggedIn}}" class="create-button" bindtap="onCreateMemorial">
+    <button wx:if="{{isLoggedIn && hasPetSpaces}}" class="create-button" bindtap="onCreateMemorial">
       <image class="create-icon" src="/assets/icons/plus.svg" mode="aspectFit"></image>
       <text class="create-lable">创建宠物小窝</text>
     </button>
 
-    <button wx:else class="create-button" bindtap="goLogin">
+    <button wx:elif="{{!isLoggedIn}}" class="create-button" bindtap="goLogin">
       <image class="create-icon" src="/assets/icons/user.svg" mode="aspectFit"></image>
       <text class="create-lable">登录后创建宠物小窝</text>
     </button>
 
-    <view wx:if="{{isLoggedIn}}" class="recent-card">
+    <view wx:if="{{isLoggedIn && hasPetSpaces}}" class="recent-card">
       <view class="card-head">
         <text class="card-title">{{featuredPet.recentTitle}}</text>
         <view class="view-all" bindtap="onViewAll">
@@ -32,7 +32,7 @@
             wx:for="{{petSpaces}}"
             wx:key="id"
             class="pet-filter {{item.active ? 'active' : ''}}"
-            data-name="{{item.petName}}"
+            data-id="{{item.id}}"
             bindtap="onSelectPet"
           >
             <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
@@ -52,9 +52,6 @@
           </view>
           <text class="pet-days">{{featuredPet.dayLabel}} {{featuredPet.relationDays}} 天</text>
           <text class="pet-message">{{featuredPet.message}}</text>
-          <view class="supporters">
-            <view wx:for="{{featuredPet.supporters}}" wx:key="*this" class="supporter">{{item}}</view>
-          </view>
         </view>
 
         <view class="heart-main">
@@ -65,6 +62,16 @@
       <view class="heart-more">
         <image class="heart-small" src="/assets/icons/heart.svg" mode="aspectFit"></image>
         <text>»</text>
+      </view>
+    </view>
+
+    <view wx:elif="{{isLoggedIn && !hasPetSpaces}}" class="empty-card">
+      <image class="empty-image" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+      <text class="empty-title">还没有宠物小窝</text>
+      <text class="empty-desc">创建后，这里会展示你的真实宠物资料。</text>
+      <view class="empty-action" bindtap="onCreateMemorial">
+        <image src="/assets/icons/plus.svg" mode="aspectFit"></image>
+        <text>创建宠物小窝</text>
       </view>
     </view>
 
