@@ -2,6 +2,7 @@ const auth = require('../../utils/auth')
 
 Page({
   data: {
+    isLoggedIn: false,
     homeBg: 'https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png',
     featuredPet: {
       petName: '奶球',
@@ -45,6 +46,25 @@ Page({
         avatar: '/assets/home/default-pet.png',
       },
     ],
+    themePreviews: [
+      { id: 'rainbow', name: '彩虹桥', image: '/assets/themes/rainbow-bridge.svg' },
+      { id: 'cloud', name: '云朵花园', image: '/assets/themes/cloud-garden.svg' },
+      { id: 'starry', name: '星河夜空', image: '/assets/themes/starry-night.svg' },
+    ],
+  },
+
+  onLoad() {
+    this.syncLoginState()
+  },
+
+  onShow() {
+    this.syncLoginState()
+  },
+
+  syncLoginState() {
+    this.setData({
+      isLoggedIn: auth.isLoggedIn(),
+    })
   },
 
   onCreateMemorial() {
@@ -79,5 +99,11 @@ Page({
       return
     }
     wx.switchTab({ url })
+  },
+
+  goLogin() {
+    wx.switchTab({
+      url: '/pages/profile/index',
+    })
   },
 })

@@ -1,46 +1,55 @@
 <view class="page">
-  <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
-  <view class="shade"></view>
+  <block wx:if="{{isLoggedIn}}">
+    <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
+    <view class="shade"></view>
 
-  <view class="topbar">
-    <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
-  </view>
+    <view class="topbar">
+      <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
+    </view>
 
-  <view class="hero">
-    <text class="name">{{pet.name}} ✨</text>
-    <text class="date">{{pet.birthday}} - {{pet.today}}</text>
+    <view class="hero">
+      <text class="name">{{pet.name}} ✨</text>
+      <text class="date">{{pet.birthday}} - {{pet.today}}</text>
       <text class="pill">陪伴第 {{pet.days}} 天</text>
-  </view>
+    </view>
 
-  <view class="sheet">
-    <view class="actions">
-      <view wx:for="{{actions}}" wx:key="label" class="action">
-        <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
-        <text>{{item.label}}</text>
+    <view class="sheet">
+      <view class="actions">
+        <view wx:for="{{actions}}" wx:key="label" class="action">
+          <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="stats">
+        <view wx:for="{{stats}}" wx:key="label" class="stat">
+          <text class="stat-value">{{item.value}}</text>
+          <text class="stat-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="story-card">
+        <view class="story-head">
+          <text>{{pet.name}}的小日常</text>
+          <text class="edit">编辑 ›</text>
+        </view>
+        <text class="story">{{pet.story}}</text>
+      </view>
+
+      <view class="entry-grid">
+        <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
+        <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
+        <view class="entry" bindtap="goLetter"><image src="/assets/icons/letter.svg"></image><text>写给主人</text></view>
+        <view class="entry" bindtap="goBook"><image src="/assets/icons/book.svg"></image><text>AI回忆录</text></view>
+        <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
       </view>
     </view>
+  </block>
 
-    <view class="stats">
-      <view wx:for="{{stats}}" wx:key="label" class="stat">
-        <text class="stat-value">{{item.value}}</text>
-        <text class="stat-label">{{item.label}}</text>
-      </view>
-    </view>
-
-    <view class="story-card">
-      <view class="story-head">
-        <text>{{pet.name}}的小日常</text>
-        <text class="edit">编辑 ›</text>
-      </view>
-      <text class="story">{{pet.story}}</text>
-    </view>
-
-    <view class="entry-grid">
-      <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
-      <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
-      <view class="entry" bindtap="goLetter"><image src="/assets/icons/letter.svg"></image><text>写给主人</text></view>
-      <view class="entry" bindtap="goBook"><image src="/assets/icons/book.svg"></image><text>AI回忆录</text></view>
-      <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
-    </view>
+  <view wx:else class="login-empty">
+    <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text class="empty-title">登录后查看宠物小窝</text>
+    <text class="empty-desc">保存照片、故事和陪伴时光。</text>
+    <button class="login-button" bindtap="goLogin">去登录</button>
   </view>
 </view>

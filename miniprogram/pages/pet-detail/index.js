@@ -2,6 +2,7 @@ const auth = require('../../utils/auth')
 
 Page({
   data: {
+    isLoggedIn: false,
     pet: {
       name: '奶球',
       status: '陪伴中',
@@ -27,8 +28,22 @@ Page({
   },
 
   onLoad() {
-    auth.requireLogin({
-      redirectToProfile: true,
+    this.syncLoginState()
+  },
+
+  onShow() {
+    this.syncLoginState()
+  },
+
+  syncLoginState() {
+    this.setData({
+      isLoggedIn: auth.isLoggedIn(),
+    })
+  },
+
+  goLogin() {
+    wx.switchTab({
+      url: '/pages/profile/index',
     })
   },
 

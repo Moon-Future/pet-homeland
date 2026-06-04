@@ -50,7 +50,7 @@ page {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.create-button {
+.content .create-button {
   position: absolute;
   left: 118rpx;
   right: 118rpx;
@@ -74,7 +74,7 @@ page {
   font-weight: bold;
 }
 
-.create-button::after {
+.content .create-button::after {
   border: 0;
 }
 
@@ -99,6 +99,83 @@ page {
   );
   box-shadow: 0 18rpx 38rpx rgba(83, 70, 166, 0.28);
   backdrop-filter: blur(12px);
+}
+
+.guide-card {
+  position: absolute;
+  left: 34rpx;
+  right: 34rpx;
+  bottom: 25rpx;
+  min-height: 330rpx;
+  padding: 26rpx 24rpx 24rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.56);
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(236,231,255,.74));
+  box-shadow: 0 18rpx 38rpx rgba(83, 70, 166, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.guide-title {
+  display: block;
+  color: #2f2940;
+  font-size: 31rpx;
+  font-weight: 900;
+}
+
+.guide-desc {
+  display: block;
+  margin-top: 10rpx;
+  color: #74668f;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.theme-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 22rpx;
+}
+
+.theme-item {
+  overflow: hidden;
+  border-radius: 18rpx;
+  background: rgba(255,255,255,.62);
+  color: #5e526f;
+  font-size: 20rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.theme-item image {
+  display: block;
+  width: 100%;
+  height: 88rpx;
+}
+
+.theme-item text {
+  display: block;
+  padding: 10rpx 4rpx 12rpx;
+}
+
+.guide-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 64rpx;
+  margin-top: 22rpx;
+  border-radius: 999rpx;
+  color: #7a53e8;
+  background: rgba(139,92,246,.1);
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.guide-empty image {
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .card-head {

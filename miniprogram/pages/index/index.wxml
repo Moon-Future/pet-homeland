@@ -7,12 +7,17 @@
       <text class="hero-subtitle">记录陪伴，也安放心念</text>
     </view>
 
-    <button class="create-button" bindtap="onCreateMemorial">
+    <button wx:if="{{isLoggedIn}}" class="create-button" bindtap="onCreateMemorial">
       <image class="create-icon" src="/assets/icons/plus.svg" mode="aspectFit"></image>
       <text class="create-lable">创建宠物小窝</text>
     </button>
 
-    <view class="recent-card">
+    <button wx:else class="create-button" bindtap="goLogin">
+      <image class="create-icon" src="/assets/icons/user.svg" mode="aspectFit"></image>
+      <text class="create-lable">登录后创建宠物小窝</text>
+    </button>
+
+    <view wx:if="{{isLoggedIn}}" class="recent-card">
       <view class="card-head">
         <text class="card-title">{{featuredPet.recentTitle}}</text>
         <view class="view-all" bindtap="onViewAll">
@@ -63,5 +68,19 @@
       </view>
     </view>
 
+    <view wx:else class="guide-card">
+      <text class="guide-title">给毛孩子一个温柔小窝</text>
+      <text class="guide-desc">登录后保存照片、故事和每一段陪伴时光。</text>
+      <view class="theme-strip">
+        <view wx:for="{{themePreviews}}" wx:key="id" class="theme-item">
+          <image src="{{item.image}}" mode="aspectFill"></image>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+      <view class="guide-empty" bindtap="goLogin">
+        <image src="/assets/icons/paw.svg" mode="aspectFit"></image>
+        <text>登录后查看你的小窝</text>
+      </view>
+    </view>
   </view>
 </view>
