@@ -238,22 +238,6 @@ Page({
     wx.navigateTo({ url: '/pages/album/index' })
   },
 
-  goLetter() {
-    if (!auth.requireLogin()) {
-      return
-    }
-
-    wx.navigateTo({ url: '/pages/ai-letter/index' })
-  },
-
-  goBook() {
-    if (!auth.requireLogin()) {
-      return
-    }
-
-    wx.navigateTo({ url: '/pages/ai-book/index' })
-  },
-
   goStarSpace() {
     wx.switchTab({ url: '/pages/star-space/index' })
   },

@@ -6,8 +6,6 @@
     "pages/pet-detail/index",
     "pages/timeline/index",
     "pages/album/index",
-    "pages/ai-book/index",
-    "pages/ai-letter/index",
     "pages/star-space/index",
     "pages/profile/index",
     "pages/profile-edit/index"

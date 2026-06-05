@@ -40,8 +40,6 @@
       <view class="entry-grid">
         <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
         <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
-        <view class="entry" bindtap="goLetter"><image src="/assets/icons/letter.svg"></image><text>写给主人</text></view>
-        <view class="entry" bindtap="goBook"><image src="/assets/icons/book.svg"></image><text>AI回忆录</text></view>
         <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
       </view>
     </view>

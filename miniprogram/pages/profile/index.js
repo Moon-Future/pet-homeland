@@ -20,13 +20,10 @@ Page({
       { label: '分享', value: 0 },
     ],
     services: [
-      { label: '我的小窝', icon: '/assets/icons/paw.svg', url: '/pages/pet-detail/index' },
-      { label: '回忆相册', icon: '/assets/icons/album.svg', url: '/pages/album/index' },
-      { label: '时光轴', icon: '/assets/icons/timeline.svg', url: '/pages/timeline/index' },
-      { label: 'AI 写信', icon: '/assets/icons/letter.svg', url: '/pages/ai-letter/index' },
+      { label: '我的宠物', icon: '/assets/icons/paw.svg', url: '/pages/pet-list/index' },
+      { label: '资料设置', icon: '/assets/icons/settings.svg', url: '/pages/profile-edit/index' },
     ],
     more: [
-      { label: 'AI 回忆', icon: '/assets/icons/book.svg', url: '/pages/ai-book/index' },
       { label: '备份云存档', icon: '/assets/icons/star.svg' },
       { label: '意见反馈', icon: '/assets/icons/share.svg' },
       { label: '分享给好友', icon: '/assets/icons/heart.svg' },
@@ -190,6 +187,7 @@ Page({
   go(e) {
     const { url } = e.currentTarget.dataset
     if (!url) {
+      wx.showToast({ title: '功能下期开放', icon: 'none' })
       return
     }
 
