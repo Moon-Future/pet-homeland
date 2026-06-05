@@ -1,0 +1,243 @@
+const auth = require('../../utils/auth')
+
+const defaultPetImage = '/assets/home/default-pet.png'
+
+Page({
+  data: {
+    petSpaceId: '',
+    loading: false,
+    saving: false,
+    today: '',
+    form: {
+      petName: '',
+      petType: 'cat',
+      breed: '',
+      gender: 'unknown',
+      lifeStatus: 'with_me',
+      birthDate: '',
+      arrivalDate: '',
+      deathDate: '',
+      story: '',
+      coverUrl: defaultPetImage,
+      coverFileId: '',
+      coverChanged: false,
+    },
+    petTypes: [
+      { id: 'cat', label: '猫咪' },
+      { id: 'dog', label: '狗狗' },
+      { id: 'other', label: '其他' },
+    ],
+    genders: [
+      { id: 'unknown', label: '未知' },
+      { id: 'male', label: '男孩' },
+      { id: 'female', label: '女孩' },
+    ],
+    themes: [
+      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png' },
+      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png' },
+      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png' },
+      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png' },
+    ],
+    selectedTheme: 'rainbow',
+  },
+
+  onLoad(options = {}) {
+    if (!auth.requireLogin({ redirectToProfile: true })) {
+      return
+    }
+
+    const petSpaceId = options.id || wx.getStorageSync('selectedPetSpaceId') || ''
+    this.setData({
+      petSpaceId,
+      today: this.formatDate(new Date()),
+    })
+    this.loadPetSpace()
+  },
+
+  async loadPetSpace() {
+    if (!wx.cloud || !this.data.petSpaceId) {
+      wx.showToast({ title: '缺少宠物小窝', icon: 'none' })
+      return
+    }
+
+    this.setData({ loading: true })
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyPetSpaces',
+        data: {},
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '读取宠物小窝失败')
+      }
+
+      const pet = (result.petSpaces || []).find((item) => item._id === this.data.petSpaceId)
+      if (!pet) {
+        throw new Error('没有找到这个小窝')
+      }
+
+      this.fillForm(pet)
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '读取宠物小窝失败',
+        icon: 'none',
+      })
+    } finally {
+      this.setData({ loading: false })
+    }
+  },
+
+  fillForm(pet = {}) {
+    this.setData({
+      selectedTheme: pet.theme || 'rainbow',
+      form: {
+        petName: pet.petName || '',
+        petType: pet.petType || 'cat',
+        breed: pet.breed || '',
+        gender: pet.gender || 'unknown',
+        lifeStatus: pet.lifeStatus || 'with_me',
+        birthDate: pet.birthDate || '',
+        arrivalDate: pet.arrivalDate || '',
+        deathDate: pet.deathDate || '',
+        story: pet.story || '',
+        coverUrl: pet.avatarFileId || pet.coverFileId || pet.avatarUrl || pet.coverUrl || defaultPetImage,
+        coverFileId: pet.avatarFileId || pet.coverFileId || '',
+        coverChanged: false,
+      },
+    })
+  },
+
+  onPetPhotoChange(e) {
+    this.setData({
+      'form.coverUrl': e.detail.tempFilePath,
+      'form.coverChanged': true,
+    })
+  },
+
+  onNameInput(e) {
+    this.setData({ 'form.petName': e.detail.value })
+  },
+
+  onBreedInput(e) {
+    this.setData({ 'form.breed': e.detail.value })
+  },
+
+  onStoryInput(e) {
+    this.setData({ 'form.story': e.detail.value })
+  },
+
+  setPetType(e) {
+    this.setData({ 'form.petType': e.currentTarget.dataset.type })
+  },
+
+  setGender(e) {
+    this.setData({ 'form.gender': e.currentTarget.dataset.gender })
+  },
+
+  setLifeStatus(e) {
+    const status = e.currentTarget.dataset.status
+    this.setData({
+      'form.lifeStatus': status,
+      'form.deathDate': status === 'in_stars' ? this.data.form.deathDate : '',
+    })
+  },
+
+  onDateChange(e) {
+    const field = e.currentTarget.dataset.field
+    if (field) {
+      this.setData({ [`form.${field}`]: e.detail.value })
+    }
+  },
+
+  selectTheme(e) {
+    this.setData({ selectedTheme: e.currentTarget.dataset.id })
+  },
+
+  validateForm() {
+    const form = this.data.form
+
+    if (!form.petName.trim()) {
+      wx.showToast({ title: '请填写宝贝名字', icon: 'none' })
+      return false
+    }
+
+    if (!form.birthDate && !form.arrivalDate) {
+      wx.showToast({ title: '出生或来到身边日期至少填一个', icon: 'none' })
+      return false
+    }
+
+    if (form.lifeStatus === 'in_stars' && !form.deathDate) {
+      wx.showToast({ title: '请选择离去日期', icon: 'none' })
+      return false
+    }
+
+    return true
+  },
+
+  async savePetSpace() {
+    if (this.data.saving || !this.validateForm()) {
+      return
+    }
+
+    this.setData({ saving: true })
+
+    try {
+      const uploader = this.selectComponent('#petCoverUploader')
+      const upload = uploader
+        ? await uploader.uploadCroppedImage()
+        : {
+            avatarUrl: this.data.form.coverUrl,
+            avatarFileId: this.data.form.coverFileId,
+          }
+      const form = this.data.form
+      const { result } = await wx.cloud.callFunction({
+        name: 'updatePetSpace',
+        data: {
+          petSpaceId: this.data.petSpaceId,
+          pet: {
+            petName: form.petName,
+            petType: form.petType,
+            breed: form.breed,
+            gender: form.gender,
+            lifeStatus: form.lifeStatus,
+            birthDate: form.birthDate,
+            arrivalDate: form.arrivalDate,
+            deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
+            story: form.story,
+            avatarUrl: upload.avatarUrl,
+            avatarFileId: upload.avatarFileId,
+            coverUrl: upload.avatarUrl,
+            coverFileId: upload.avatarFileId,
+            theme: this.data.selectedTheme,
+          },
+        },
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '保存失败')
+      }
+
+      wx.setStorageSync('selectedPetSpaceId', result.petSpace._id)
+      wx.showToast({ title: '已保存', icon: 'success' })
+
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 500)
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '保存失败，请稍后重试',
+        icon: 'none',
+      })
+    } finally {
+      this.setData({ saving: false })
+    }
+  },
+
+  formatDate(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  },
+})

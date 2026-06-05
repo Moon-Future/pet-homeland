@@ -1,0 +1,9 @@
+{
+  "name": "interactPetSpace",
+  "version": "1.0.0",
+  "description": "宠物小窝互动限次与计数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

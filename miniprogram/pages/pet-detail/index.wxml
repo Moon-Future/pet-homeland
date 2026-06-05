@@ -5,6 +5,9 @@
 
     <view class="topbar">
       <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
+      <button class="edit-button" bindtap="goEditPet">
+        <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
+      </button>
     </view>
 
     <view class="hero">
@@ -16,9 +19,10 @@
 
     <view class="sheet">
       <view class="actions">
-        <view wx:for="{{actions}}" wx:key="label" class="action">
+        <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
           <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
           <text>{{item.label}}</text>
+          <text class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
         </view>
       </view>
 

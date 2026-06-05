@@ -7,6 +7,7 @@ const themeBackgrounds = {
   starry: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png',
   sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
 }
+const ownerCooldownMs = 10 * 60 * 1000
 
 Page({
   data: {
@@ -14,6 +15,9 @@ Page({
     loadingPet: false,
     hasPet: false,
     pet: null,
+    rawPet: null,
+    interacting: false,
+    isOwner: false,
     actions: [],
     stats: [],
   },
@@ -76,11 +80,16 @@ Page({
       }
 
       const pet = this.normalizePet(rawPet)
+      const currentUser = auth.getUserProfile() || {}
+      const isOwner = rawPet.ownerOpenid === currentUser.openid
+      const interactionSummary = await this.loadInteractionSummary(rawPet._id)
       this.setData({
         loadingPet: false,
         hasPet: true,
         pet,
-        actions: this.normalizeActions(rawPet.lifeStatus),
+        rawPet,
+        isOwner,
+        actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
         stats: this.normalizeStats(rawPet.stats, rawPet.lifeStatus),
       })
     } catch (error) {
@@ -111,20 +120,46 @@ Page({
     }
   },
 
-  normalizeActions(lifeStatus) {
-    if (lifeStatus === 'in_stars') {
-      return [
-        { label: '想你了', icon: '/assets/icons/heart.svg' },
-        { label: '送花', icon: '/assets/icons/flower.svg' },
-        { label: '点亮星光', icon: '/assets/icons/star.svg' },
-      ]
+  async loadInteractionSummary(petSpaceId) {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getPetInteractionSummary',
+        data: { petSpaceId },
+      })
+
+      if (result && result.ok) {
+        return {
+          todayCounts: result.todayCounts || {},
+        }
+      }
+    } catch (error) {
+      // Summary is an enhancement; the interact API remains the source of truth.
     }
 
-    return [
-      { label: '贴贴', icon: '/assets/icons/heart.svg' },
-      { label: '喂食', icon: '/assets/icons/flower.svg' },
-      { label: '记录今天', icon: '/assets/icons/timeline.svg' },
-    ]
+    return { todayCounts: {} }
+  },
+
+  normalizeActions(lifeStatus, isOwner = this.data.isOwner, todayCounts = {}) {
+    const limit = isOwner ? 10 : 1
+    const decorate = (actions) => actions.map((item) => ({
+      ...item,
+      limit,
+      todayCount: todayCounts[item.type] || 0,
+    }))
+
+    if (lifeStatus === 'in_stars') {
+      return decorate([
+        { label: '想你了', icon: '/assets/icons/heart.svg', type: 'miss' },
+        { label: '送花', icon: '/assets/icons/flower.svg', type: 'flower' },
+        { label: '点亮星光', icon: '/assets/icons/star.svg', type: 'star' },
+      ])
+    }
+
+    return decorate([
+      { label: '贴贴', icon: '/assets/icons/heart.svg', type: 'cuddle' },
+      { label: '喂食', icon: '/assets/icons/flower.svg', type: 'feed' },
+      { label: '记录今天', icon: '/assets/icons/timeline.svg', type: 'checkin' },
+    ])
   },
 
   normalizeStats(stats = {}, lifeStatus) {
@@ -138,10 +173,10 @@ Page({
     }
 
     return [
-      { label: '陪伴', value: stats.companionCount || 0 },
-      { label: '回忆', value: stats.memoryCount || 0 },
-      { label: '相册', value: stats.mediaCount || 0 },
+      { label: '记录', value: stats.companionCount || 0 },
       { label: '贴贴', value: stats.cuddleCount || 0 },
+      { label: '喂食', value: stats.feedCount || 0 },
+      { label: '相册', value: stats.mediaCount || 0 },
     ]
   },
 
@@ -242,6 +277,125 @@ Page({
     wx.navigateTo({
       url: '/pages/pet-create/index',
     })
+  },
+
+  goEditPet() {
+    if (!auth.requireLogin() || !this.data.pet || !this.data.pet.id) {
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/pet-edit/index?id=${this.data.pet.id}`,
+    })
+  },
+
+  async interact(e) {
+    if (this.data.interacting || !auth.requireLogin()) {
+      return
+    }
+
+    const type = e.currentTarget.dataset.type
+    const pet = this.data.pet
+
+    if (!type || !pet || !pet.id) {
+      return
+    }
+
+    const action = this.data.actions.find((item) => item.type === type)
+    if (action && action.todayCount >= action.limit) {
+      wx.showToast({ title: '今天这个互动次数已用完', icon: 'none' })
+      return
+    }
+
+    const cooldown = this.getLocalCooldown(type)
+    if (this.data.isOwner && cooldown > 0) {
+      wx.showToast({ title: `${cooldown}分钟后可以再次互动`, icon: 'none' })
+      return
+    }
+
+    this.setData({ interacting: true })
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'interactPetSpace',
+        data: {
+          petSpaceId: pet.id,
+          type,
+        },
+      })
+
+      if (!result || !result.ok) {
+        if (result && result.nextAllowedAt) {
+          this.setLocalCooldown(type, result.nextAllowedAt)
+        }
+        throw new Error((result && result.message) || '互动失败')
+      }
+
+      const rawPet = {
+        ...this.data.rawPet,
+        stats: result.stats,
+      }
+      const todayCounts = {
+        ...this.getActionCountsMap(),
+        [type]: result.countToday,
+      }
+
+      if (this.data.isOwner && result.nextAllowedAt) {
+        this.setLocalCooldown(type, result.nextAllowedAt)
+      }
+
+      this.setData({
+        interacting: false,
+        rawPet,
+        actions: this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts),
+        stats: this.normalizeStats(result.stats, rawPet.lifeStatus),
+      })
+
+      wx.showToast({
+        title: result.message || '已记录',
+        icon: 'none',
+      })
+    } catch (error) {
+      this.setData({ interacting: false })
+      wx.showToast({
+        title: error.message || '互动失败，请稍后重试',
+        icon: 'none',
+      })
+    }
+  },
+
+  getActionCountsMap() {
+    return this.data.actions.reduce((map, item) => {
+      map[item.type] = item.todayCount || 0
+      return map
+    }, {})
+  },
+
+  getCooldownKey(type) {
+    const pet = this.data.pet || {}
+    return `petInteractionCooldown:${pet.id}:${type}`
+  },
+
+  getLocalCooldown(type) {
+    const nextAllowedAt = Number(wx.getStorageSync(this.getCooldownKey(type)) || 0)
+    if (!nextAllowedAt) {
+      return 0
+    }
+
+    const remaining = nextAllowedAt - Date.now()
+    if (remaining <= 0) {
+      wx.removeStorageSync(this.getCooldownKey(type))
+      return 0
+    }
+
+    return Math.ceil(remaining / 60000)
+  },
+
+  setLocalCooldown(type, nextAllowedAt) {
+    const time = Number(nextAllowedAt)
+    if (time) {
+      wx.setStorageSync(this.getCooldownKey(type), time)
+    }
   },
 
   goTimeline() {

@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/pet-list/index",
     "pages/pet-create/index",
+    "pages/pet-edit/index",
     "pages/pet-detail/index",
     "pages/timeline/index",
     "pages/album/index",

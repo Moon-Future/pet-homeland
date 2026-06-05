@@ -1,0 +1,9 @@
+{
+  "name": "updatePetSpace",
+  "version": "1.0.0",
+  "description": "更新当前用户的宠物小窝资料",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

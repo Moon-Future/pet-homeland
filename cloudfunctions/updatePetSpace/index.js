@@ -5,19 +5,19 @@ cloud.init({
 })
 
 const db = cloud.database()
-const _ = db.command
-const petSpaces = db.collection('pet_spaces')
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
-  const now = db.serverDate()
+  const petSpaceId = sanitizeString(event.petSpaceId, 64)
   const pet = sanitizePet(event.pet)
+  const now = db.serverDate()
 
   if (!openid) {
-    return {
-      ok: false,
-      message: '无法获取微信登录态',
-    }
+    return { ok: false, message: '无法获取微信登录态' }
+  }
+
+  if (!petSpaceId) {
+    return { ok: false, message: '缺少宠物小窝ID' }
   }
 
   const validation = validatePet(pet)
@@ -25,44 +25,37 @@ exports.main = async (event = {}) => {
     return validation
   }
 
-  await ensureCollection('pet_spaces')
-
-  const data = {
-    ownerOpenid: openid,
-    petName: pet.petName,
-    petType: pet.petType,
-    breed: pet.breed,
-    gender: pet.gender,
-    lifeStatus: pet.lifeStatus,
-    birthDate: pet.birthDate,
-    arrivalDate: pet.arrivalDate,
-    deathDate: pet.lifeStatus === 'in_stars' ? pet.deathDate : '',
-    avatarUrl: pet.avatarUrl,
-    avatarFileId: pet.avatarFileId,
-    coverUrl: pet.coverUrl || pet.avatarUrl,
-    coverFileId: pet.coverFileId || pet.avatarFileId,
-    theme: pet.theme,
-    story: pet.story,
-    visibility: 'private',
-    stats: {
-      companionCount: 0,
-      cuddleCount: 0,
-      feedCount: 0,
-      missCount: 0,
-      memoryCount: 0,
-      starCount: 0,
-      mediaCount: pet.coverFileId || pet.avatarFileId ? 1 : 0,
-      flowerCount: 0,
-    },
-    status: 'active',
-    createdAt: now,
-    updatedAt: now,
-  }
-
   try {
-    const added = await petSpaces.add({ data })
-    await incrementUserPetCount(openid)
-    const saved = await petSpaces.doc(added._id).get()
+    const current = await db.collection('pet_spaces').doc(petSpaceId).get()
+    const petSpace = current.data
+
+    if (!petSpace || petSpace.ownerOpenid !== openid || petSpace.status === 'deleted') {
+      return { ok: false, message: '无权编辑这个小窝' }
+    }
+
+    const updateData = {
+      petName: pet.petName,
+      petType: pet.petType,
+      breed: pet.breed,
+      gender: pet.gender,
+      lifeStatus: pet.lifeStatus,
+      birthDate: pet.birthDate,
+      arrivalDate: pet.arrivalDate,
+      deathDate: pet.lifeStatus === 'in_stars' ? pet.deathDate : '',
+      avatarUrl: pet.avatarUrl,
+      avatarFileId: pet.avatarFileId,
+      coverUrl: pet.coverUrl || pet.avatarUrl,
+      coverFileId: pet.coverFileId || pet.avatarFileId,
+      theme: pet.theme,
+      story: pet.story,
+      updatedAt: now,
+    }
+
+    await db.collection('pet_spaces').doc(petSpaceId).update({
+      data: updateData,
+    })
+
+    const saved = await db.collection('pet_spaces').doc(petSpaceId).get()
 
     return {
       ok: true,
@@ -71,7 +64,7 @@ exports.main = async (event = {}) => {
   } catch (error) {
     return {
       ok: false,
-      message: error.message || error.errMsg || '创建宠物小窝失败',
+      message: error.message || error.errMsg || '保存宠物小窝失败',
     }
   }
 }
@@ -123,38 +116,6 @@ function validatePet(pet) {
   return { ok: true }
 }
 
-async function incrementUserPetCount(openid) {
-  try {
-    await ensureCollection('users')
-    await db.collection('users').where({ openid }).update({
-      data: {
-        'stats.petCount': _.inc(1),
-        updatedAt: db.serverDate(),
-      },
-    })
-  } catch (error) {
-    // User stats are secondary; the pet space record is the source of truth.
-  }
-}
-
-async function ensureCollection(name) {
-  try {
-    await db.collection(name).limit(1).get()
-  } catch (error) {
-    if (!isCollectionNotFound(error)) {
-      throw error
-    }
-
-    try {
-      await db.createCollection(name)
-    } catch (createError) {
-      if (!isCollectionAlreadyExists(createError)) {
-        throw createError
-      }
-    }
-  }
-}
-
 function sanitizeString(value, maxLength) {
   if (typeof value !== 'string') {
     return ''
@@ -170,18 +131,4 @@ function sanitizeDate(value) {
 
 function allowValue(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback
-}
-
-function isCollectionNotFound(error) {
-  const message = getErrorText(error)
-  return message.includes('-502005') || message.includes('collection not exist')
-}
-
-function isCollectionAlreadyExists(error) {
-  const message = getErrorText(error)
-  return message.includes('already exist') || message.includes('collection already exists')
-}
-
-function getErrorText(error = {}) {
-  return `${error.errCode || ''} ${error.errMsg || ''} ${error.message || ''}`
 }

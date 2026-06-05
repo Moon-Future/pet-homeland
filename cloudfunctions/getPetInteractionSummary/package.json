@@ -1,0 +1,9 @@
+{
+  "name": "getPetInteractionSummary",
+  "version": "1.0.0",
+  "description": "读取当前用户今日宠物小窝互动次数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
