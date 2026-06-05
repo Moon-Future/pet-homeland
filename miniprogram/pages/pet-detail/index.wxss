@@ -10,7 +10,7 @@ page { min-height: 100vh; background: #fff7f2; }
 .date { margin-top: 12rpx; font-size: 25rpx; font-weight: 700; }
 .pill { align-self: flex-start; margin-top: 18rpx; padding: 12rpx 20rpx; border-radius: 999rpx; background: rgba(255,120,152,.92); font-size: 24rpx; font-weight: 900; box-shadow: 0 10rpx 24rpx rgba(45,33,64,.16); }
 .sheet { position: relative; z-index: 2; margin: 24rpx; padding: 26rpx 22rpx 32rpx; border: 2rpx solid rgba(255,255,255,.5); border-radius: 32rpx; background: rgba(255,255,255,.58); box-shadow: 0 -12rpx 44rpx rgba(65,45,88,.14); }
-.actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 16rpx; }
+.actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 16rpx; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 10rpx; color: #5e526f; font-size: 22rpx; font-weight: 800; }
 .action-icon { width: 82rpx; height: 82rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.86); box-shadow: 0 8rpx 22rpx rgba(126,84,230,.16); }
 .action-icon image { width: 48rpx; height: 48rpx; }

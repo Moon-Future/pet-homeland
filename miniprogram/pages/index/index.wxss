@@ -277,7 +277,6 @@ page {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.72);
   background: linear-gradient(135deg, #b46dff, #8b5cf6);
-  box-shadow: 0 8rpx 18rpx rgba(126, 84, 230, 0.24);
 }
 
 .filter-avatar {

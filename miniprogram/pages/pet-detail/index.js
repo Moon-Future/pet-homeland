@@ -14,11 +14,7 @@ Page({
     loadingPet: false,
     hasPet: false,
     pet: null,
-    actions: [
-      { label: '想你了', icon: '/assets/icons/heart.svg' },
-      { label: '送花', icon: '/assets/icons/flower.svg' },
-      { label: '点亮星光', icon: '/assets/icons/star.svg' },
-    ],
+    actions: [],
     stats: [],
   },
 
@@ -84,7 +80,8 @@ Page({
         loadingPet: false,
         hasPet: true,
         pet,
-        stats: this.normalizeStats(rawPet.stats),
+        actions: this.normalizeActions(rawPet.lifeStatus),
+        stats: this.normalizeStats(rawPet.stats, rawPet.lifeStatus),
       })
     } catch (error) {
       this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [] })
@@ -114,12 +111,37 @@ Page({
     }
   },
 
-  normalizeStats(stats = {}) {
+  normalizeActions(lifeStatus) {
+    if (lifeStatus === 'in_stars') {
+      return [
+        { label: '想你了', icon: '/assets/icons/heart.svg' },
+        { label: '送花', icon: '/assets/icons/flower.svg' },
+        { label: '点亮星光', icon: '/assets/icons/star.svg' },
+      ]
+    }
+
     return [
-      { label: '想念', value: stats.missCount || 0 },
+      { label: '贴贴', icon: '/assets/icons/heart.svg' },
+      { label: '喂食', icon: '/assets/icons/flower.svg' },
+      { label: '记录今天', icon: '/assets/icons/timeline.svg' },
+    ]
+  },
+
+  normalizeStats(stats = {}, lifeStatus) {
+    if (lifeStatus === 'in_stars') {
+      return [
+        { label: '想念', value: stats.missCount || 0 },
+        { label: '回忆', value: stats.memoryCount || 0 },
+        { label: '星光', value: stats.starCount || 0 },
+        { label: '相册', value: stats.mediaCount || 0 },
+      ]
+    }
+
+    return [
+      { label: '陪伴', value: stats.companionCount || 0 },
       { label: '回忆', value: stats.memoryCount || 0 },
-      { label: '星光', value: stats.starCount || 0 },
       { label: '相册', value: stats.mediaCount || 0 },
+      { label: '贴贴', value: stats.cuddleCount || 0 },
     ]
   },
 
