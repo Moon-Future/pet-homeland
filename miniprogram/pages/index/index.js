@@ -11,9 +11,10 @@ Page({
     featuredPet: null,
     petSpaces: [],
     themePreviews: [
-      { id: 'rainbow', name: '彩虹桥', image: '/assets/themes/rainbow-bridge.svg' },
-      { id: 'cloud', name: '云朵花园', image: '/assets/themes/cloud-garden.svg' },
-      { id: 'starry', name: '星河夜空', image: '/assets/themes/starry-night.svg' },
+      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png' },
+      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png' },
+      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png' },
+      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png' },
     ],
   },
 

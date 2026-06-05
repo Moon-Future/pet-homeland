@@ -1,6 +1,12 @@
 const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
+const themeBackgrounds = {
+  cloud: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png',
+  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png',
+  starry: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png',
+  sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
+}
 
 Page({
   data: {
@@ -103,7 +109,7 @@ Page({
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
       avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
-      cover: item.coverFileId || item.avatarFileId || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
   },
