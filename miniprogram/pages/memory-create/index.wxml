@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="panel">
+    <view class="field">
+      <text class="field-label">今天的标题</text>
+      <input class="input" value="{{form.title}}" placeholder="可不填，例如：第一次洗澡" bindinput="onTitleInput" maxlength="32" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">发生日期</text>
+      <picker mode="date" end="{{today}}" value="{{form.memoryDate}}" bindchange="onDateChange">
+        <view class="date-input">{{form.memoryDate}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="field-label">记录类型</text>
+      <view class="chip-row">
+        <view wx:for="{{memoryTypes}}" wx:key="id" class="chip {{form.type === item.id ? 'active' : ''}}" data-type="{{item.id}}" bindtap="selectType">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">今天发生了什么</text>
+      <textarea class="textarea" value="{{form.content}}" placeholder="写下今天想记住的瞬间" bindinput="onContentInput" maxlength="500" />
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="image-head">
+      <text class="field-label">照片</text>
+      <text class="image-count">{{images.length}}/{{maxImages}}</text>
+    </view>
+
+    <view class="image-grid">
+      <view wx:for="{{images}}" wx:key="tempFilePath" class="image-item">
+        <image src="{{item.tempFilePath}}" mode="aspectFill"></image>
+        <view class="remove" data-index="{{index}}" bindtap="removeImage">×</view>
+      </view>
+      <view wx:if="{{images.length < maxImages}}" class="image-picker">
+        <image-uploader
+          id="memoryImageUploader"
+          value="/assets/icons/camera.svg"
+          image-type="memory"
+          crop-ratio="free"
+          tip="上传照片"
+          bindchange="onMemoryImageChange"
+        />
+      </view>
+    </view>
+  </view>
+
+  <button class="save-button" disabled="{{saving}}" bindtap="saveMemory">
+    <text>{{saving ? '保存中...' : '保存记录'}}</text>
+  </button>
+</view>

@@ -155,13 +155,17 @@ Component({
             left = (rect.width - width) / 2
           }
 
-          const ratio = this.getCropRatio()
           let cropWidth = width
-          let cropHeight = cropWidth / ratio
+          let cropHeight = height
 
-          if (cropHeight > height) {
-            cropHeight = height
-            cropWidth = cropHeight * ratio
+          if (!this.isFreeCropRatio()) {
+            const ratio = this.getCropRatio()
+            cropHeight = cropWidth / ratio
+
+            if (cropHeight > height) {
+              cropHeight = height
+              cropWidth = cropHeight * ratio
+            }
           }
 
           const imageRect = { left, top, width, height }
@@ -237,11 +241,28 @@ Component({
         return
       }
 
-      const ratio = this.getCropRatio()
       const imageRect = this.data.imageRect
       const startBox = resizeStart.box
       const deltaX = touch.clientX - resizeStart.x
       const deltaY = touch.clientY - resizeStart.y
+
+      if (this.isFreeCropRatio()) {
+        const maxWidth = imageRect.left + imageRect.width - startBox.left
+        const maxHeight = imageRect.top + imageRect.height - startBox.top
+        const nextWidth = this.clamp(startBox.width + deltaX, Math.min(96, maxWidth), maxWidth)
+        const nextHeight = this.clamp(startBox.height + deltaY, Math.min(96, maxHeight), maxHeight)
+
+        this.setData({
+          cropBox: {
+            ...startBox,
+            width: nextWidth,
+            height: nextHeight,
+          },
+        })
+        return
+      }
+
+      const ratio = this.getCropRatio()
       const widthFromX = startBox.width + deltaX
       const widthFromY = startBox.width + deltaY * ratio
       const preferredWidth = Math.max(widthFromX, widthFromY)
@@ -276,9 +297,16 @@ Component({
       const imageInfo = this.data.imageInfo
       const imageRect = this.data.imageRect
       const cropBox = this.data.cropBox
-      const ratio = this.getCropRatio()
-      const canvasWidth = this.getCropOutputWidth()
-      const canvasHeight = Math.round(canvasWidth / ratio)
+      const ratio = this.isFreeCropRatio()
+        ? cropBox.width / cropBox.height
+        : this.getCropRatio()
+      const outputWidth = this.getCropOutputWidth()
+      const canvasWidth = this.isFreeCropRatio() && ratio < 1
+        ? Math.round(outputWidth * ratio)
+        : outputWidth
+      const canvasHeight = this.isFreeCropRatio() && ratio < 1
+        ? outputWidth
+        : Math.round(canvasWidth / ratio)
       const sx = (cropBox.left - imageRect.left) / imageRect.width * imageInfo.width
       const sy = (cropBox.top - imageRect.top) / imageRect.height * imageInfo.height
       const sw = cropBox.width / imageRect.width * imageInfo.width
@@ -386,6 +414,19 @@ Component({
       return `${uploadDir}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
     },
 
+    resetPicker() {
+      this.setData({
+        displayUrl: this.properties.value || defaultImage,
+        changed: false,
+        croppedTempPath: '',
+        sourceImage: '',
+        imageInfo: null,
+        dragStart: null,
+        resizeStart: null,
+        cropVisible: false,
+      })
+    },
+
     async deleteOldFile(oldFileId, newFileId) {
       if (!oldFileId || oldFileId === newFileId || !oldFileId.startsWith('cloud://')) {
         return
@@ -411,7 +452,15 @@ Component({
         || '1:1'
     },
 
+    isFreeCropRatio() {
+      return this.getCropRatioText() === 'free'
+    },
+
     getCropRatio() {
+      if (this.isFreeCropRatio()) {
+        return 1
+      }
+
       const ratioText = this.getCropRatioText()
       const [width, height] = String(ratioText)
         .split(':')

@@ -5,6 +5,7 @@
     "pages/pet-create/index",
     "pages/pet-edit/index",
     "pages/pet-detail/index",
+    "pages/memory-create/index",
     "pages/timeline/index",
     "pages/album/index",
     "pages/star-space/index",

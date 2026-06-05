@@ -22,7 +22,7 @@
         <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
           <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
           <text>{{item.label}}</text>
-          <text class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
+          <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
         </view>
       </view>
 

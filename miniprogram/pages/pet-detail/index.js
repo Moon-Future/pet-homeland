@@ -145,6 +145,7 @@ Page({
       ...item,
       limit,
       todayCount: todayCounts[item.type] || 0,
+      showCount: item.type !== 'checkin',
     }))
 
     if (lifeStatus === 'in_stars') {
@@ -173,7 +174,7 @@ Page({
     }
 
     return [
-      { label: '记录', value: stats.companionCount || 0 },
+      { label: '记录', value: stats.memoryCount || 0 },
       { label: '贴贴', value: stats.cuddleCount || 0 },
       { label: '喂食', value: stats.feedCount || 0 },
       { label: '相册', value: stats.mediaCount || 0 },
@@ -298,6 +299,13 @@ Page({
     const pet = this.data.pet
 
     if (!type || !pet || !pet.id) {
+      return
+    }
+
+    if (type === 'checkin') {
+      wx.navigateTo({
+        url: `/pages/memory-create/index?petSpaceId=${pet.id}`,
+      })
       return
     }
 

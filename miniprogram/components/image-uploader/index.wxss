@@ -12,6 +12,15 @@
 .type-petCover .avatar { width: 300rpx; height: 300rpx; border-radius: 50%; }
 .type-petCover .avatar { border: 8rpx solid rgba(255,255,255,.9); }
 .type-petCover .camera-button { right: 14rpx; bottom: 14rpx; }
+.type-memory,
+.type-memory .avatar-section { width: 100%; height: 188rpx; }
+.type-memory .avatar-section { padding: 0; border: 2rpx dashed rgba(139,92,246,.28); background: rgba(139,92,246,.08); box-shadow: none; box-sizing: border-box; }
+.type-memory .avatar-wrap,
+.type-memory .avatar-wrap button.avatar-button,
+.type-memory .avatar { width: 100%; height: 188rpx; border-radius: 20rpx; }
+.type-memory .avatar { display: none; border: 0; background: transparent; box-shadow: none; }
+.type-memory .camera-button { left: 50%; top: 48rpx; right: auto; bottom: auto; transform: translateX(-50%); width: 56rpx; height: 56rpx; }
+.type-memory .avatar-tip { margin-top: -52rpx; color: #7a53e8; font-size: 23rpx; font-weight: 900; pointer-events: none; }
 .crop-overlay { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 99; display: flex; align-items: center; justify-content: center; padding: 40rpx 28rpx; background: rgba(47,41,64,.48); box-sizing: border-box; }
 .crop-panel { width: 100%; padding: 24rpx; border-radius: 24rpx; background: #fff8fb; box-shadow: 0 24rpx 60rpx rgba(47,41,64,.24); box-sizing: border-box; }
 .crop-stage { position: relative; width: 100%; height: 620rpx; overflow: hidden; border-radius: 18rpx; background: #201c2a; }
