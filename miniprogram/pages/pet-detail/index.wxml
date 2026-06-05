@@ -1,13 +1,14 @@
 <view class="page">
   <block wx:if="{{isLoggedIn && hasPet}}">
-    <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
-    <view class="shade"></view>
+    <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>
+    <view class="theme-shade"></view>
 
     <view class="topbar">
       <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
     </view>
 
     <view class="hero">
+      <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill"></image>
       <text class="name">{{pet.name}} ✨</text>
       <text class="date">{{pet.dateText}}</text>
       <text class="pill">{{pet.dayText}}</text>
