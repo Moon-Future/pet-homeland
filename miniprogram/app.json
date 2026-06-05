@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/pet-list/index",
     "pages/pet-create/index",
     "pages/pet-detail/index",
     "pages/timeline/index",

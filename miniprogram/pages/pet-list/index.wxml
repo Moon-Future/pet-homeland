@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="header">
+    <view>
+      <text class="title">我的宠物</text>
+      <text class="subtitle">选择当前首页展示的小窝</text>
+    </view>
+    <button class="create-button" bindtap="createPet">
+      <image src="/assets/icons/plus.svg" mode="aspectFit"></image>
+      <text>创建</text>
+    </button>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">
+    <text>正在读取...</text>
+  </view>
+
+  <view wx:elif="{{hasPetSpaces}}" class="pet-list">
+    <view
+      wx:for="{{petSpaces}}"
+      wx:key="id"
+      class="pet-card {{item.active ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="selectPet"
+    >
+      <image class="pet-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="pet-info">
+        <view class="name-row">
+          <text class="pet-name">{{item.petName}}</text>
+          <text class="status-pill {{item.statusClass}}">{{item.statusText}}</text>
+        </view>
+        <text class="pet-metrics">{{item.metricText}}</text>
+        <text class="pet-story">{{item.story}}</text>
+      </view>
+      <button class="enter-button" data-id="{{item.id}}" catchtap="enterPet">
+        <text>{{item.active ? '进入当前小窝' : '进入小窝'}}</text>
+      </button>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text class="empty-title">还没有宠物小窝</text>
+    <text class="empty-desc">创建后，这里会统一管理所有宠物。</text>
+    <button class="empty-button" bindtap="createPet">创建宠物小窝</button>
+  </view>
+</view>

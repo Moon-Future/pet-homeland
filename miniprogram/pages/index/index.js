@@ -188,8 +188,8 @@ Page({
   },
 
   onViewAll() {
-    wx.switchTab({
-      url: '/pages/profile/index',
+    wx.navigateTo({
+      url: '/pages/pet-list/index',
     })
   },
 
@@ -214,6 +214,18 @@ Page({
     this.setData({
       petSpaces,
       featuredPet: selectedPet ? this.normalizeFeaturedPet(selectedPet) : this.data.featuredPet,
+    })
+  },
+
+  enterCurrentPet() {
+    const currentPet = this.data.petSpaces.find((item) => item.active) || this.data.petSpaces[0]
+
+    if (currentPet && currentPet.id) {
+      wx.setStorageSync('selectedPetSpaceId', currentPet.id)
+    }
+
+    wx.switchTab({
+      url: '/pages/pet-detail/index',
     })
   },
 

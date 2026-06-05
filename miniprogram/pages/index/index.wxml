@@ -21,7 +21,7 @@
       <view class="card-head">
         <text class="card-title">{{featuredPet.recentTitle}}</text>
         <view class="view-all" bindtap="onViewAll">
-          <text>查看全部</text>
+          <text>全部宠物</text>
           <image class="arrow-icon" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
       </view>
@@ -41,7 +41,7 @@
         </view>
       </scroll-view>
 
-      <view class="card-body">
+      <view class="card-body" bindtap="enterCurrentPet">
         <image class="pet-avatar" src="{{featuredPet.avatar}}" mode="aspectFill"></image>
 
         <view class="pet-info">
@@ -53,15 +53,6 @@
           <text class="pet-days">{{featuredPet.metricText}}</text>
           <text class="pet-message">{{featuredPet.message}}</text>
         </view>
-
-        <view class="heart-main">
-          <image class="heart-icon" src="/assets/icons/heart.svg" mode="aspectFit"></image>
-        </view>
-      </view>
-
-      <view class="heart-more">
-        <image class="heart-small" src="/assets/icons/heart.svg" mode="aspectFit"></image>
-        <text>»</text>
       </view>
     </view>
 

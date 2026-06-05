@@ -1,0 +1,218 @@
+page {
+  min-height: 100vh;
+  background: #f7f0ff;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 34rpx 26rpx 48rpx;
+  background: linear-gradient(180deg, #f3eaff 0%, #fff7fb 62%, #fff9f2 100%);
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.title {
+  display: block;
+  color: #2f2940;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 8rpx;
+  color: #74668f;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.header button.create-button {
+  width: 156rpx;
+  min-width: 0;
+  height: 66rpx;
+  margin: 0;
+  padding: 0 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  background: #8b5cf6;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 0 12rpx 24rpx rgba(139, 92, 246, .24);
+}
+
+.create-button image {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.pet-list {
+  margin-top: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.pet-card {
+  position: relative;
+  min-height: 180rpx;
+  padding: 24rpx 24rpx 24rpx 156rpx;
+  border: 3rpx solid rgba(255, 255, 255, .72);
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 16rpx 34rpx rgba(126, 86, 194, .12);
+  box-sizing: border-box;
+}
+
+.pet-card.active {
+  border-color: rgba(139, 92, 246, .52);
+  background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(239,232,255,.84));
+  box-shadow: 0 18rpx 36rpx rgba(126, 84, 230, .2);
+}
+
+.pet-avatar {
+  position: absolute;
+  left: 24rpx;
+  top: 24rpx;
+  width: 108rpx;
+  height: 108rpx;
+  border: 6rpx solid #ffffff;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 10rpx 22rpx rgba(126, 86, 194, .16);
+}
+
+.pet-info {
+  min-width: 0;
+  padding-right: 20rpx;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.pet-name {
+  max-width: 330rpx;
+  overflow: hidden;
+  color: #2f2940;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-pill {
+  height: 32rpx;
+  padding: 0 10rpx;
+  display: flex;
+  align-items: center;
+  border-radius: 999rpx;
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 800;
+}
+
+.status-with-me {
+  background: linear-gradient(135deg, #ff9bbb, #8b5cf6);
+}
+
+.status-in-stars {
+  background: linear-gradient(135deg, #7f8cff, #5549bd);
+}
+
+.pet-metrics {
+  display: block;
+  margin-top: 8rpx;
+  color: #4b405d;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.pet-story {
+  display: block;
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #786994;
+  font-size: 23rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-card button.enter-button {
+  width: 210rpx;
+  min-width: 0;
+  height: 58rpx;
+  margin: 18rpx 0 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  color: #7a53e8;
+  background: rgba(139, 92, 246, .1);
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+button::after {
+  border: 0;
+}
+
+.empty {
+  min-height: 680rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty image {
+  width: 160rpx;
+  height: 160rpx;
+  border: 8rpx solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 16rpx 34rpx rgba(126,86,194,.16);
+}
+
+.empty-title {
+  margin-top: 28rpx;
+  color: #2f2940;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.empty-desc {
+  margin-top: 10rpx;
+  color: #786994;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.empty button.empty-button {
+  width: 320rpx;
+  min-width: 0;
+  height: 78rpx;
+  margin-top: 32rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  background: #8b5cf6;
+  font-size: 28rpx;
+  font-weight: 900;
+}

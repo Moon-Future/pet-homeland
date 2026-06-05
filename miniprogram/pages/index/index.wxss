@@ -317,6 +317,7 @@ page {
   display: flex;
   align-items: center;
   min-height: 146rpx;
+  border-radius: 22rpx;
 }
 
 .pet-avatar {
@@ -332,7 +333,7 @@ page {
   min-width: 0;
   flex: 1;
   margin-left: 22rpx;
-  padding-right: 86rpx;
+  padding-right: 0;
 }
 
 .pet-name-row {
@@ -388,47 +389,4 @@ page {
   font-size: 24rpx;
   font-weight: 700;
   line-height: 1.25;
-}
-
-.heart-main {
-  position: absolute;
-  right: 22rpx;
-  top: 20rpx;
-  width: 66rpx;
-  height: 66rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10rpx 22rpx rgba(255, 105, 151, 0.24);
-}
-
-.heart-icon {
-  width: 45rpx;
-  height: 45rpx;
-}
-
-.heart-more {
-  position: absolute;
-  right: 24rpx;
-  bottom: 23rpx;
-  height: 47rpx;
-  min-width: 82rpx;
-  padding: 0 14rpx 0 8rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rpx;
-  border-radius: 999rpx;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ff7898, #ff9fae);
-  box-shadow: 0 10rpx 18rpx rgba(255, 104, 143, 0.25);
-  font-size: 25rpx;
-  font-weight: 900;
-}
-
-.heart-small {
-  width: 34rpx;
-  height: 34rpx;
 }
