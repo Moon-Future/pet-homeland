@@ -1,5 +1,12 @@
 const auth = require('../../utils/auth')
 
+const defaultPetImage = '/assets/home/default-pet.png'
+const themeBackgrounds = {
+  cloud: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png',
+  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png',
+  starry: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png',
+  sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
+}
 const tabs = [
   { id: 'all', label: '全部' },
   { id: 'growth', label: '成长' },
@@ -19,6 +26,11 @@ Page({
     tabs,
     activeTab: 'all',
     petSpaceId: '',
+    pet: {
+      name: '宠物小窝',
+      avatar: defaultPetImage,
+      cover: defaultPetImage,
+    },
     loading: false,
     groups: [],
     dirtyVersion: 0,
@@ -35,6 +47,7 @@ Page({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
       dirtyVersion: this.getDirtyVersion(),
     })
+    this.loadPetProfile()
     this.loadMemories()
   },
 
@@ -43,6 +56,39 @@ Page({
     if (this.data.petSpaceId && dirtyVersion !== this.data.dirtyVersion) {
       this.setData({ dirtyVersion })
       this.loadMemories()
+    }
+  },
+
+  async loadPetProfile() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyPetSpaces',
+        data: {},
+      })
+
+      if (!result || !result.ok) {
+        return
+      }
+
+      const rawList = result.petSpaces || []
+      const selected = rawList.find((item) => item._id === this.data.petSpaceId) || rawList[0]
+
+      if (!selected) {
+        return
+      }
+
+      const shouldReloadMemories = !this.data.petSpaceId || this.data.petSpaceId !== selected._id
+
+      this.setData({
+        petSpaceId: selected._id,
+        pet: this.normalizePet(selected),
+      })
+
+      if (shouldReloadMemories) {
+        this.loadMemories()
+      }
+    } catch (error) {
+      // Pet profile is decorative; memories can still render.
     }
   },
 
@@ -105,11 +151,13 @@ Page({
           year: item.year,
           date: item.date,
           items: [],
+          countText: '',
         }
         groups.push(groupMap[key])
       }
 
       groupMap[key].items.push(item)
+      groupMap[key].countText = `${groupMap[key].items.length}条动态`
     })
 
     return groups
@@ -130,6 +178,15 @@ Page({
       typeLabel: typeLabels[item.type] || '日常',
       img: mediaUrls[0] || '',
       mediaUrls,
+      photoCount: mediaUrls.length,
+    }
+  },
+
+  normalizePet(item = {}) {
+    return {
+      name: item.petName || '宠物小窝',
+      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || defaultPetImage,
     }
   },
 
@@ -150,6 +207,32 @@ Page({
 
     wx.navigateTo({
       url: `/pages/memory-detail/index?petSpaceId=${this.data.petSpaceId}&memoryId=${memoryId}`,
+    })
+  },
+
+  previewMemoryImage(e) {
+    const memoryId = e.currentTarget.dataset.id
+    const url = e.currentTarget.dataset.url
+
+    if (!memoryId || !url) {
+      return
+    }
+
+    const memory = this.data.groups.reduce((found, group) => {
+      if (found) {
+        return found
+      }
+
+      return group.items.find((item) => item.id === memoryId)
+    }, null)
+
+    if (!memory || !memory.mediaUrls.length) {
+      return
+    }
+
+    wx.previewImage({
+      current: url,
+      urls: memory.mediaUrls,
     })
   },
 

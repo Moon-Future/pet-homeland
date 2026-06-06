@@ -1,5 +1,17 @@
 <view class="page">
-  <view class="title">时间轴</view>
+  <view class="moments-cover">
+    <image class="cover-img" src="{{pet.cover}}" mode="aspectFill"></image>
+    <view class="cover-shade"></view>
+    <view class="cover-copy">
+      <text class="cover-title">{{pet.name}}的朋友圈</text>
+      <text class="cover-subtitle">把每一天都发给未来的自己看</text>
+    </view>
+    <view class="pet-profile">
+      <text class="pet-name">{{pet.name}}</text>
+      <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    </view>
+  </view>
+
   <scroll-view class="tabs" scroll-x>
     <view class="tab-list">
       <view
@@ -12,22 +24,45 @@
     </view>
   </scroll-view>
 
-  <view wx:if="{{loading}}" class="state">正在读取回忆...</view>
+  <view wx:if="{{loading}}" class="state">正在读取动态...</view>
 
-  <view wx:elif="{{groups.length}}" class="timeline">
-    <view wx:for="{{groups}}" wx:key="key" class="memory-day">
-      <view class="axis"><view class="dot"></view></view>
-      <view class="year-box"><text class="year">{{item.year}}</text><text class="date">{{item.date}}</text></view>
-      <view class="day-card">
-        <view wx:for="{{item.items}}" wx:for-item="memory" wx:key="id" class="memory-card" data-id="{{memory.id}}" bindtap="goMemoryDetail">
-          <view class="memory-copy">
-            <view class="memory-row">
-              <text class="memory-title">{{memory.title}}</text>
+  <view wx:elif="{{groups.length}}" class="moments-list">
+    <view wx:for="{{groups}}" wx:key="key" class="day-section">
+      <view class="day-label">
+        <text class="day-date">{{item.date}}</text>
+        <text class="day-count">{{item.countText}}</text>
+      </view>
+
+      <view class="day-posts">
+        <view wx:for="{{item.items}}" wx:for-item="memory" wx:key="id" class="moment" data-id="{{memory.id}}" bindtap="goMemoryDetail">
+          <image class="moment-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+          <view class="moment-main">
+            <view class="moment-head">
+              <text class="moment-name">{{pet.name}}</text>
               <text class="type">{{memory.typeLabel}}</text>
             </view>
-            <text class="memory-desc">{{memory.desc}}</text>
+            <text class="moment-title">{{memory.title}}</text>
+            <text class="moment-text">{{memory.desc}}</text>
+
+            <view wx:if="{{memory.mediaUrls.length}}" class="photo-grid photo-count-{{memory.photoCount}}">
+              <view
+                wx:for="{{memory.mediaUrls}}"
+                wx:for-item="photo"
+                wx:key="*this"
+                class="photo"
+                data-id="{{memory.id}}"
+                data-url="{{photo}}"
+                catchtap="previewMemoryImage"
+              >
+                <image src="{{photo}}" mode="aspectFill"></image>
+              </view>
+            </view>
+
+            <view class="moment-foot">
+              <text>{{memory.date}}</text>
+              <text>查看详情</text>
+            </view>
           </view>
-          <image wx:if="{{memory.img}}" class="memory-img" src="{{memory.img}}" mode="aspectFill"></image>
         </view>
       </view>
     </view>
@@ -35,7 +70,7 @@
 
   <view wx:else class="empty">
     <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
-    <text class="empty-title">还没有回忆</text>
-    <text class="empty-desc">记录一次日常，时间轴就会亮起来。</text>
+    <text class="empty-title">还没有朋友圈动态</text>
+    <text class="empty-desc">记录一次日常，{{pet.name}}的朋友圈就会更新。</text>
   </view>
 </view>
