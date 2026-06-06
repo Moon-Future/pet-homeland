@@ -1,14 +1,14 @@
 .image-uploader { width: 100%; }
 .avatar-section { display: flex; flex-direction: column; align-items: center; padding: 42rpx 24rpx; border-radius: 24rpx; background: rgba(255,255,255,.78); box-shadow: 0 18rpx 38rpx rgba(126,86,194,.12); }
 .avatar-wrap { position: relative; width: 164rpx; height: 164rpx; }
-.avatar-wrap button.avatar-button { position: relative; width: 164rpx; min-width: 0; height: 164rpx; margin: 0; border-radius: 50%; overflow: visible; }
+.avatar-wrap .avatar-button { position: relative; width: 164rpx; min-width: 0; height: 164rpx; margin: 0; border-radius: 50%; overflow: visible; }
 .avatar { width: 164rpx; height: 164rpx; border: 8rpx solid rgba(255,255,255,.9); border-radius: 50%; box-sizing: border-box; background: #fff; box-shadow: 0 16rpx 32rpx rgba(126,86,194,.18); }
 .camera-button { position: absolute; right: -4rpx; bottom: -4rpx; display: flex; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; background: #8b5cf6; box-shadow: 0 10rpx 20rpx rgba(139,92,246,.26); }
 .camera-icon { width: 30rpx; height: 30rpx; }
 .avatar-tip { margin-top: 18rpx; color: #786994; font-size: 23rpx; font-weight: 800; }
 .type-petCover .avatar-section { padding: 0; background: transparent; box-shadow: none; }
 .type-petCover .avatar-wrap,
-.type-petCover .avatar-wrap button.avatar-button,
+.type-petCover .avatar-wrap .avatar-button,
 .type-petCover .avatar { width: 300rpx; height: 300rpx; border-radius: 50%; }
 .type-petCover .avatar { border: 8rpx solid rgba(255,255,255,.9); }
 .type-petCover .camera-button { right: 14rpx; bottom: 14rpx; }
@@ -16,7 +16,7 @@
 .type-memory .avatar-section { width: 100%; height: 188rpx; }
 .type-memory .avatar-section { padding: 0; border: 2rpx dashed rgba(139,92,246,.28); background: rgba(139,92,246,.08); box-shadow: none; box-sizing: border-box; }
 .type-memory .avatar-wrap,
-.type-memory .avatar-wrap button.avatar-button,
+.type-memory .avatar-wrap .avatar-button,
 .type-memory .avatar { width: 100%; height: 188rpx; border-radius: 20rpx; }
 .type-memory .avatar { display: none; border: 0; background: transparent; box-shadow: none; }
 .type-memory .camera-button { left: 50%; top: 48rpx; right: auto; bottom: auto; transform: translateX(-50%); width: 56rpx; height: 56rpx; }
@@ -36,8 +36,7 @@
 .resize-handle { position: absolute; right: -22rpx; bottom: -22rpx; width: 48rpx; height: 48rpx; border: 4rpx solid #fff; border-radius: 50%; background: #8b5cf6; box-shadow: 0 8rpx 18rpx rgba(0,0,0,.22); box-sizing: border-box; }
 .resize-handle::after { content: ""; position: absolute; right: 12rpx; bottom: 12rpx; width: 14rpx; height: 14rpx; border-right: 4rpx solid rgba(255,255,255,.9); border-bottom: 4rpx solid rgba(255,255,255,.9); }
 .crop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; margin-top: 22rpx; }
-button.crop-action,
-.crop-actions button.crop-action { width: 100%; min-width: 0; height: 78rpx; margin: 0; border-radius: 39rpx; font-size: 27rpx; font-weight: 900; }
+.crop-action { width: 100%; min-width: 0; height: 78rpx; margin: 0; border-radius: 39rpx; font-size: 27rpx; font-weight: 900; }
 .crop-actions .secondary { color: #6d4ed7; background: rgba(139,92,246,.1); }
 .crop-actions .primary { color: #fff; background: #8b5cf6; box-shadow: 0 14rpx 28rpx rgba(139,92,246,.24); }
 .crop-canvas { position: fixed; left: -9999px; top: -9999px; pointer-events: none; }

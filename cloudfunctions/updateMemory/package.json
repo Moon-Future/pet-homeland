@@ -1,0 +1,9 @@
+{
+  "name": "updateMemory",
+  "version": "1.0.0",
+  "description": "Update or delete a pet memory record",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

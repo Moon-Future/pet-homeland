@@ -26,6 +26,13 @@ page { min-height: 100vh; background: #fff7f2; }
 .story-head { display: flex; justify-content: space-between; color: #e87553; font-size: 25rpx; font-weight: 900; }
 .edit { color: #b98b73; }
 .story { display: block; margin-top: 14rpx; color: #5e526f; font-size: 24rpx; line-height: 1.55; font-weight: 700; }
+.recent-list { margin-top: 14rpx; display: flex; flex-direction: column; gap: 12rpx; }
+.recent-item { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; padding: 14rpx; border-radius: 18rpx; background: rgba(255,255,255,.62); }
+.recent-copy { min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.recent-title { color: #2f2940; font-size: 25rpx; font-weight: 900; }
+.recent-desc { color: #5e526f; font-size: 22rpx; line-height: 1.35; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-date { color: #9a7791; font-size: 20rpx; font-weight: 800; }
+.recent-img { flex-shrink: 0; width: 104rpx; height: 78rpx; border-radius: 14rpx; }
 .entry-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14rpx; margin-top: 22rpx; }
 .entry { display: flex; flex-direction: column; align-items: center; gap: 8rpx; padding: 20rpx 0; border-radius: 22rpx; color: #7a53e8; background: rgba(255,255,255,.76); font-size: 22rpx; font-weight: 900; }
 .entry image { width: 44rpx; height: 44rpx; }

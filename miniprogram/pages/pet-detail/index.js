@@ -20,6 +20,7 @@ Page({
     isOwner: false,
     actions: [],
     stats: [],
+    recentMemories: [],
   },
 
   onLoad() {
@@ -40,6 +41,7 @@ Page({
         hasPet: false,
         pet: null,
         stats: [],
+        recentMemories: [],
       })
       return
     }
@@ -75,6 +77,7 @@ Page({
           hasPet: false,
           pet: null,
           stats: [],
+          recentMemories: [],
         })
         return
       }
@@ -83,21 +86,66 @@ Page({
       const currentUser = auth.getUserProfile() || {}
       const isOwner = rawPet.ownerOpenid === currentUser.openid
       const interactionSummary = await this.loadInteractionSummary(rawPet._id)
+      const memorySummary = await this.loadMemorySummary(rawPet._id)
+      const displayStats = {
+        ...(rawPet.stats || {}),
+        memoryCount: memorySummary.memoryCount,
+        mediaCount: memorySummary.mediaCount,
+      }
       this.setData({
         loadingPet: false,
         hasPet: true,
         pet,
         rawPet,
         isOwner,
+        recentMemories: memorySummary.recentMemories,
         actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
-        stats: this.normalizeStats(rawPet.stats, rawPet.lifeStatus),
+        stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
       })
     } catch (error) {
-      this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [] })
+      this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [], recentMemories: [] })
       wx.showToast({
         title: error.message || '读取宠物小窝失败',
         icon: 'none',
       })
+    }
+  },
+
+  async loadMemorySummary(petSpaceId) {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMemories',
+        data: {
+          petSpaceId,
+          limit: 100,
+        },
+      })
+
+      if (result && result.ok) {
+        const memories = result.memories || []
+        const mediaCount = memories.reduce((total, item) => total + (item.mediaFileIds || []).length, 0)
+        const recentMemories = memories.slice(0, 3).map((item) => ({
+          id: item._id,
+          title: item.title || '今天的记录',
+          content: item.content || '留下了一张照片。',
+          date: item.memoryDate || '',
+          img: (item.mediaUrls || [])[0] || '',
+        }))
+
+        return {
+          memoryCount: memories.length,
+          mediaCount,
+          recentMemories,
+        }
+      }
+    } catch (error) {
+      // Recent memories are an enhancement; the pet detail can still render.
+    }
+
+    return {
+      memoryCount: 0,
+      mediaCount: 0,
+      recentMemories: [],
     }
   },
 
@@ -411,7 +459,8 @@ Page({
       return
     }
 
-    wx.navigateTo({ url: '/pages/timeline/index' })
+    const petSpaceId = this.data.pet && this.data.pet.id
+    wx.navigateTo({ url: `/pages/timeline/index?petSpaceId=${petSpaceId || ''}` })
   },
 
   goAlbum() {
@@ -419,7 +468,21 @@ Page({
       return
     }
 
-    wx.navigateTo({ url: '/pages/album/index' })
+    const petSpaceId = this.data.pet && this.data.pet.id
+    wx.navigateTo({ url: `/pages/album/index?petSpaceId=${petSpaceId || ''}` })
+  },
+
+  goMemoryDetail(e) {
+    const memoryId = e.currentTarget.dataset.id
+    const petSpaceId = this.data.pet && this.data.pet.id
+
+    if (!memoryId || !petSpaceId) {
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/memory-detail/index?petSpaceId=${petSpaceId}&memoryId=${memoryId}`,
+    })
   },
 
   goStarSpace() {

@@ -36,9 +36,19 @@
       <view class="story-card">
         <view class="story-head">
           <text>{{pet.name}}的小日常</text>
-          <text class="edit">编辑 ›</text>
+          <text class="edit" bindtap="goTimeline">更多 ›</text>
         </view>
-        <text class="story">{{pet.story}}</text>
+        <view wx:if="{{recentMemories.length}}" class="recent-list">
+          <view wx:for="{{recentMemories}}" wx:key="id" class="recent-item" data-id="{{item.id}}" bindtap="goMemoryDetail">
+            <view class="recent-copy">
+              <text class="recent-title">{{item.title}}</text>
+              <text class="recent-desc">{{item.content}}</text>
+              <text class="recent-date">{{item.date}}</text>
+            </view>
+            <image wx:if="{{item.img}}" class="recent-img" src="{{item.img}}" mode="aspectFill"></image>
+          </view>
+        </view>
+        <text wx:else class="story">{{pet.story}}</text>
       </view>
 
       <view class="entry-grid">

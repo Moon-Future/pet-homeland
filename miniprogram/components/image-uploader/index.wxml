@@ -53,7 +53,8 @@
   </view>
 
   <canvas
-    canvas-id="cropCanvas"
+    id="cropCanvas"
+    type="2d"
     class="crop-canvas"
     style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
   ></canvas>

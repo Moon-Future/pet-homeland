@@ -7,13 +7,11 @@ page { min-height: 100vh; background: #fff4ef; }
 .filter-list { display: flex; gap: 14rpx; }
 .filter { padding: 13rpx 28rpx; border-radius: 999rpx; color: #74668f; background: rgba(255,255,255,.8); font-size: 23rpx; font-weight: 800; }
 .filter.active { color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); }
-.collage { position: relative; min-height: 900rpx; margin-top: 26rpx; overflow: hidden; border-radius: 26rpx; background: rgba(255,255,255,.36); }
-.photo { position: absolute; padding: 10rpx; border-radius: 18rpx; background: #fff; box-shadow: 0 12rpx 24rpx rgba(83,70,166,.16); transform: rotate(-4deg); }
-.photo image { width: 100%; height: 100%; border-radius: 12rpx; }
-.photo-0 { left: 34rpx; top: 40rpx; width: 310rpx; height: 230rpx; }
-.photo-1 { right: 34rpx; top: 80rpx; width: 250rpx; height: 190rpx; transform: rotate(5deg); }
-.photo-2 { left: 58rpx; top: 320rpx; width: 230rpx; height: 190rpx; transform: rotate(6deg); }
-.photo-3 { right: 46rpx; top: 310rpx; width: 300rpx; height: 250rpx; transform: rotate(-3deg); }
-.photo-4 { left: 30rpx; top: 590rpx; width: 300rpx; height: 220rpx; transform: rotate(-6deg); }
-.photo-5 { right: 32rpx; top: 625rpx; width: 250rpx; height: 190rpx; transform: rotate(4deg); }
-.miss { position: absolute; left: 80rpx; bottom: 42rpx; color: #7c69c7; font-size: 34rpx; font-weight: 800; transform: rotate(-4deg); }
+.photo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12rpx; margin-top: 26rpx; }
+.photo { aspect-ratio: 1; overflow: hidden; border-radius: 18rpx; background: #fff; box-shadow: 0 10rpx 20rpx rgba(83,70,166,.12); }
+.photo image { width: 100%; height: 100%; }
+.state { margin-top: 120rpx; color: #74668f; text-align: center; font-size: 25rpx; font-weight: 800; }
+.empty { display: flex; flex-direction: column; align-items: center; margin-top: 120rpx; text-align: center; }
+.empty image { width: 168rpx; height: 168rpx; border-radius: 50%; background: #fff; box-shadow: 0 14rpx 30rpx rgba(126,84,230,.12); }
+.empty-title { margin-top: 24rpx; color: #2f2940; font-size: 32rpx; font-weight: 900; }
+.empty-desc { width: 520rpx; margin-top: 10rpx; color: #74668f; font-size: 24rpx; font-weight: 800; line-height: 1.45; }

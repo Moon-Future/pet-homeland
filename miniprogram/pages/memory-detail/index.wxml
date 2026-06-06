@@ -1,0 +1,28 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在读取详情...</view>
+
+  <view wx:elif="{{memory}}" class="detail">
+    <view class="head">
+      <view>
+        <text class="date">{{memory.dateText}}</text>
+        <text class="title">{{memory.title}}</text>
+      </view>
+      <text class="type">{{memory.typeLabel}}</text>
+    </view>
+
+    <text class="content">{{memory.content}}</text>
+
+    <view wx:if="{{memory.mediaUrls.length}}" class="photos">
+      <view wx:for="{{memory.mediaUrls}}" wx:key="*this" class="photo" data-url="{{item}}" bindtap="previewImage">
+        <image src="{{item}}" mode="aspectFill"></image>
+      </view>
+    </view>
+
+    <button class="edit-button" bindtap="goEdit">编辑这条日常</button>
+  </view>
+
+  <view wx:else class="empty">
+    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text class="empty-title">没有找到这条记录</text>
+  </view>
+</view>

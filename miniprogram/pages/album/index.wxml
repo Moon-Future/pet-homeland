@@ -1,17 +1,31 @@
 <view class="page">
   <view class="header">
-    <text class="title">回忆相册 🌸</text>
-    <view class="add">＋</view>
+    <text class="title">回忆相册</text>
+    <view class="add" bindtap="addMemory">＋</view>
   </view>
   <scroll-view class="filters" scroll-x>
     <view class="filter-list">
-      <view wx:for="{{filters}}" wx:key="*this" class="filter {{index === 0 ? 'active' : ''}}">{{item}}</view>
+      <view
+        wx:for="{{filters}}"
+        wx:key="id"
+        class="filter {{item.id === activeFilter ? 'active' : ''}}"
+        data-filter="{{item.id}}"
+        bindtap="selectFilter"
+      >{{item.label}}</view>
     </view>
   </scroll-view>
-  <view class="collage">
-    <view wx:for="{{photos}}" wx:key="*this" class="photo photo-{{index}}">
-      <image src="{{item}}" mode="aspectFill"></image>
+
+  <view wx:if="{{loading}}" class="state">正在整理照片...</view>
+
+  <view wx:elif="{{photos.length}}" class="photo-grid">
+    <view wx:for="{{photos}}" wx:key="id" class="photo" data-url="{{item.url}}" bindtap="previewPhoto">
+      <image src="{{item.url}}" mode="aspectFill"></image>
     </view>
-    <text class="miss">I miss you ♥</text>
+  </view>
+
+  <view wx:else class="empty">
+    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text class="empty-title">相册还是空的</text>
+    <text class="empty-desc">给日常记录加上照片，它们会自动来到这里。</text>
   </view>
 </view>

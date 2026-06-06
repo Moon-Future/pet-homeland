@@ -12,20 +12,15 @@ const allowedTypes = ['daily', 'growth', 'health', 'travel', 'birthday']
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
-  const petSpaceId = sanitizeString(event.petSpaceId, 64)
-  const memory = sanitizeMemory(event.memory)
+  const memoryId = sanitizeString(event.memoryId, 64)
+  const action = sanitizeString(event.action, 16) || 'update'
 
   if (!openid) {
     return { ok: false, message: '无法获取微信登录态' }
   }
 
-  if (!petSpaceId) {
-    return { ok: false, message: '缺少宠物小窝' }
-  }
-
-  const validation = validateMemory(memory)
-  if (!validation.ok) {
-    return validation
+  if (!memoryId) {
+    return { ok: false, message: '缺少回忆记录' }
   }
 
   try {
@@ -33,58 +28,78 @@ exports.main = async (event = {}) => {
     await ensureCollection('media')
     await ensureCollection('pet_spaces')
 
-    const current = await db.collection('pet_spaces').doc(petSpaceId).get()
-    const petSpace = current.data
+    const current = await db.collection('memories').doc(memoryId).get()
+    const existing = current.data
 
-    if (!petSpace || petSpace.status === 'deleted') {
-      return { ok: false, message: '小窝不存在' }
+    if (!existing || existing.status === 'deleted') {
+      return { ok: false, message: '记录不存在' }
     }
 
-    if (petSpace.ownerOpenid !== openid) {
-      return { ok: false, message: '只有小窝主人可以记录' }
+    if (existing.ownerOpenid !== openid) {
+      return { ok: false, message: '只有小窝主人可以编辑' }
     }
 
-    const now = db.serverDate()
-    const added = await db.collection('memories').add({
+    if (action === 'delete') {
+      await db.collection('memories').doc(memoryId).update({
+        data: {
+          status: 'deleted',
+          updatedAt: db.serverDate(),
+        },
+      })
+      await db.collection('media').where({ memoryId }).update({
+        data: {
+          status: 'deleted',
+        },
+      }).catch(() => {})
+      await adjustStats(existing.petSpaceId, openid, -1, -(existing.mediaFileIds || []).length)
+      return { ok: true }
+    }
+
+    const memory = sanitizeMemory(event.memory)
+    const validation = validateMemory(memory)
+    if (!validation.ok) {
+      return validation
+    }
+
+    const oldMedia = existing.mediaFileIds || []
+    const nextMedia = memory.mediaFileIds
+    const oldSet = new Set(oldMedia)
+    const nextSet = new Set(nextMedia)
+    const removed = oldMedia.filter((fileId) => !nextSet.has(fileId))
+    const added = nextMedia.filter((fileId) => !oldSet.has(fileId))
+
+    await db.collection('memories').doc(memoryId).update({
       data: {
-        petSpaceId,
-        ownerOpenid: openid,
         title: memory.title || getDefaultTitle(memory.type),
         content: memory.content,
         memoryDate: memory.memoryDate,
         type: memory.type,
-        mediaFileIds: memory.mediaFileIds,
-        sortOrder: new Date(memory.memoryDate).getTime() || Date.now(),
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
+        mediaFileIds: nextMedia,
+        sortOrder: new Date(memory.memoryDate).getTime() || existing.sortOrder || Date.now(),
+        updatedAt: db.serverDate(),
       },
     })
 
-    await Promise.all(memory.mediaFileIds.map((fileId, index) => db.collection('media').add({
+    await Promise.all(removed.map((fileId) => db.collection('media').where({ memoryId, fileId }).update({
+      data: { status: 'deleted' },
+    }).catch(() => {})))
+
+    await Promise.all(added.map((fileId, index) => db.collection('media').add({
       data: {
-        petSpaceId,
+        petSpaceId: existing.petSpaceId,
         ownerOpenid: openid,
-        memoryId: added._id,
+        memoryId,
         fileId,
         type: 'image',
         category: 'memory',
-        sortOrder: index,
+        sortOrder: oldMedia.length + index,
         status: 'active',
         createdAt: db.serverDate(),
       },
     })))
 
-    await db.collection('pet_spaces').doc(petSpaceId).update({
-      data: {
-        'stats.memoryCount': _.inc(1),
-        'stats.mediaCount': _.inc(memory.mediaFileIds.length),
-        updatedAt: db.serverDate(),
-      },
-    })
-    await incrementUserStats(openid, memory.mediaFileIds.length)
-
-    const saved = await db.collection('memories').doc(added._id).get()
+    await adjustStats(existing.petSpaceId, openid, 0, added.length - removed.length)
+    const saved = await db.collection('memories').doc(memoryId).get()
 
     return {
       ok: true,
@@ -98,18 +113,40 @@ exports.main = async (event = {}) => {
   }
 }
 
-async function incrementUserStats(openid, mediaCount) {
+async function adjustStats(petSpaceId, openid, memoryDelta, mediaDelta) {
+  const data = {
+    updatedAt: db.serverDate(),
+  }
+
+  if (memoryDelta) {
+    data['stats.memoryCount'] = _.inc(memoryDelta)
+  }
+
+  if (mediaDelta) {
+    data['stats.mediaCount'] = _.inc(mediaDelta)
+  }
+
+  if (memoryDelta || mediaDelta) {
+    await db.collection('pet_spaces').doc(petSpaceId).update({ data })
+    await db.collection('users').where({ openid }).update({ data }).catch(() => {})
+  }
+}
+
+async function ensureCollection(name) {
   try {
-    await ensureCollection('users')
-    await db.collection('users').where({ openid }).update({
-      data: {
-        'stats.memoryCount': _.inc(1),
-        'stats.mediaCount': _.inc(mediaCount),
-        updatedAt: db.serverDate(),
-      },
-    })
+    await db.collection(name).limit(1).get()
   } catch (error) {
-    // User stats are secondary; the pet space record is the source of truth.
+    if (!isCollectionNotFound(error)) {
+      throw error
+    }
+
+    try {
+      await db.createCollection(name)
+    } catch (createError) {
+      if (!isCollectionAlreadyExists(createError)) {
+        throw createError
+      }
+    }
   }
 }
 
@@ -140,24 +177,6 @@ function validateMemory(memory) {
   }
 
   return { ok: true }
-}
-
-async function ensureCollection(name) {
-  try {
-    await db.collection(name).limit(1).get()
-  } catch (error) {
-    if (!isCollectionNotFound(error)) {
-      throw error
-    }
-
-    try {
-      await db.createCollection(name)
-    } catch (createError) {
-      if (!isCollectionAlreadyExists(createError)) {
-        throw createError
-      }
-    }
-  }
 }
 
 function getDefaultTitle(type) {

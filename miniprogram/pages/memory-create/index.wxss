@@ -181,3 +181,24 @@ button.save-button {
 button.save-button::after {
   border: 0;
 }
+
+button.delete-button {
+  width: 100%;
+  min-width: 0;
+  height: 78rpx;
+  margin: 22rpx 0 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  color: #ef4444;
+  background: rgba(255, 255, 255, .8);
+  font-size: 27rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+button.delete-button::after {
+  border: 0;
+}

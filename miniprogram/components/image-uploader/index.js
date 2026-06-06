@@ -316,42 +316,83 @@ Component({
         canvasWidth,
         canvasHeight,
       }, () => {
-        const ctx = wx.createCanvasContext('cropCanvas', this)
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-        ctx.drawImage(this.data.sourceImage, sx, sy, sw, sh, 0, 0, canvasWidth, canvasHeight)
-        ctx.draw(false, () => {
-          wx.canvasToTempFilePath({
-            canvasId: 'cropCanvas',
-            width: canvasWidth,
-            height: canvasHeight,
-            destWidth: canvasWidth,
-            destHeight: canvasHeight,
-            fileType: 'jpg',
-            quality: 1,
-            success: (res) => {
-              this.setData({
-                displayUrl: res.tempFilePath,
-                croppedTempPath: res.tempFilePath,
-                changed: true,
-                cropVisible: false,
-                sourceImage: '',
-                imageInfo: null,
-                dragStart: null,
-                resizeStart: null,
-              })
-
-              this.triggerEvent('change', {
-                tempFilePath: res.tempFilePath,
-                changed: true,
-                cropRatio: this.getCropRatioText(),
-                imageType: this.properties.imageType,
-              })
-            },
-            fail: () => {
-              wx.showToast({ title: '裁剪失败，请重试', icon: 'none' })
-            },
-          }, this)
+        this.drawCropToCanvas({
+          canvasWidth,
+          canvasHeight,
+          sx,
+          sy,
+          sw,
+          sh,
         })
+      })
+    },
+
+    drawCropToCanvas(options) {
+      wx.createSelectorQuery()
+        .in(this)
+        .select('#cropCanvas')
+        .fields({ node: true, size: true })
+        .exec(async (res) => {
+          const canvas = res && res[0] && res[0].node
+
+          if (!canvas) {
+            wx.showToast({ title: '裁剪失败，请重试', icon: 'none' })
+            return
+          }
+
+          try {
+            const { canvasWidth, canvasHeight, sx, sy, sw, sh } = options
+            const ctx = canvas.getContext('2d')
+            const image = await this.createCanvasImage(canvas, this.data.sourceImage)
+
+            canvas.width = canvasWidth
+            canvas.height = canvasHeight
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+            ctx.drawImage(image, sx, sy, sw, sh, 0, 0, canvasWidth, canvasHeight)
+
+            wx.canvasToTempFilePath({
+              canvas,
+              width: canvasWidth,
+              height: canvasHeight,
+              destWidth: canvasWidth,
+              destHeight: canvasHeight,
+              fileType: 'jpg',
+              quality: 1,
+              success: (result) => {
+                this.setData({
+                  displayUrl: result.tempFilePath,
+                  croppedTempPath: result.tempFilePath,
+                  changed: true,
+                  cropVisible: false,
+                  sourceImage: '',
+                  imageInfo: null,
+                  dragStart: null,
+                  resizeStart: null,
+                })
+
+                this.triggerEvent('change', {
+                  tempFilePath: result.tempFilePath,
+                  changed: true,
+                  cropRatio: this.getCropRatioText(),
+                  imageType: this.properties.imageType,
+                })
+              },
+              fail: () => {
+                wx.showToast({ title: '裁剪失败，请重试', icon: 'none' })
+              },
+            })
+          } catch (error) {
+            wx.showToast({ title: '裁剪失败，请重试', icon: 'none' })
+          }
+        })
+    },
+
+    createCanvasImage(canvas, src) {
+      return new Promise((resolve, reject) => {
+        const image = canvas.createImage()
+        image.onload = () => resolve(image)
+        image.onerror = reject
+        image.src = src
       })
     },
 

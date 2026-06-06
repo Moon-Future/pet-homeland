@@ -12,7 +12,10 @@ const memoryTypes = [
 Page({
   data: {
     petSpaceId: '',
+    memoryId: '',
+    isEditing: false,
     saving: false,
+    deleting: false,
     today: '',
     form: {
       title: '',
@@ -33,9 +36,61 @@ Page({
     const today = this.formatDate(new Date())
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
+      memoryId: options.memoryId || '',
+      isEditing: Boolean(options.memoryId),
       today,
       'form.memoryDate': today,
     })
+
+    wx.setNavigationBarTitle({
+      title: options.memoryId ? '编辑日常' : '记录今天',
+    })
+
+    if (options.memoryId) {
+      this.loadMemory(options.memoryId)
+    }
+  },
+
+  async loadMemory(memoryId) {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMemories',
+        data: {
+          memoryId,
+          limit: 1,
+        },
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '读取记录失败')
+      }
+
+      const memory = (result.memories || [])[0]
+      if (!memory) {
+        throw new Error('记录不存在')
+      }
+
+      this.setData({
+        petSpaceId: memory.petSpaceId || this.data.petSpaceId,
+        form: {
+          title: memory.title || '',
+          content: memory.content || '',
+          memoryDate: memory.memoryDate || this.data.today,
+          type: memory.type || 'daily',
+        },
+        images: (memory.mediaFileIds || []).map((fileId, index) => ({
+          tempFilePath: (memory.mediaUrls || [])[index] || fileId,
+          fileID: fileId,
+          uploaded: true,
+          uploading: false,
+        })),
+      })
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '读取记录失败',
+        icon: 'none',
+      })
+    }
   },
 
   onTitleInput(e) {
@@ -115,25 +170,33 @@ Page({
 
     try {
       const mediaFileIds = await this.uploadImages()
-      const { result } = await wx.cloud.callFunction({
-        name: 'addMemory',
-        data: {
-          petSpaceId: this.data.petSpaceId,
-          memory: {
-            title: this.data.form.title,
-            content: this.data.form.content,
-            memoryDate: this.data.form.memoryDate,
-            type: this.data.form.type,
-            mediaFileIds,
-          },
+      const payload = {
+        petSpaceId: this.data.petSpaceId,
+        memory: {
+          title: this.data.form.title,
+          content: this.data.form.content,
+          memoryDate: this.data.form.memoryDate,
+          type: this.data.form.type,
+          mediaFileIds,
         },
+      }
+      const { result } = await wx.cloud.callFunction(this.data.isEditing ? {
+        name: 'updateMemory',
+        data: {
+          memoryId: this.data.memoryId,
+          memory: payload.memory,
+        },
+      } : {
+        name: 'addMemory',
+        data: payload,
       })
 
       if (!result || !result.ok) {
         throw new Error((result && result.message) || '保存失败')
       }
 
-      wx.showToast({ title: '已记录', icon: 'success' })
+      wx.showToast({ title: this.data.isEditing ? '已保存' : '已记录', icon: 'success' })
+      this.markMemoryListDirty()
 
       setTimeout(() => {
         wx.navigateBack()
@@ -153,6 +216,12 @@ Page({
 
     for (let index = 0; index < this.data.images.length; index += 1) {
       const image = this.data.images[index]
+
+      if (image.fileID) {
+        uploads.push(image.fileID)
+        continue
+      }
+
       const cloudPath = `pet-spaces/memories/${this.data.petSpaceId}/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
       const upload = await wx.cloud.uploadFile({
         cloudPath,
@@ -165,10 +234,60 @@ Page({
     return uploads
   },
 
+  deleteMemory() {
+    if (!this.data.memoryId || this.data.deleting) {
+      return
+    }
+
+    wx.showModal({
+      title: '删除这条日常？',
+      content: '删除后不会再显示在时间轴和相册里。',
+      confirmText: '删除',
+      confirmColor: '#ef4444',
+      success: async (res) => {
+        if (!res.confirm) {
+          return
+        }
+
+        this.setData({ deleting: true })
+
+        try {
+          const { result } = await wx.cloud.callFunction({
+            name: 'updateMemory',
+            data: {
+              memoryId: this.data.memoryId,
+              action: 'delete',
+            },
+          })
+
+          if (!result || !result.ok) {
+            throw new Error((result && result.message) || '删除失败')
+          }
+
+          wx.showToast({ title: '已删除', icon: 'success' })
+          this.markMemoryListDirty()
+          setTimeout(() => {
+            wx.navigateBack()
+          }, 500)
+        } catch (error) {
+          this.setData({ deleting: false })
+          wx.showToast({
+            title: error.message || '删除失败',
+            icon: 'none',
+          })
+        }
+      },
+    })
+  },
+
   formatDate(date) {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
+  },
+
+  markMemoryListDirty() {
+    wx.setStorageSync('memoryListDirty', Date.now())
   },
 })

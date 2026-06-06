@@ -1,0 +1,9 @@
+{
+  "name": "getMemories",
+  "version": "1.0.0",
+  "description": "Read pet memory records",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
