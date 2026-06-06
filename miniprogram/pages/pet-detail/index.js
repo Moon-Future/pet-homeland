@@ -162,8 +162,8 @@ Page({
       dateText,
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
-      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
-      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || defaultPetImage,
+      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: item.coverFileId || item.avatarFileId || themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
   },

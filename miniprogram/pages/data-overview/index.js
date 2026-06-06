@@ -133,7 +133,7 @@ Page({
     return {
       id: item._id,
       name: item.petName || '未命名小窝',
-      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
+      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
       companionDays: this.getDaysSince(item.arrivalDate),
     }
   },

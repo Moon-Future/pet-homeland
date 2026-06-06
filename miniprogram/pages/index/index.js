@@ -115,8 +115,8 @@ Page({
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
       metrics,
-      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
-      cover: item.coverFileId || item.avatarFileId || defaultPetImage,
+      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: item.coverFileId || item.avatarFileId || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '',
     }
   },

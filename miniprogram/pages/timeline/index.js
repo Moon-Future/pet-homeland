@@ -185,8 +185,8 @@ Page({
   normalizePet(item = {}) {
     return {
       name: item.petName || '宠物小窝',
-      avatar: item.avatarFileId || item.coverFileId || defaultPetImage,
-      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || defaultPetImage,
+      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: item.coverFileId || item.avatarFileId || themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
     }
   },
 
