@@ -4,22 +4,13 @@
     <view class="theme-shade"></view>
 
     <view class="topbar">
-      <view class="topbar-left">
-        <button wx:if="{{viewingPetSpaceId && !isOwner}}" class="top-pill" bindtap="goMyPetSpace">访问中 · 回我的</button>
-        <text wx:elif="{{isAdminReviewer}}" class="top-pill static">审核查看</text>
-      </view>
       <view class="topbar-actions">
-        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="top-text-button" bindtap="approvePet">通过</button>
-        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="top-text-button" bindtap="rejectPet">拒绝</button>
-        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus !== 'hidden'}}" class="top-text-button" bindtap="adminHidePet">隐藏</button>
-        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'hidden'}}" class="top-text-button" bindtap="adminRestorePet">恢复</button>
-        <button wx:if="{{rawPet.visibility === 'discover' && !isOwner && !isAdminReviewer}}" class="top-text-button" bindtap="reportPet">举报</button>
-      <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
-        <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
-      </button>
-      <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
-        <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
-      </button>
+        <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
+          <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
+        </button>
+        <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
+          <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
+        </button>
       </view>
     </view>
 
@@ -33,10 +24,6 @@
     <view class="sheet">
       <view wx:if="{{reviewNotice}}" class="review-notice {{reviewNotice.type}}">
         <text>{{reviewNotice.text}}</text>
-      </view>
-
-      <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="governance-bar">
-        <button class="governance-action" bindtap="unpublishPet">下架公开展示</button>
       </view>
 
       <view class="actions">
@@ -81,6 +68,31 @@
         <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
         <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
         <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
+      </view>
+
+      <view wx:if="{{(viewingPetSpaceId && !isOwner) || (rawPet.visibility === 'discover' && isOwner) || isAdminReviewer}}" class="support-panel">
+        <view wx:if="{{viewingPetSpaceId && !isOwner && !isAdminReviewer}}" class="support-copy">
+          <text class="support-title">正在访问 {{pet.name}} 的小窝</text>
+          <text class="support-desc">可以查看公开回忆、留下轻互动，也可以回到自己的小窝。</text>
+        </view>
+        <view wx:elif="{{isAdminReviewer}}" class="support-copy">
+          <text class="support-title">审核查看</text>
+          <text class="support-desc">这里的操作只影响公开展示，不会删除主人原始资料。</text>
+        </view>
+        <view wx:elif="{{rawPet.visibility === 'discover' && isOwner}}" class="support-copy">
+          <text class="support-title">公开展示管理</text>
+          <text class="support-desc">下架后小窝会转为私密，不再出现在星空广场。</text>
+        </view>
+
+        <view class="support-actions {{isAdminReviewer ? 'admin' : ''}}">
+          <view wx:if="{{viewingPetSpaceId && !isOwner && !isAdminReviewer}}" class="support-button primary" bindtap="goMyPetSpace">回我的小窝</view>
+          <view wx:if="{{rawPet.visibility === 'discover' && !isOwner && !isAdminReviewer}}" class="support-button plain" bindtap="reportPet">举报</view>
+          <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="support-button plain wide" bindtap="unpublishPet">下架公开展示</view>
+          <view wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="support-button primary" bindtap="approvePet">通过</view>
+          <view wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="support-button plain" bindtap="rejectPet">拒绝</view>
+          <view wx:if="{{isAdminReviewer && rawPet.reviewStatus !== 'hidden'}}" class="support-button danger" bindtap="adminHidePet">隐藏</view>
+          <view wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'hidden'}}" class="support-button primary wide" bindtap="adminRestorePet">恢复</view>
+        </view>
       </view>
     </view>
   </block>
