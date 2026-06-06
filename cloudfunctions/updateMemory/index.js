@@ -8,6 +8,7 @@ const db = cloud.database()
 const _ = db.command
 
 const maxImages = 3
+const memoryImageLimit = 30
 const allowedTypes = ['daily', 'growth', 'health', 'travel', 'birthday']
 
 exports.main = async (event = {}) => {
@@ -51,6 +52,7 @@ exports.main = async (event = {}) => {
           status: 'deleted',
         },
       }).catch(() => {})
+      await deleteCloudFiles(existing.mediaFileIds || [])
       await adjustStats(existing.petSpaceId, openid, -1, -(existing.mediaFileIds || []).length)
       return { ok: true }
     }
@@ -76,6 +78,10 @@ exports.main = async (event = {}) => {
     const petSpace = await db.collection('pet_spaces').doc(existing.petSpaceId).get()
     const shouldReview = petSpace.data && petSpace.data.visibility === 'discover'
     const reviewStatus = shouldReview ? 'pending_review' : 'not_required'
+    const quota = await checkMemoryImageQuota(openid, oldMedia, nextMedia.length)
+    if (!quota.ok) {
+      return quota
+    }
 
     await db.collection('memories').doc(memoryId).update({
       data: {
@@ -97,6 +103,7 @@ exports.main = async (event = {}) => {
     await Promise.all(removed.map((fileId) => db.collection('media').where({ memoryId, fileId }).update({
       data: { status: 'deleted' },
     }).catch(() => {})))
+    await deleteCloudFiles(removed)
 
     await db.collection('media').where({
       memoryId,
@@ -153,6 +160,61 @@ async function adjustStats(petSpaceId, openid, memoryDelta, mediaDelta) {
     await db.collection('pet_spaces').doc(petSpaceId).update({ data })
     await db.collection('users').where({ openid }).update({ data }).catch(() => {})
   }
+}
+
+async function checkMemoryImageQuota(openid, oldMedia, nextImageCount) {
+  const used = await getUsedMemoryImageCount(openid)
+  const ownedOldCount = oldMedia.length ? await getOwnedMemoryImageCount(openid, oldMedia) : 0
+  const projectedUsed = Math.max(used - ownedOldCount, 0) + nextImageCount
+
+  if (projectedUsed > memoryImageLimit) {
+    return {
+      ok: false,
+      message: `图片额度不足，每人最多可上传${memoryImageLimit}张回忆图片`,
+      limit: memoryImageLimit,
+      used,
+      remaining: Math.max(memoryImageLimit - Math.max(used - ownedOldCount, 0), 0),
+    }
+  }
+
+  return { ok: true }
+}
+
+async function getUsedMemoryImageCount(openid) {
+  const result = await db.collection('media')
+    .where({
+      ownerOpenid: openid,
+      category: 'memory',
+      type: 'image',
+      status: _.neq('deleted'),
+    })
+    .count()
+
+  return result.total || 0
+}
+
+async function getOwnedMemoryImageCount(openid, fileIds) {
+  const result = await db.collection('media')
+    .where({
+      ownerOpenid: openid,
+      category: 'memory',
+      type: 'image',
+      fileId: _.in(fileIds),
+      status: _.neq('deleted'),
+    })
+    .count()
+
+  return result.total || 0
+}
+
+async function deleteCloudFiles(fileIds) {
+  const fileList = [...new Set((fileIds || []).filter((fileId) => typeof fileId === 'string' && fileId.startsWith('cloud://')))]
+
+  if (!fileList.length) {
+    return
+  }
+
+  await cloud.deleteFile({ fileList }).catch(() => {})
 }
 
 async function ensureCollection(name) {

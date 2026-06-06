@@ -25,7 +25,15 @@ Page({
     },
     memoryTypes,
     images: [],
+    originalMediaFileIds: [],
     maxImages,
+    quota: {
+      limit: 30,
+      used: 0,
+      remaining: 30,
+      displayRemaining: 30,
+      loading: false,
+    },
   },
 
   onLoad(options = {}) {
@@ -48,6 +56,8 @@ Page({
 
     if (options.memoryId) {
       this.loadMemory(options.memoryId)
+    } else {
+      this.loadImageQuota()
     }
   },
 
@@ -84,7 +94,9 @@ Page({
           uploaded: true,
           uploading: false,
         })),
+        originalMediaFileIds: memory.mediaFileIds || [],
       })
+      this.loadImageQuota()
     } catch (error) {
       wx.showToast({
         title: error.message || '读取记录失败',
@@ -121,12 +133,18 @@ Page({
       return
     }
 
+    if (this.data.quota.displayRemaining <= 0) {
+      wx.showToast({ title: `最多可上传${this.data.quota.limit}张回忆图片`, icon: 'none' })
+      return
+    }
+
     const images = this.data.images.concat({
       tempFilePath,
       uploading: false,
     }).slice(0, maxImages)
 
     this.setData({ images })
+    this.updateQuotaDisplay()
 
     const uploader = this.selectComponent('#memoryImageUploader')
     if (uploader && uploader.resetPicker) {
@@ -138,6 +156,7 @@ Page({
     const index = Number(e.currentTarget.dataset.index)
     const images = this.data.images.filter((_, itemIndex) => itemIndex !== index)
     this.setData({ images })
+    this.updateQuotaDisplay()
   },
 
   validateForm() {
@@ -169,6 +188,7 @@ Page({
     this.setData({ saving: true })
 
     try {
+      await this.checkImageQuota()
       const mediaFileIds = await this.uploadImages()
       const payload = {
         petSpaceId: this.data.petSpaceId,
@@ -232,6 +252,62 @@ Page({
     }
 
     return uploads
+  },
+
+  async checkImageQuota() {
+    const { result } = await wx.cloud.callFunction({
+      name: 'getMediaQuota',
+      data: {
+        excludeFileIds: this.data.isEditing ? this.data.originalMediaFileIds : [],
+        nextImageCount: this.data.images.length,
+      },
+    })
+
+    if (!result || !result.ok) {
+      throw new Error((result && result.message) || '图片额度不足')
+    }
+  },
+
+  async loadImageQuota() {
+    this.setData({ 'quota.loading': true })
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMediaQuota',
+        data: {
+          excludeFileIds: this.data.isEditing ? this.data.originalMediaFileIds : [],
+          nextImageCount: this.data.images.length,
+        },
+      })
+
+      if (!result) {
+        throw new Error('读取图片额度失败')
+      }
+
+      const quota = {
+        limit: result.limit || 30,
+        used: result.used || 0,
+        remaining: result.remaining || 0,
+        displayRemaining: Math.max((result.remaining || 0) - this.getNewLocalImageCount(), 0),
+        loading: false,
+      }
+
+      this.setData({ quota })
+    } catch (error) {
+      this.setData({ 'quota.loading': false })
+    }
+  },
+
+  updateQuotaDisplay() {
+    const quota = this.data.quota || {}
+    const remaining = Number(quota.remaining || 0)
+    this.setData({
+      'quota.displayRemaining': Math.max(remaining - this.getNewLocalImageCount(), 0),
+    })
+  },
+
+  getNewLocalImageCount() {
+    return this.data.images.filter((image) => !image.fileID).length
   },
 
   deleteMemory() {

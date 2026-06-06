@@ -30,6 +30,9 @@
       <text class="field-label">照片</text>
       <text class="image-count">{{images.length}}/{{maxImages}}</text>
     </view>
+    <text class="quota-tip">
+      每条最多3张；本账号还可上传 {{quota.loading ? '...' : quota.displayRemaining}}/{{quota.limit}} 张回忆图片，头像和小窝封面不计入。
+    </text>
 
     <view class="image-grid">
       <view wx:for="{{images}}" wx:key="tempFilePath" class="image-item">

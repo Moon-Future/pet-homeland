@@ -1,9 +1,0 @@
-<svg width="320" height="240" viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="320" height="240" fill="url(#g)"/>
-  <path d="M16 172C62 88 109 54 160 54C211 54 258 88 304 172" stroke="#FF8FB4" stroke-width="16" stroke-linecap="round"/>
-  <path d="M40 172C80 107 119 82 160 82C201 82 240 107 280 172" stroke="#FFC85C" stroke-width="16" stroke-linecap="round"/>
-  <path d="M64 172C96 128 128 106 160 106C192 106 224 128 256 172" stroke="#8B63F6" stroke-width="16" stroke-linecap="round"/>
-  <path d="M0 174C75 139 143 134 209 154C252 167 289 169 320 158V240H0V174Z" fill="#FFE4EF"/>
-  <circle cx="266" cy="48" r="24" fill="#FFE7A8"/>
-  <defs><linearGradient id="g" x1="160" y1="0" x2="160" y2="240"><stop stop-color="#7C8CFF"/><stop offset=".62" stop-color="#FFD3E5"/><stop offset="1" stop-color="#FFF5E8"/></linearGradient></defs>
-</svg>

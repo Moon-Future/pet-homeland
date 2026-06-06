@@ -8,6 +8,7 @@ const db = cloud.database()
 const _ = db.command
 
 const maxImages = 3
+const memoryImageLimit = 30
 const allowedTypes = ['daily', 'growth', 'health', 'travel', 'birthday']
 
 exports.main = async (event = {}) => {
@@ -47,6 +48,11 @@ exports.main = async (event = {}) => {
 
     if (petSpace.ownerOpenid !== openid) {
       return { ok: false, message: '只有小窝主人可以记录' }
+    }
+
+    const quota = await checkMemoryImageQuota(openid, memory.mediaFileIds.length)
+    if (!quota.ok) {
+      return quota
     }
 
     const now = db.serverDate()
@@ -121,6 +127,38 @@ async function incrementUserStats(openid, mediaCount) {
   } catch (error) {
     // User stats are secondary; the pet space record is the source of truth.
   }
+}
+
+async function checkMemoryImageQuota(openid, nextImageCount) {
+  if (!nextImageCount) {
+    return { ok: true }
+  }
+
+  const used = await getUsedMemoryImageCount(openid)
+  if (used + nextImageCount > memoryImageLimit) {
+    return {
+      ok: false,
+      message: `图片额度不足，每人最多可上传${memoryImageLimit}张回忆图片`,
+      limit: memoryImageLimit,
+      used,
+      remaining: Math.max(memoryImageLimit - used, 0),
+    }
+  }
+
+  return { ok: true }
+}
+
+async function getUsedMemoryImageCount(openid) {
+  const result = await db.collection('media')
+    .where({
+      ownerOpenid: openid,
+      category: 'memory',
+      type: 'image',
+      status: _.neq('deleted'),
+    })
+    .count()
+
+  return result.total || 0
 }
 
 function sanitizeMemory(memory = {}) {

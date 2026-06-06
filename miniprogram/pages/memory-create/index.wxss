@@ -101,6 +101,15 @@ page {
   font-weight: 800;
 }
 
+.quota-tip {
+  display: block;
+  margin: -4rpx 0 18rpx;
+  color: #8e7ba6;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .image-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
