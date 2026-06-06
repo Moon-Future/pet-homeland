@@ -36,7 +36,7 @@ exports.main = async (event = {}) => {
         status: _.neq('deleted'),
       })
     } else {
-      const petSpace = await getViewablePetSpace(petSpaceId)
+      const petSpace = await getViewablePetSpace(petSpaceId, openid)
       if (!petSpace) {
         return { ok: false, message: '小窝不存在', memories: [] }
       }
@@ -55,7 +55,7 @@ exports.main = async (event = {}) => {
 
     const memories = result.data || []
     if (memoryId && memories[0] && memories[0].ownerOpenid !== openid) {
-      const petSpace = await getViewablePetSpace(memories[0].petSpaceId)
+      const petSpace = await getViewablePetSpace(memories[0].petSpaceId, openid)
       if (!petSpace) {
         return { ok: false, message: '无权查看这条记录', memories: [] }
       }
@@ -80,7 +80,7 @@ exports.main = async (event = {}) => {
   }
 }
 
-async function getViewablePetSpace(petSpaceId) {
+async function getViewablePetSpace(petSpaceId, openid) {
   try {
     const current = await db.collection('pet_spaces').doc(petSpaceId).get()
     const petSpace = current.data
@@ -88,7 +88,11 @@ async function getViewablePetSpace(petSpaceId) {
       return null
     }
 
-    return petSpace
+    if (petSpace.ownerOpenid === openid || ['share', 'discover'].includes(petSpace.visibility)) {
+      return petSpace
+    }
+
+    return null
   } catch (error) {
     if (isDocumentNotFound(error)) {
       return null

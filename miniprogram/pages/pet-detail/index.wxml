@@ -4,7 +4,9 @@
     <view class="theme-shade"></view>
 
     <view class="topbar">
-      <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
+      <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
+        <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
+      </button>
       <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
         <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
       </button>
@@ -36,6 +38,11 @@
           <text class="stat-value">{{item.value}}</text>
           <text class="stat-label">{{item.label}}</text>
         </view>
+      </view>
+
+      <view wx:if="{{isOwner}}" class="visitor-summary">
+        <text>今天有 {{visitorSummary.visitorCountToday}} 位朋友来过</text>
+        <text>{{visitorSummary.visitorInteractionCountToday}} 次轻互动被留下</text>
       </view>
 
       <view class="story-card">

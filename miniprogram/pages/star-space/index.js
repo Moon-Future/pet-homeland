@@ -3,8 +3,12 @@ const auth = require('../../utils/auth')
 const defaultPetImage = '/assets/home/default-pet.png'
 const filters = [
   { id: 'all', label: '全部星星' },
+  { id: 'recent', label: '最近更新' },
   { id: 'with_me', label: '正在星宠乡' },
   { id: 'in_stars', label: '住在星星上' },
+  { id: 'cat', label: '猫咪' },
+  { id: 'dog', label: '狗狗' },
+  { id: 'other', label: '其他' },
 ]
 
 Page({
@@ -14,6 +18,13 @@ Page({
     loading: false,
     pets: [],
     selectedPet: null,
+    skeletonStars: [
+      { id: 1, x: 12, y: 22, size: 'large' },
+      { id: 2, x: 42, y: 18, size: 'small' },
+      { id: 3, x: 72, y: 36, size: 'medium' },
+      { id: 4, x: 24, y: 58, size: 'medium' },
+      { id: 5, x: 58, y: 68, size: 'large' },
+    ],
     summary: {
       total: 0,
       withMe: 0,
@@ -31,6 +42,7 @@ Page({
 
   onShow() {
     wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
   },
 
   selectFilter(e) {
@@ -96,6 +108,7 @@ Page({
       lifeStatus: item.lifeStatus || 'with_me',
       isInStars,
       isOwner: Boolean(item.isOwner),
+      petType: item.petType || 'other',
       statusText: isInStars ? '住在星星上' : '正在星宠乡',
       metaText: isInStars ? `离开 ${days} 天` : `陪伴 ${days} 天`,
       story: item.story || (isInStars ? '回忆还在发光' : '今天也在发光'),
@@ -186,10 +199,20 @@ Page({
     if (pet.isOwner) {
       wx.setStorageSync('selectedPetSpaceId', petSpaceId)
       wx.removeStorageSync('viewPetSpaceId')
+      wx.removeStorageSync('viewSource')
     } else {
       wx.setStorageSync('viewPetSpaceId', petSpaceId)
+      wx.setStorageSync('viewSource', 'star_square')
     }
 
+    wx.switchTab({
+      url: '/pages/pet-detail/index',
+    })
+  },
+
+  goMyPetSpace() {
+    wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

@@ -95,6 +95,35 @@ page {
   gap: 18rpx;
 }
 
+.visibility-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.visibility-option {
+  min-height: 104rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx 22rpx;
+  border: 2rpx solid rgba(139, 92, 246, .14);
+  border-radius: 22rpx;
+  color: #5c526d;
+  background: rgba(255, 255, 255, .72);
+  font-size: 27rpx;
+  font-weight: 900;
+  box-sizing: border-box;
+}
+
+.visibility-option.active {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, .72);
+  background: linear-gradient(135deg, #b46dff, #8b5cf6);
+  box-shadow: 0 14rpx 30rpx rgba(139, 92, 246, .22);
+}
+
 .status-option {
   min-height: 130rpx;
   display: flex;

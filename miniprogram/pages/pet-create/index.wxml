@@ -97,6 +97,22 @@
     </view>
 
     <view class="theme-step" hidden="{{currentStep !== 3}}">
+      <view class="field">
+        <text class="field-label">谁可以看见小窝</text>
+        <view class="visibility-options">
+          <view
+            wx:for="{{visibilityOptions}}"
+            wx:key="id"
+            class="visibility-option {{form.visibility === item.id ? 'active' : ''}}"
+            data-visibility="{{item.id}}"
+            bindtap="setVisibility"
+          >
+            <text>{{item.label}}</text>
+            <text class="option-note">{{item.note}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="theme-grid">
         <view wx:for="{{themes}}" wx:key="id" class="theme-card {{selectedTheme === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectTheme">
           <image class="theme-image" src="{{item.image}}" mode="aspectFill"></image>

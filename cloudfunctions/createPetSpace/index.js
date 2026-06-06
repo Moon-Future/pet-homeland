@@ -43,7 +43,7 @@ exports.main = async (event = {}) => {
     coverFileId: pet.coverFileId || pet.avatarFileId,
     theme: pet.theme,
     story: pet.story,
-    visibility: 'private',
+    visibility: pet.visibility,
     stats: {
       companionCount: 0,
       cuddleCount: 0,
@@ -92,6 +92,7 @@ function sanitizePet(pet = {}) {
     coverFileId: sanitizeString(pet.coverFileId, 256),
     theme: allowValue(pet.theme, ['cloud', 'rainbow', 'starry', 'sakura'], 'rainbow'),
     story: sanitizeString(pet.story, 160),
+    visibility: allowValue(pet.visibility, ['private', 'share', 'discover'], 'private'),
   }
 }
 

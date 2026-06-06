@@ -22,7 +22,15 @@
       <text>{{summary.withMe}} 只正在星宠乡 · {{summary.inStars}} 只住在星星上</text>
     </view>
 
-    <view wx:if="{{loading}}" class="state">正在寻找星星...</view>
+    <block wx:if="{{loading}}">
+      <view
+        wx:for="{{skeletonStars}}"
+        wx:key="id"
+        class="star-skeleton size-{{item.size}}"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+      ></view>
+      <view class="state">正在寻找星星...</view>
+    </block>
 
     <block wx:elif="{{pets.length}}">
       <view
@@ -40,7 +48,8 @@
 
     <view wx:else class="empty">
       <text class="empty-title">这片星空暂时安静</text>
-      <text class="empty-desc">换一片星空，或者稍后再来遇见新的小窝。</text>
+      <text class="empty-desc">换一片星空，或者把自己的小窝设置为“出现在星空广场”。</text>
+      <view class="empty-action" bindtap="goMyPetSpace">去设置我的小窝</view>
     </view>
   </view>
 

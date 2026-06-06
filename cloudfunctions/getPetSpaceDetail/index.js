@@ -26,9 +26,14 @@ exports.main = async (event = {}) => {
       return { ok: false, message: '小窝不存在' }
     }
 
+    const isOwner = petSpace.ownerOpenid === openid
+    if (!canViewPetSpace(petSpace, openid)) {
+      return { ok: false, message: '这个小窝暂时不可访问' }
+    }
+
     return {
       ok: true,
-      isOwner: petSpace.ownerOpenid === openid,
+      isOwner,
       petSpace: sanitizePetSpace(petSpace),
     }
   } catch (error) {
@@ -56,11 +61,20 @@ function sanitizePetSpace(item = {}) {
     coverFileId: item.coverFileId || '',
     theme: item.theme || 'rainbow',
     story: item.story || '',
+    visibility: item.visibility || 'private',
     stats: item.stats || {},
     status: item.status || 'active',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || '',
   }
+}
+
+function canViewPetSpace(petSpace = {}, openid) {
+  if (petSpace.ownerOpenid === openid) {
+    return true
+  }
+
+  return ['share', 'discover'].includes(petSpace.visibility)
 }
 
 function sanitizeString(value, maxLength) {

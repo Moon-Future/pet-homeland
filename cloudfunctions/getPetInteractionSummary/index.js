@@ -28,7 +28,13 @@ exports.main = async (event = {}) => {
     }
 
     const isOwner = petSpace.ownerOpenid === openid
+    if (!isOwner && !['share', 'discover'].includes(petSpace.visibility)) {
+      return { ok: false, message: '这个小窝暂时不可访问' }
+    }
+
     const todayCounts = {}
+    let visitorCountToday = 0
+    let visitorInteractionCountToday = 0
 
     try {
       const query = await db.collection('interactions')
@@ -39,6 +45,23 @@ exports.main = async (event = {}) => {
       ;(query.data || []).forEach((item) => {
         todayCounts[item.type] = item.count || 0
       })
+
+      if (isOwner) {
+        const visitors = await db.collection('interactions')
+          .where({ petSpaceId, dateKey, isOwner: false })
+          .limit(100)
+          .get()
+        const visitorOpenids = {}
+
+        ;(visitors.data || []).forEach((item) => {
+          if (item.openid) {
+            visitorOpenids[item.openid] = true
+          }
+          visitorInteractionCountToday += item.count || 0
+        })
+
+        visitorCountToday = Object.keys(visitorOpenids).length
+      }
     } catch (error) {
       if (!isCollectionNotFound(error)) {
         throw error
@@ -50,6 +73,8 @@ exports.main = async (event = {}) => {
       isOwner,
       limit: isOwner ? 10 : 1,
       todayCounts,
+      visitorCountToday,
+      visitorInteractionCountToday,
     }
   } catch (error) {
     return {

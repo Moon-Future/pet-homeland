@@ -18,13 +18,20 @@ Page({
     rawPet: null,
     interacting: false,
     isOwner: false,
+    canSharePet: false,
     viewingPetSpaceId: '',
+    viewingSource: '',
     actions: [],
     stats: [],
+    visitorSummary: {
+      visitorCountToday: 0,
+      visitorInteractionCountToday: 0,
+    },
     recentMemories: [],
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    this.applyShareEntrance(options)
     this.refreshPetDetail()
   },
 
@@ -60,9 +67,10 @@ Page({
 
     try {
       const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
+      const viewingSource = wx.getStorageSync('viewSource') || ''
 
       if (viewingPetSpaceId) {
-        await this.loadViewingPetDetail(viewingPetSpaceId)
+        await this.loadViewingPetDetail(viewingPetSpaceId, viewingSource)
         return
       }
 
@@ -106,10 +114,13 @@ Page({
         pet,
         rawPet,
         isOwner,
+        canSharePet: this.canSharePet(rawPet),
         viewingPetSpaceId: '',
+        viewingSource: '',
         recentMemories: memorySummary.recentMemories,
         actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
         stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
+        visitorSummary: this.normalizeVisitorSummary(interactionSummary),
       })
     } catch (error) {
       this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [], recentMemories: [] })
@@ -120,7 +131,7 @@ Page({
     }
   },
 
-  async loadViewingPetDetail(petSpaceId) {
+  async loadViewingPetDetail(petSpaceId, viewingSource = '') {
     const { result } = await wx.cloud.callFunction({
       name: 'getPetSpaceDetail',
       data: { petSpaceId },
@@ -147,10 +158,13 @@ Page({
       pet,
       rawPet,
       isOwner,
+      canSharePet: this.canSharePet(rawPet),
       viewingPetSpaceId: petSpaceId,
+      viewingSource,
       recentMemories: memorySummary.recentMemories,
       actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
       stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
+      visitorSummary: this.normalizeVisitorSummary(interactionSummary),
     })
   },
 
@@ -206,7 +220,7 @@ Page({
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
       avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
-      cover: item.coverFileId || item.avatarFileId || themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
   },
@@ -221,13 +235,15 @@ Page({
       if (result && result.ok) {
         return {
           todayCounts: result.todayCounts || {},
+          visitorCountToday: result.visitorCountToday || 0,
+          visitorInteractionCountToday: result.visitorInteractionCountToday || 0,
         }
       }
     } catch (error) {
       // Summary is an enhancement; the interact API remains the source of truth.
     }
 
-    return { todayCounts: {} }
+    return { todayCounts: {}, visitorCountToday: 0, visitorInteractionCountToday: 0 }
   },
 
   normalizeActions(lifeStatus, isOwner = this.data.isOwner, todayCounts = {}) {
@@ -251,6 +267,7 @@ Page({
       return decorate([
         { label: '贴贴', icon: '/assets/icons/heart.svg', type: 'cuddle' },
         { label: '喂食', icon: '/assets/icons/flower.svg', type: 'feed' },
+        { label: '留爪印', icon: '/assets/icons/paw.svg', type: 'paw' },
       ])
     }
 
@@ -275,8 +292,20 @@ Page({
       { label: '记录', value: stats.memoryCount || 0 },
       { label: '贴贴', value: stats.cuddleCount || 0 },
       { label: '喂食', value: stats.feedCount || 0 },
+      { label: '爪印', value: stats.pawCount || 0 },
       { label: '相册', value: stats.mediaCount || 0 },
     ]
+  },
+
+  normalizeVisitorSummary(summary = {}) {
+    return {
+      visitorCountToday: summary.visitorCountToday || 0,
+      visitorInteractionCountToday: summary.visitorInteractionCountToday || 0,
+    }
+  },
+
+  canSharePet(pet = {}) {
+    return ['share', 'discover'].includes(pet.visibility)
   },
 
   getDateText(item = {}) {
@@ -427,6 +456,7 @@ Page({
         data: {
           petSpaceId: pet.id,
           type,
+          source: this.getInteractionSource(),
         },
       })
 
@@ -455,10 +485,11 @@ Page({
         rawPet,
         actions: this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts),
         stats: this.normalizeStats(result.stats, rawPet.lifeStatus),
+        visitorSummary: this.data.isOwner ? this.data.visitorSummary : this.normalizeVisitorSummary({}),
       })
 
       wx.showToast({
-        title: result.message || '已记录',
+        title: this.data.isOwner ? (result.message || '已记录') : this.getVisitorInteractionText(type, pet.name),
         icon: 'none',
       })
     } catch (error) {
@@ -504,6 +535,53 @@ Page({
     }
   },
 
+  applyShareEntrance(options = {}) {
+    const petSpaceId = options.viewPetSpaceId || options.petSpaceId || ''
+
+    if (!petSpaceId) {
+      return
+    }
+
+    wx.setStorageSync('viewPetSpaceId', petSpaceId)
+    wx.setStorageSync('viewSource', options.source === 'star_square' ? 'star_square' : 'share')
+  },
+
+  getInteractionSource() {
+    if (this.data.isOwner) {
+      return 'owner_detail'
+    }
+
+    return this.data.viewingSource || (this.data.viewingPetSpaceId ? 'star_square' : 'pet_detail')
+  },
+
+  onShareAppMessage() {
+    const pet = this.data.pet || {}
+    const petSpaceId = pet.id || this.data.viewingPetSpaceId || ''
+    const title = pet.name ? `来看看${pet.name}的小窝` : '来看看这个宠物小窝'
+
+    return {
+      title,
+      path: this.data.canSharePet && petSpaceId
+        ? `/pages/pet-detail/index?viewPetSpaceId=${petSpaceId}&source=share`
+        : '/pages/pet-detail/index',
+      imageUrl: pet.avatar || '',
+    }
+  },
+
+  getVisitorInteractionText(type, petName) {
+    const name = petName || '它'
+    const textByType = {
+      cuddle: `和${name}贴贴了一下`,
+      feed: `给${name}送来一份小零食`,
+      paw: `给${name}留下了一个爪印`,
+      miss: `为${name}记下一份想念`,
+      flower: `给${name}送了一朵花`,
+      star: `为${name}点亮一束星光`,
+    }
+
+    return textByType[type] || '已留下轻轻的问候'
+  },
+
   goTimeline() {
     if (!auth.requireLogin()) {
       return
@@ -537,11 +615,13 @@ Page({
 
   goStarSpace() {
     wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
     wx.switchTab({ url: '/pages/star-space/index' })
   },
 
   goMyPetSpace() {
     wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
     this.refreshPetDetail()
   },
 })

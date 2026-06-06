@@ -9,8 +9,8 @@ const _ = db.command
 
 const ownerDailyLimit = 10
 const ownerCooldownMs = 10 * 60 * 1000
-const companionTypes = ['cuddle', 'feed', 'checkin']
-const memorialTypes = ['miss', 'flower', 'star']
+const companionTypes = ['cuddle', 'feed', 'checkin', 'paw']
+const memorialTypes = ['miss', 'flower', 'star', 'paw']
 const statFieldByType = {
   cuddle: 'cuddleCount',
   feed: 'feedCount',
@@ -18,6 +18,7 @@ const statFieldByType = {
   miss: 'missCount',
   flower: 'flowerCount',
   star: 'starCount',
+  paw: 'pawCount',
 }
 const successTextByType = {
   cuddle: '贴贴成功',
@@ -26,12 +27,14 @@ const successTextByType = {
   miss: '已记下想念',
   flower: '已送花',
   star: '星光已点亮',
+  paw: '已留下爪印',
 }
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
   const petSpaceId = sanitizeString(event.petSpaceId, 64)
   const type = sanitizeString(event.type, 24)
+  const source = allowValue(event.source, ['star_square', 'share', 'pet_detail', 'owner_detail'], 'pet_detail')
   const now = new Date()
   const dateKey = getChinaDateKey(now)
 
@@ -54,6 +57,10 @@ exports.main = async (event = {}) => {
     }
 
     const isOwner = petSpace.ownerOpenid === openid
+    if (!isOwner && !['share', 'discover'].includes(petSpace.visibility)) {
+      return { ok: false, message: '这个小窝暂时不可互动' }
+    }
+
     const lifeStatus = petSpace.lifeStatus || 'with_me'
     const allowedTypes = lifeStatus === 'in_stars' ? memorialTypes : companionTypes
 
@@ -92,6 +99,7 @@ exports.main = async (event = {}) => {
         data: {
           count: _.inc(1),
           lastInteractedAt: now,
+          lastSource: source,
           updatedAt: db.serverDate(),
         },
       })
@@ -104,6 +112,7 @@ exports.main = async (event = {}) => {
           dateKey,
           count: 1,
           isOwner,
+          source,
           lastInteractedAt: now,
           createdAt: db.serverDate(),
           updatedAt: db.serverDate(),
@@ -166,6 +175,10 @@ function sanitizeString(value, maxLength) {
   }
 
   return value.trim().slice(0, maxLength)
+}
+
+function allowValue(value, allowed, fallback) {
+  return allowed.includes(value) ? value : fallback
 }
 
 function isCollectionNotFound(error) {

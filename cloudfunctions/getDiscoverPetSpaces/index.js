@@ -23,10 +23,15 @@ exports.main = async (event = {}) => {
 
     const where = {
       status: _.neq('deleted'),
+      visibility: 'discover',
     }
 
     if (filter === 'with_me' || filter === 'in_stars') {
       where.lifeStatus = filter
+    }
+
+    if (filter === 'cat' || filter === 'dog' || filter === 'other') {
+      where.petType = filter
     }
 
     const result = await db.collection('pet_spaces')
@@ -35,7 +40,8 @@ exports.main = async (event = {}) => {
       .limit(100)
       .get()
 
-    const petSpaces = shuffle(result.data || [])
+    const source = filter === 'recent' ? (result.data || []) : shuffle(result.data || [])
+    const petSpaces = source
       .slice(0, limit)
       .map((item) => sanitizePetSpace(item, openid))
 
@@ -61,6 +67,7 @@ function sanitizePetSpace(item = {}, openid) {
   return {
     _id: item._id,
     petName: item.petName || '未命名小窝',
+    petType: item.petType || 'other',
     lifeStatus: item.lifeStatus || 'with_me',
     birthDate: item.birthDate || '',
     arrivalDate: item.arrivalDate || '',
@@ -71,6 +78,7 @@ function sanitizePetSpace(item = {}, openid) {
     coverUrl: item.coverUrl || '',
     story: item.story || '',
     theme: item.theme || 'rainbow',
+    visibility: item.visibility || 'private',
     stats: item.stats || {},
     isOwner: item.ownerOpenid === openid,
   }

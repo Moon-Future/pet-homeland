@@ -22,6 +22,7 @@ Page({
       arrivalDate: '',
       deathDate: '',
       story: '',
+      visibility: 'private',
       coverUrl: defaultPetImage,
       coverFileId: '',
       coverChanged: false,
@@ -41,6 +42,11 @@ Page({
       { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png' },
       { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png' },
       { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png' },
+    ],
+    visibilityOptions: [
+      { id: 'private', label: '仅自己可见', note: '不会出现在星空广场' },
+      { id: 'share', label: '通过分享可见', note: '别人通过链接可查看' },
+      { id: 'discover', label: '出现在星空广场', note: '可被随机遇见并轻互动' },
     ],
     selectedTheme: 'rainbow',
   },
@@ -157,6 +163,12 @@ Page({
     })
   },
 
+  setVisibility(e) {
+    this.setData({
+      'form.visibility': e.currentTarget.dataset.visibility,
+    })
+  },
+
   validateStep(step) {
     if (step === 1 && !this.data.form.coverChanged && !this.data.form.coverFileId) {
       wx.showToast({ title: '请先上传宠物照片', icon: 'none' })
@@ -221,6 +233,7 @@ Page({
             arrivalDate: form.arrivalDate,
             deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
             story: form.story,
+            visibility: form.visibility,
             avatarUrl: upload.avatarUrl,
             avatarFileId: upload.avatarFileId,
             coverUrl: upload.avatarUrl,
