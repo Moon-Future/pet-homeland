@@ -5,7 +5,7 @@
 
     <view class="topbar">
       <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
-      <button class="edit-button" bindtap="goEditPet">
+      <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
         <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
       </button>
     </view>
@@ -18,6 +18,11 @@
     </view>
 
     <view class="sheet">
+      <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="visitor-tip">
+        <text>正在访问 {{pet.name}} 的小窝，可以查看回忆并留下轻互动。</text>
+        <text class="visitor-back" bindtap="goMyPetSpace">回到我的小窝</text>
+      </view>
+
       <view class="actions">
         <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
           <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>

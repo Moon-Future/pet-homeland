@@ -1,21 +1,66 @@
 <view class="page">
-  <text class="title">星宠乡星空</text>
-  <text class="subtitle">在这里，每一颗星星都是一个想念</text>
+  <view class="header">
+    <text class="title">星空广场</text>
+    <text class="subtitle">随机遇见不超过 20 只正在发光的宠物</text>
+  </view>
+
+  <scroll-view class="filters" scroll-x>
+    <view class="filter-list">
+      <view
+        wx:for="{{filters}}"
+        wx:key="id"
+        class="filter {{item.id === activeFilter ? 'active' : ''}}"
+        data-filter="{{item.id}}"
+        bindtap="selectFilter"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
   <view class="sky">
-    <view wx:for="{{stars}}" wx:key="name" class="star-dot" style="left: {{item.x}}%; top: {{item.y}}%;">
-      <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <view class="sky-summary">
+      <text>这片星空里遇见 {{summary.total}} 只宠物</text>
+      <text>{{summary.withMe}} 只正在星宠乡 · {{summary.inStars}} 只住在星星上</text>
     </view>
-    <view class="center-card">
-      <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
-      <view>
-        <text class="pet-name">奶球 ✨</text>
-        <text class="pet-meta">陪伴 2911 天</text>
+
+    <view wx:if="{{loading}}" class="state">正在寻找星星...</view>
+
+    <block wx:elif="{{pets.length}}">
+      <view
+        wx:for="{{pets}}"
+        wx:key="id"
+        class="star-pet {{item.isInStars ? 'in-stars' : 'with-me'}} {{selectedPet && selectedPet.id === item.id ? 'selected' : ''}} size-{{item.size}}"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+        data-id="{{item.id}}"
+        bindtap="selectPet"
+      >
+        <image src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="star-ring"></view>
       </view>
+    </block>
+
+    <view wx:else class="empty">
+      <text class="empty-title">这片星空暂时安静</text>
+      <text class="empty-desc">换一片星空，或者稍后再来遇见新的小窝。</text>
     </view>
   </view>
-  <view class="bottom-actions">
-    <button class="sub">星空榜单</button>
-    <button class="main" bindtap="lightStar">点亮一颗星</button>
-    <button class="sub">我的星球</button>
+
+  <view wx:if="{{selectedPet}}" class="selected-card" bindtap="enterSelectedPet">
+    <image src="{{selectedPet.avatar}}" mode="aspectFill"></image>
+    <view class="pet-copy">
+      <view class="name-row">
+        <text class="pet-name">{{selectedPet.name}}</text>
+        <text class="status {{selectedPet.isInStars ? 'in-stars' : 'with-me'}}">{{selectedPet.statusText}}</text>
+      </view>
+      <text class="meta">{{selectedPet.metaText}} · {{selectedPet.story}}</text>
+      <text class="hint">{{selectedPet.isOwner ? '这是你的小窝，点击进入并切换当前宠物' : '点击卡片进入小窝，留下轻互动'}}</text>
+    </view>
   </view>
+
+  <view wx:elif="{{pets.length}}" class="select-tip">
+    <text>点一颗星星，看看它的小窝资料。</text>
+  </view>
+
+  <button class="refresh-button" disabled="{{loading}}" bindtap="refreshSky">
+    <text>{{loading ? '寻找中...' : '换一片星空'}}</text>
+  </button>
 </view>

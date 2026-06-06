@@ -18,6 +18,7 @@ Page({
     rawPet: null,
     interacting: false,
     isOwner: false,
+    viewingPetSpaceId: '',
     actions: [],
     stats: [],
     recentMemories: [],
@@ -58,6 +59,13 @@ Page({
     this.setData({ loadingPet: true })
 
     try {
+      const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
+
+      if (viewingPetSpaceId) {
+        await this.loadViewingPetDetail(viewingPetSpaceId)
+        return
+      }
+
       const { result } = await wx.cloud.callFunction({
         name: 'getMyPetSpaces',
         data: {},
@@ -98,6 +106,7 @@ Page({
         pet,
         rawPet,
         isOwner,
+        viewingPetSpaceId: '',
         recentMemories: memorySummary.recentMemories,
         actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
         stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
@@ -109,6 +118,40 @@ Page({
         icon: 'none',
       })
     }
+  },
+
+  async loadViewingPetDetail(petSpaceId) {
+    const { result } = await wx.cloud.callFunction({
+      name: 'getPetSpaceDetail',
+      data: { petSpaceId },
+    })
+
+    if (!result || !result.ok) {
+      throw new Error((result && result.message) || '读取宠物小窝失败')
+    }
+
+    const rawPet = result.petSpace
+    const pet = this.normalizePet(rawPet)
+    const isOwner = Boolean(result.isOwner)
+    const interactionSummary = await this.loadInteractionSummary(rawPet._id)
+    const memorySummary = await this.loadMemorySummary(rawPet._id)
+    const displayStats = {
+      ...(rawPet.stats || {}),
+      memoryCount: memorySummary.memoryCount,
+      mediaCount: memorySummary.mediaCount,
+    }
+
+    this.setData({
+      loadingPet: false,
+      hasPet: true,
+      pet,
+      rawPet,
+      isOwner,
+      viewingPetSpaceId: petSpaceId,
+      recentMemories: memorySummary.recentMemories,
+      actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
+      stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
+    })
   },
 
   async loadMemorySummary(petSpaceId) {
@@ -201,6 +244,13 @@ Page({
         { label: '想你了', icon: '/assets/icons/heart.svg', type: 'miss' },
         { label: '送花', icon: '/assets/icons/flower.svg', type: 'flower' },
         { label: '点亮星光', icon: '/assets/icons/star.svg', type: 'star' },
+      ])
+    }
+
+    if (!isOwner) {
+      return decorate([
+        { label: '贴贴', icon: '/assets/icons/heart.svg', type: 'cuddle' },
+        { label: '喂食', icon: '/assets/icons/flower.svg', type: 'feed' },
       ])
     }
 
@@ -329,7 +379,7 @@ Page({
   },
 
   goEditPet() {
-    if (!auth.requireLogin() || !this.data.pet || !this.data.pet.id) {
+    if (!this.data.isOwner || !auth.requireLogin() || !this.data.pet || !this.data.pet.id) {
       return
     }
 
@@ -486,6 +536,12 @@ Page({
   },
 
   goStarSpace() {
+    wx.removeStorageSync('viewPetSpaceId')
     wx.switchTab({ url: '/pages/star-space/index' })
+  },
+
+  goMyPetSpace() {
+    wx.removeStorageSync('viewPetSpaceId')
+    this.refreshPetDetail()
   },
 })

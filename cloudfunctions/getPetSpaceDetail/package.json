@@ -1,0 +1,9 @@
+{
+  "name": "getPetSpaceDetail",
+  "version": "1.0.0",
+  "description": "Read one pet space for owner or visitor",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

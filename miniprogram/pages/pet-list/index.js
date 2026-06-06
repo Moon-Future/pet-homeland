@@ -169,6 +169,7 @@ Page({
       wx.setStorageSync('selectedPetSpaceId', id)
     }
 
+    wx.removeStorageSync('viewPetSpaceId')
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

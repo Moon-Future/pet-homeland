@@ -1,0 +1,9 @@
+{
+  "name": "getDiscoverPetSpaces",
+  "version": "1.0.0",
+  "description": "Random pet spaces for discover square",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
