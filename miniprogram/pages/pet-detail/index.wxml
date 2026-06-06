@@ -25,6 +25,11 @@
         <text class="visitor-back" bindtap="goMyPetSpace">回到我的小窝</text>
       </view>
 
+      <view wx:if="{{rawPet.visibility === 'discover'}}" class="governance-bar">
+        <button wx:if="{{isOwner}}" class="governance-action" bindtap="unpublishPet">下架公开展示</button>
+        <button wx:elif="{{!isOwner}}" class="governance-action" bindtap="reportPet">举报</button>
+      </view>
+
       <view class="actions">
         <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
           <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>

@@ -1,0 +1,67 @@
+<view class="page">
+  <view class="header">
+    <text class="title">人工审核</text>
+    <button class="refresh" disabled="{{loading}}" bindtap="loadItems">{{loading ? '读取中' : '刷新'}}</button>
+  </view>
+
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="id"
+      class="tab {{activeTab === item.id ? 'active' : ''}}"
+      data-tab="{{item.id}}"
+      bindtap="selectTab"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'petSpaces'}}" class="list">
+    <view wx:for="{{petSpaces}}" wx:key="_id" class="review-card">
+      <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="copy">
+        <text class="item-title">{{item.title}}</text>
+        <text class="desc">{{item.desc}}</text>
+        <text class="meta">{{item.meta}}</text>
+      </view>
+      <view class="actions">
+        <button data-type="pet_space" data-id="{{item._id}}" bindtap="approve">通过</button>
+        <button data-type="pet_space" data-id="{{item._id}}" bindtap="reject">拒绝</button>
+        <button data-type="pet_space" data-id="{{item._id}}" bindtap="hide">隐藏</button>
+      </view>
+    </view>
+    <view wx:if="{{!loading && !petSpaces.length}}" class="empty">暂无待审核小窝</view>
+  </view>
+
+  <view wx:elif="{{activeTab === 'memories'}}" class="list">
+    <view wx:for="{{memories}}" wx:key="_id" class="review-card compact">
+      <view class="copy">
+        <text class="item-title">{{item.title}}</text>
+        <text class="desc">{{item.desc}}</text>
+        <text class="meta">{{item.meta}}</text>
+      </view>
+      <view class="actions">
+        <button data-type="memory" data-id="{{item._id}}" bindtap="approve">通过</button>
+        <button data-type="memory" data-id="{{item._id}}" bindtap="reject">拒绝</button>
+        <button data-type="memory" data-id="{{item._id}}" bindtap="hide">隐藏</button>
+      </view>
+    </view>
+    <view wx:if="{{!loading && !memories.length}}" class="empty">暂无待审核回忆</view>
+  </view>
+
+  <view wx:else class="list">
+    <view wx:for="{{reports}}" wx:key="_id" class="review-card compact">
+      <view class="copy">
+        <text class="item-title">{{item.reason}}</text>
+        <text class="desc">{{item.detail || '用户没有补充说明'}}</text>
+        <text class="meta">{{item.targetType === 'memory' ? '回忆' : '小窝'}} · {{item.targetId}}</text>
+      </view>
+      <view class="actions">
+        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" bindtap="hide">隐藏内容</button>
+        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" bindtap="restore">恢复</button>
+        <button data-id="{{item._id}}" bindtap="resolveReport">已处理</button>
+      </view>
+    </view>
+    <view wx:if="{{!loading && !reports.length}}" class="empty">暂无待处理举报</view>
+  </view>
+</view>

@@ -52,6 +52,27 @@ exports.main = async (event = {}) => {
       updatedAt: now,
     }
 
+    if (pet.visibility === 'discover') {
+      const changedPublicContent = petSpace.petName !== pet.petName
+        || petSpace.petType !== pet.petType
+        || petSpace.lifeStatus !== pet.lifeStatus
+        || petSpace.story !== pet.story
+        || petSpace.avatarFileId !== pet.avatarFileId
+        || petSpace.coverFileId !== (pet.coverFileId || pet.avatarFileId)
+        || petSpace.visibility !== pet.visibility
+
+      if (changedPublicContent || !petSpace.reviewStatus || petSpace.reviewStatus === 'rejected' || petSpace.reviewStatus === 'hidden') {
+        updateData.reviewStatus = 'pending_review'
+        updateData.reviewedAt = null
+        updateData.hiddenReason = ''
+        updateData.hiddenAt = null
+      }
+    } else {
+      updateData.reviewStatus = 'approved'
+      updateData.hiddenReason = ''
+      updateData.hiddenAt = null
+    }
+
     await db.collection('pet_spaces').doc(petSpaceId).update({
       data: updateData,
     })

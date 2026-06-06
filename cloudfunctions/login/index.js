@@ -35,6 +35,8 @@ exports.main = async (event = {}) => {
       avatarUrl: profile.avatarUrl || defaultAvatar,
       avatarFileId: profile.avatarFileId || '',
       vip: false,
+      role: 'user',
+      permissions: {},
       stats: {
         petCount: 0,
         memoryCount: 0,

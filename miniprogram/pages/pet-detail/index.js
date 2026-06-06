@@ -417,6 +417,86 @@ Page({
     })
   },
 
+  reportPet() {
+    const pet = this.data.pet || {}
+    if (!pet.id || !auth.requireLogin()) {
+      return
+    }
+
+    wx.showActionSheet({
+      itemList: ['内容不适合公开展示', '疑似侵权或冒用', '其他原因'],
+      success: async (res) => {
+        const reasons = ['内容不适合公开展示', '疑似侵权或冒用', '其他原因']
+        await this.submitReport(reasons[res.tapIndex] || reasons[0])
+      },
+    })
+  },
+
+  async submitReport(reason) {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'submitReport',
+        data: {
+          targetType: 'pet_space',
+          targetId: this.data.pet.id,
+          reason,
+        },
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '举报失败')
+      }
+
+      wx.showToast({ title: result.message || '已收到举报', icon: 'none' })
+    } catch (error) {
+      wx.showToast({ title: error.message || '举报失败，请稍后重试', icon: 'none' })
+    }
+  },
+
+  unpublishPet() {
+    const pet = this.data.pet || {}
+    if (!pet.id || !this.data.isOwner || !auth.requireLogin()) {
+      return
+    }
+
+    wx.showModal({
+      title: '下架公开展示',
+      content: '下架后小窝会转为私密，不再出现在星空广场。',
+      confirmText: '下架',
+      confirmColor: '#8b5cf6',
+      success: async (res) => {
+        if (!res.confirm) {
+          return
+        }
+
+        await this.hideOwnPublicPet()
+      },
+    })
+  },
+
+  async hideOwnPublicPet() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'hidePublicContent',
+        data: {
+          targetType: 'pet_space',
+          targetId: this.data.pet.id,
+          action: 'unpublish',
+          reason: '主人主动下架公开展示',
+        },
+      })
+
+      if (!result || !result.ok) {
+        throw new Error((result && result.message) || '下架失败')
+      }
+
+      wx.showToast({ title: '已下架公开展示', icon: 'none' })
+      this.refreshPetDetail()
+    } catch (error) {
+      wx.showToast({ title: error.message || '下架失败，请稍后重试', icon: 'none' })
+    }
+  },
+
   async interact(e) {
     if (this.data.interacting || !auth.requireLogin()) {
       return

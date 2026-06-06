@@ -44,6 +44,11 @@ exports.main = async (event = {}) => {
     theme: pet.theme,
     story: pet.story,
     visibility: pet.visibility,
+    reviewStatus: pet.visibility === 'discover' ? 'pending_review' : 'approved',
+    reportCount: 0,
+    hiddenReason: '',
+    reviewedAt: null,
+    hiddenAt: null,
     stats: {
       companionCount: 0,
       cuddleCount: 0,

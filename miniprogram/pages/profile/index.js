@@ -13,6 +13,7 @@ Page({
       vip: false,
       createdAtText: '',
     },
+    isAdmin: false,
     stats: [
       { label: '宠物', value: 0 },
       { label: '回忆', value: 0 },
@@ -23,11 +24,7 @@ Page({
       { label: '我的宠物', icon: '/assets/icons/paw.svg', url: '/pages/pet-list/index' },
       { label: '资料设置', icon: '/assets/icons/settings.svg', url: '/pages/profile-edit/index' },
     ],
-    more: [
-      { label: '数据概览', icon: '/assets/icons/star.svg', url: '/pages/data-overview/index' },
-      { label: '意见反馈', icon: '/assets/icons/share.svg', url: '/pages/feedback/index' },
-      { label: '分享给好友', icon: '/assets/icons/heart.svg', type: 'share' },
-    ],
+    more: [],
   },
 
   onLoad() {
@@ -47,17 +44,22 @@ Page({
         hasProfile: false,
         user: this.normalizeUser({}),
         stats: this.normalizeStats(),
+        isAdmin: false,
+        more: this.buildMore(false),
       })
       return
     }
 
     const normalizedUser = this.normalizeUser(user)
+    const isAdmin = normalizedUser.role === 'admin'
     this.setData({
       loading: false,
       isLoggedIn: true,
       hasProfile: Boolean(normalizedUser.nickname),
       user: normalizedUser,
       stats: this.normalizeStats(normalizedUser.stats),
+      isAdmin,
+      more: this.buildMore(isAdmin),
     })
   },
 
@@ -94,6 +96,8 @@ Page({
         hasProfile,
         user,
         stats: this.normalizeStats(user.stats),
+        isAdmin: user.role === 'admin',
+        more: this.buildMore(user.role === 'admin'),
       })
 
       wx.showToast({
@@ -128,6 +132,20 @@ Page({
       { label: '相册', value: stats.mediaCount || 0 },
       { label: '分享', value: stats.shareCount || 0 },
     ]
+  },
+
+  buildMore(isAdmin) {
+    const items = [
+      { label: '数据概览', icon: '/assets/icons/star.svg', url: '/pages/data-overview/index' },
+      { label: '意见反馈', icon: '/assets/icons/share.svg', url: '/pages/feedback/index' },
+    ]
+
+    if (isAdmin) {
+      items.push({ label: '人工审核', icon: '/assets/icons/settings.svg', url: '/pages/admin-review/index' })
+    }
+
+    items.push({ label: '分享给好友', icon: '/assets/icons/heart.svg', type: 'share' })
+    return items
   },
 
   formatDate(value) {
@@ -174,6 +192,8 @@ Page({
           hasProfile: false,
           user: this.normalizeUser({}),
           stats: this.normalizeStats(),
+          isAdmin: false,
+          more: this.buildMore(false),
         })
 
         wx.showToast({

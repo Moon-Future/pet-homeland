@@ -45,6 +45,7 @@ exports.main = async (event = {}) => {
     }
 
     const now = db.serverDate()
+    const reviewStatus = petSpace.visibility === 'discover' ? 'pending_review' : 'approved'
     const added = await db.collection('memories').add({
       data: {
         petSpaceId,
@@ -56,6 +57,10 @@ exports.main = async (event = {}) => {
         mediaFileIds: memory.mediaFileIds,
         sortOrder: new Date(memory.memoryDate).getTime() || Date.now(),
         status: 'active',
+        reviewStatus,
+        reviewedAt: null,
+        hiddenReason: '',
+        hiddenAt: null,
         createdAt: now,
         updatedAt: now,
       },
@@ -70,7 +75,7 @@ exports.main = async (event = {}) => {
         type: 'image',
         category: 'memory',
         sortOrder: index,
-        status: 'active',
+        status: reviewStatus === 'approved' ? 'active' : 'pending_review',
         createdAt: db.serverDate(),
       },
     })))

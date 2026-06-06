@@ -68,6 +68,9 @@ exports.main = async (event = {}) => {
     const removed = oldMedia.filter((fileId) => !nextSet.has(fileId))
     const added = nextMedia.filter((fileId) => !oldSet.has(fileId))
 
+    const petSpace = await db.collection('pet_spaces').doc(existing.petSpaceId).get()
+    const shouldReview = petSpace.data && petSpace.data.visibility === 'discover'
+
     await db.collection('memories').doc(memoryId).update({
       data: {
         title: memory.title || getDefaultTitle(memory.type),
@@ -76,6 +79,10 @@ exports.main = async (event = {}) => {
         type: memory.type,
         mediaFileIds: nextMedia,
         sortOrder: new Date(memory.memoryDate).getTime() || existing.sortOrder || Date.now(),
+        reviewStatus: shouldReview ? 'pending_review' : 'approved',
+        reviewedAt: null,
+        hiddenReason: '',
+        hiddenAt: null,
         updatedAt: db.serverDate(),
       },
     })
@@ -93,7 +100,7 @@ exports.main = async (event = {}) => {
         type: 'image',
         category: 'memory',
         sortOrder: oldMedia.length + index,
-        status: 'active',
+        status: shouldReview ? 'pending_review' : 'active',
         createdAt: db.serverDate(),
       },
     })))

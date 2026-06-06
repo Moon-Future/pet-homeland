@@ -22,7 +22,7 @@ exports.main = async (event = {}) => {
     const current = await db.collection('pet_spaces').doc(petSpaceId).get()
     const petSpace = current.data
 
-    if (!petSpace || petSpace.status === 'deleted') {
+    if (!petSpace || petSpace.status === 'deleted' || petSpace.status === 'hidden') {
       return { ok: false, message: '小窝不存在' }
     }
 
@@ -64,6 +64,7 @@ function sanitizePetSpace(item = {}) {
     visibility: item.visibility || 'private',
     stats: item.stats || {},
     status: item.status || 'active',
+    reviewStatus: item.reviewStatus || 'approved',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || '',
   }
@@ -74,7 +75,13 @@ function canViewPetSpace(petSpace = {}, openid) {
     return true
   }
 
-  return ['share', 'discover'].includes(petSpace.visibility)
+  if (petSpace.visibility === 'share') {
+    return petSpace.status === 'active'
+  }
+
+  return petSpace.visibility === 'discover'
+    && petSpace.status === 'active'
+    && (petSpace.reviewStatus || 'approved') === 'approved'
 }
 
 function sanitizeString(value, maxLength) {

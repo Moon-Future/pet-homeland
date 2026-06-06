@@ -26,9 +26,8 @@ exports.main = async (event = {}) => {
     await ensureCollection('memories')
     await ensureCollection('pet_spaces')
 
-    let query = db.collection('memories').where({
-      status: _.neq('deleted'),
-    })
+    let ownerView = false
+    let query = db.collection('memories').where({ status: 'active' })
 
     if (memoryId) {
       query = db.collection('memories').where({
@@ -41,9 +40,12 @@ exports.main = async (event = {}) => {
         return { ok: false, message: '小窝不存在', memories: [] }
       }
 
+      ownerView = petSpace.ownerOpenid === openid
+
       query = db.collection('memories').where({
         petSpaceId,
-        status: _.neq('deleted'),
+        status: ownerView ? _.neq('deleted') : 'active',
+        ...(ownerView ? {} : { reviewStatus: 'approved' }),
         ...(type && type !== 'all' ? { type } : {}),
       })
     }
@@ -58,6 +60,9 @@ exports.main = async (event = {}) => {
       const petSpace = await getViewablePetSpace(memories[0].petSpaceId, openid)
       if (!petSpace) {
         return { ok: false, message: '无权查看这条记录', memories: [] }
+      }
+      if (memories[0].status !== 'active' || (memories[0].reviewStatus || 'approved') !== 'approved') {
+        return { ok: false, message: '这条记录暂未公开', memories: [] }
       }
     }
 
@@ -88,7 +93,11 @@ async function getViewablePetSpace(petSpaceId, openid) {
       return null
     }
 
-    if (petSpace.ownerOpenid === openid || ['share', 'discover'].includes(petSpace.visibility)) {
+    if (petSpace.ownerOpenid === openid || petSpace.visibility === 'share') {
+      return petSpace
+    }
+
+    if (petSpace.visibility === 'discover' && (petSpace.reviewStatus || 'approved') === 'approved') {
       return petSpace
     }
 

@@ -22,8 +22,9 @@ exports.main = async (event = {}) => {
     await ensureCollection('pet_spaces')
 
     const where = {
-      status: _.neq('deleted'),
+      status: 'active',
       visibility: 'discover',
+      reviewStatus: 'approved',
     }
 
     if (filter === 'with_me' || filter === 'in_stars') {
