@@ -1,0 +1,77 @@
+<view class="page">
+  <view class="topbar">
+    <view class="nav-button" bindtap="goBack">返回</view>
+    <view class="queue-nav">
+      <view class="nav-button {{index <= 0 ? 'disabled' : ''}}" bindtap="prevItem">上一条</view>
+      <text class="queue-count">{{queue.length ? index + 1 : 0}} / {{queue.length || 0}}</text>
+      <view class="nav-button {{index >= queue.length - 1 ? 'disabled' : ''}}" bindtap="nextItem">下一条</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">正在读取审核详情...</view>
+  <view wx:elif="{{error}}" class="state error">{{error}}</view>
+
+  <view wx:elif="{{target}}" class="detail">
+    <view class="summary">
+      <image class="cover" src="{{target.image}}" mode="aspectFill"></image>
+      <view class="summary-copy">
+        <text class="eyebrow">{{type === 'report' ? '举报处理' : target.kind === 'memory' ? '回忆审核' : '小窝审核'}}</text>
+        <text class="title">{{target.title}}</text>
+        <text class="status status-{{target.reviewStatus}}">{{target.reviewStatusText}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{report}}" class="section">
+      <text class="section-title">举报信息</text>
+      <view class="field">
+        <text class="label">原因</text>
+        <text class="value">{{report.reason}}</text>
+      </view>
+      <view class="field">
+        <text class="label">补充说明</text>
+        <text class="value">{{report.detail}}</text>
+      </view>
+      <view class="field">
+        <text class="label">目标类型</text>
+        <text class="value">{{report.targetType === 'memory' ? '回忆' : '小窝'}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">字段内容</text>
+      <view wx:for="{{target.fields}}" wx:key="label" class="field">
+        <text class="label">{{item.label}}</text>
+        <text class="value">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">{{target.contentTitle}}</text>
+      <text class="content">{{target.content}}</text>
+    </view>
+
+    <view wx:if="{{target.hiddenReason}}" class="section warn">
+      <text class="section-title">处理原因</text>
+      <text class="content">{{target.hiddenReason}}</text>
+    </view>
+
+    <view wx:if="{{target.mediaUrls.length}}" class="section">
+      <text class="section-title">图片内容</text>
+      <view class="photos">
+        <view wx:for="{{target.mediaUrls}}" wx:key="*this" class="photo" data-url="{{item}}" bindtap="previewImage">
+          <image src="{{item}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button wx:if="{{type !== 'report' && target.reviewStatus === 'pending_review'}}" class="primary" bindtap="approve">通过</button>
+      <button wx:if="{{type !== 'report' && target.reviewStatus === 'pending_review'}}" bindtap="reject">拒绝</button>
+      <button wx:if="{{target.reviewStatus !== 'hidden'}}" class="danger" bindtap="hide">隐藏</button>
+      <button wx:if="{{target.reviewStatus === 'hidden'}}" class="primary" bindtap="restore">恢复</button>
+      <button wx:if="{{type === 'report'}}" bindtap="resolveReport">举报已处理</button>
+    </view>
+  </view>
+
+  <view wx:else class="state">没有找到审核内容</view>
+</view>

@@ -20,10 +20,11 @@ exports.main = async (event = {}) => {
     return { ok: false, message: '无管理员权限' }
   }
 
-  const [petSpaces, memories, reports] = await Promise.all([
+  const [petSpaces, memories, reports, hiddenItems] = await Promise.all([
     getPendingPetSpaces(limit),
     getPendingMemories(limit),
     getOpenReports(limit),
+    getHiddenItems(limit),
   ])
 
   return {
@@ -31,6 +32,7 @@ exports.main = async (event = {}) => {
     petSpaces,
     memories,
     reports,
+    hiddenItems,
   }
 }
 
@@ -52,10 +54,12 @@ async function getPendingPetSpaces(limit) {
       .limit(100)
       .get()
 
-    return (result.data || [])
+    const petSpaces = (result.data || [])
       .filter((item) => !item.reviewStatus || item.reviewStatus === 'pending_review')
       .slice(0, limit)
       .map(normalizePetSpace)
+    await attachPetImageUrls(petSpaces)
+    return petSpaces
   } catch (error) {
     if (isCollectionNotFound(error)) {
       return []
@@ -105,6 +109,59 @@ async function getOpenReports(limit) {
   }
 }
 
+async function getHiddenItems(limit) {
+  const [petSpaces, memories] = await Promise.all([
+    getHiddenPetSpaces(limit),
+    getHiddenMemories(limit),
+  ])
+
+  return [...petSpaces, ...memories]
+    .sort((a, b) => getTimeValue(b.updatedAt) - getTimeValue(a.updatedAt))
+    .slice(0, limit)
+}
+
+async function getHiddenPetSpaces(limit) {
+  try {
+    await ensureCollection('pet_spaces')
+    const result = await db.collection('pet_spaces')
+      .where({
+        reviewStatus: 'hidden',
+      })
+      .orderBy('updatedAt', 'desc')
+      .limit(limit)
+      .get()
+
+    const petSpaces = (result.data || []).map((item) => normalizeHiddenPetSpace(item))
+    await attachPetImageUrls(petSpaces)
+    return petSpaces
+  } catch (error) {
+    if (isCollectionNotFound(error)) {
+      return []
+    }
+    throw error
+  }
+}
+
+async function getHiddenMemories(limit) {
+  try {
+    await ensureCollection('memories')
+    const result = await db.collection('memories')
+      .where({
+        reviewStatus: 'hidden',
+      })
+      .orderBy('updatedAt', 'desc')
+      .limit(limit)
+      .get()
+
+    return (result.data || []).map(normalizeHiddenMemory)
+  } catch (error) {
+    if (isCollectionNotFound(error)) {
+      return []
+    }
+    throw error
+  }
+}
+
 function normalizePetSpace(item = {}) {
   return {
     _id: item._id,
@@ -115,12 +172,47 @@ function normalizePetSpace(item = {}) {
     coverFileId: item.coverFileId || '',
     avatarUrl: item.avatarUrl || '',
     coverUrl: item.coverUrl || '',
+    avatarTempUrl: item.avatarTempUrl || '',
+    coverTempUrl: item.coverTempUrl || '',
     story: item.story || '',
     ownerOpenid: item.ownerOpenid || '',
     reviewStatus: item.reviewStatus || 'pending_review',
     reportCount: item.reportCount || 0,
     updatedAt: item.updatedAt || '',
   }
+}
+
+function normalizeHiddenPetSpace(item = {}) {
+  return {
+    ...normalizePetSpace(item),
+    _id: `pet_space:${item._id}`,
+    targetId: item._id,
+    targetType: 'pet_space',
+    hiddenReason: item.hiddenReason || '',
+    hiddenFromStatus: item.hiddenFromStatus || '',
+    hiddenFromReviewStatus: item.hiddenFromReviewStatus || '',
+  }
+}
+
+async function attachPetImageUrls(petSpaces) {
+  const fileIds = [...new Set(petSpaces.flatMap((item) => [item.avatarFileId, item.coverFileId]).filter(Boolean))]
+
+  if (!fileIds.length) {
+    return
+  }
+
+  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
+  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
+    if (item.fileID && item.tempFileURL) {
+      map[item.fileID] = item.tempFileURL
+    }
+    return map
+  }, {})
+
+  petSpaces.forEach((item) => {
+    item.avatarTempUrl = urlMap[item.avatarFileId] || item.avatarUrl || ''
+    item.coverTempUrl = urlMap[item.coverFileId] || item.coverUrl || item.avatarTempUrl || ''
+  })
 }
 
 function normalizeMemory(item = {}) {
@@ -134,6 +226,18 @@ function normalizeMemory(item = {}) {
     ownerOpenid: item.ownerOpenid || '',
     reviewStatus: item.reviewStatus || 'pending_review',
     updatedAt: item.updatedAt || '',
+  }
+}
+
+function normalizeHiddenMemory(item = {}) {
+  return {
+    ...normalizeMemory(item),
+    _id: `memory:${item._id}`,
+    targetId: item._id,
+    targetType: 'memory',
+    hiddenReason: item.hiddenReason || '',
+    hiddenFromStatus: item.hiddenFromStatus || '',
+    hiddenFromReviewStatus: item.hiddenFromReviewStatus || '',
   }
 }
 
@@ -178,4 +282,26 @@ function isCollectionAlreadyExists(error) {
 
 function getErrorText(error = {}) {
   return `${error.errCode || ''} ${error.errMsg || ''} ${error.message || ''}`
+}
+
+function getTimeValue(value) {
+  if (!value) {
+    return 0
+  }
+
+  if (value instanceof Date) {
+    return value.getTime()
+  }
+
+  if (typeof value === 'string') {
+    const time = new Date(value).getTime()
+    return Number.isNaN(time) ? 0 : time
+  }
+
+  if (typeof value === 'object' && value.$date) {
+    const time = new Date(value.$date).getTime()
+    return Number.isNaN(time) ? 0 : time
+  }
+
+  return 0
 }

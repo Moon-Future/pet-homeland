@@ -4,6 +4,7 @@ const tabs = [
   { id: 'petSpaces', label: '小窝' },
   { id: 'memories', label: '回忆' },
   { id: 'reports', label: '举报' },
+  { id: 'hidden', label: '已隐藏' },
 ]
 
 Page({
@@ -11,9 +12,11 @@ Page({
     tabs,
     activeTab: 'petSpaces',
     loading: false,
+    loadedOnce: false,
     petSpaces: [],
     memories: [],
     reports: [],
+    hiddenItems: [],
   },
 
   onLoad() {
@@ -22,6 +25,12 @@ Page({
     }
 
     this.loadItems()
+  },
+
+  onShow() {
+    if (this.data.loadedOnce) {
+      this.loadItems()
+    }
   },
 
   selectTab(e) {
@@ -52,9 +61,11 @@ Page({
 
       this.setData({
         loading: false,
+        loadedOnce: true,
         petSpaces: (result.petSpaces || []).map(this.normalizePetSpace),
         memories: (result.memories || []).map(this.normalizeMemory),
         reports: result.reports || [],
+        hiddenItems: (result.hiddenItems || []).map(this.normalizeHiddenItem),
       })
     } catch (error) {
       this.setData({ loading: false })
@@ -67,7 +78,7 @@ Page({
       ...item,
       title: item.petName || '未命名小窝',
       desc: item.story || '没有填写公开简介',
-      cover: item.coverFileId || item.avatarFileId || item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      cover: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
       meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 举报 ${item.reportCount || 0}`,
     }
   },
@@ -81,44 +92,70 @@ Page({
     }
   },
 
+  normalizeHiddenItem(item = {}) {
+    if (item.targetType === 'memory') {
+      return {
+        ...item,
+        title: item.title || '今天的记录',
+        desc: item.content || '这条回忆已被隐藏',
+        meta: `回忆 · ${item.memoryDate || '日期待补充'}`,
+      }
+    }
+
+    return {
+      ...item,
+      title: item.petName || '未命名小窝',
+      desc: item.story || '这个小窝已被隐藏',
+      cover: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 小窝`,
+    }
+  },
+
   openPetSpace(e) {
-    const id = e.currentTarget.dataset.id
+    const { id, index } = e.currentTarget.dataset
     if (!id) {
       return
     }
 
-    wx.setStorageSync('viewPetSpaceId', id)
-    wx.setStorageSync('viewSource', 'admin_review')
-    wx.switchTab({ url: '/pages/pet-detail/index' })
+    this.openReviewDetail('pet_space', id, Number(index) || 0, this.data.petSpaces)
   },
 
   openMemory(e) {
-    const { id, petSpaceId } = e.currentTarget.dataset
+    const { id, index } = e.currentTarget.dataset
     if (!id) {
       return
     }
 
-    wx.navigateTo({
-      url: `/pages/memory-detail/index?petSpaceId=${petSpaceId || ''}&memoryId=${id}&source=admin_review`,
-    })
+    this.openReviewDetail('memory', id, Number(index) || 0, this.data.memories)
   },
 
   openReportTarget(e) {
-    const { type, targetId } = e.currentTarget.dataset
-    if (!targetId) {
+    const { id, index } = e.currentTarget.dataset
+    if (!id) {
       return
     }
 
-    if (type === 'memory') {
-      wx.navigateTo({
-        url: `/pages/memory-detail/index?memoryId=${targetId}&source=admin_review`,
-      })
+    this.openReviewDetail('report', id, Number(index) || 0, this.data.reports)
+  },
+
+  openHiddenItem(e) {
+    const { id, index } = e.currentTarget.dataset
+    if (!id) {
       return
     }
 
-    wx.setStorageSync('viewPetSpaceId', targetId)
-    wx.setStorageSync('viewSource', 'admin_review')
-    wx.switchTab({ url: '/pages/pet-detail/index' })
+    this.openReviewDetail('hidden', id, Number(index) || 0, this.data.hiddenItems)
+  },
+
+  openReviewDetail(type, id, index, queue) {
+    wx.setStorageSync('adminReviewQueue', {
+      type,
+      index,
+      items: queue || [],
+    })
+    wx.navigateTo({
+      url: `/pages/admin-review-detail/index?type=${type}&id=${id}&index=${index}`,
+    })
   },
 
   approve(e) {
@@ -143,7 +180,7 @@ Page({
 
   restore(e) {
     const { id, type } = e.currentTarget.dataset
-    this.confirmAction('恢复内容', '恢复后内容会重新通过审核并允许公开展示。', async () => {
+    this.confirmAction('恢复内容', '恢复后会回到隐藏前的审核状态。', async () => {
       await this.callFunction('hidePublicContent', {
         targetType: type,
         targetId: id,

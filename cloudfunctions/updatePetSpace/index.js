@@ -39,6 +39,7 @@ exports.main = async (event = {}) => {
     }
 
     const updateData = {
+      status: 'active',
       petName: pet.petName,
       petType: pet.petType,
       breed: pet.breed,

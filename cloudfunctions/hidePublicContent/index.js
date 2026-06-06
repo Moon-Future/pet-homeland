@@ -55,23 +55,28 @@ exports.main = async (event = {}) => {
   }
 
   if (action === 'restore') {
+    const restoredStatus = getRestoredStatus(item)
+    const restoredReviewStatus = getRestoredReviewStatus(item)
+
     await db.collection(collection).doc(targetId).update({
       data: {
-        status: 'active',
-        reviewStatus: 'approved',
+        status: restoredStatus,
+        reviewStatus: restoredReviewStatus,
         hiddenReason: '',
         hiddenAt: null,
+        hiddenFromStatus: '',
+        hiddenFromReviewStatus: '',
         updatedAt: db.serverDate(),
       },
     })
 
     if (targetType === 'memory') {
       await db.collection('media').where({ memoryId: targetId }).update({
-        data: { status: 'active' },
+        data: { status: getMediaStatus(restoredReviewStatus) },
       }).catch(() => {})
     }
 
-    return { ok: true }
+    return { ok: true, status: restoredStatus, reviewStatus: restoredReviewStatus }
   }
 
   await db.collection(collection).doc(targetId).update({
@@ -79,6 +84,8 @@ exports.main = async (event = {}) => {
       status: 'hidden',
       reviewStatus: 'hidden',
       hiddenReason: reason || '管理员隐藏',
+      hiddenFromStatus: item.reviewStatus === 'hidden' ? (item.hiddenFromStatus || 'active') : (item.status || 'active'),
+      hiddenFromReviewStatus: item.reviewStatus === 'hidden' ? (item.hiddenFromReviewStatus || inferPreviousReviewStatus(item)) : (item.reviewStatus || inferPreviousReviewStatus(item)),
       hiddenBy: openid,
       hiddenAt: db.serverDate(),
       updatedAt: db.serverDate(),
@@ -119,6 +126,34 @@ function sanitizeString(value, maxLength) {
 
 function allowValue(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback
+}
+
+function getRestoredStatus(item = {}) {
+  return allowValue(item.hiddenFromStatus, ['active'], 'active')
+}
+
+function getRestoredReviewStatus(item = {}) {
+  return allowValue(item.hiddenFromReviewStatus, ['not_required', 'pending_review', 'approved', 'rejected'], inferPreviousReviewStatus(item))
+}
+
+function inferPreviousReviewStatus(item = {}) {
+  if (item.reviewedAt) {
+    return 'approved'
+  }
+
+  return 'pending_review'
+}
+
+function getMediaStatus(reviewStatus) {
+  if (reviewStatus === 'pending_review') {
+    return 'pending_review'
+  }
+
+  if (reviewStatus === 'rejected') {
+    return 'blocked'
+  }
+
+  return 'active'
 }
 
 function isCollectionNotFound(error) {

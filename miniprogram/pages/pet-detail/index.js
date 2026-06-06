@@ -18,7 +18,6 @@ Page({
     rawPet: null,
     interacting: false,
     isOwner: false,
-    isAdminReviewer: false,
     canSharePet: false,
     viewingPetSpaceId: '',
     viewingSource: '',
@@ -70,7 +69,8 @@ Page({
 
     try {
       const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
-      const viewingSource = wx.getStorageSync('viewSource') || ''
+      const storedSource = wx.getStorageSync('viewSource') || ''
+      const viewingSource = storedSource === 'admin_review' ? '' : storedSource
 
       if (viewingPetSpaceId) {
         await this.loadViewingPetDetail(viewingPetSpaceId, viewingSource)
@@ -117,7 +117,6 @@ Page({
         pet,
         rawPet,
         isOwner,
-        isAdminReviewer: false,
         canSharePet: this.canSharePet(rawPet),
         viewingPetSpaceId: '',
         viewingSource: '',
@@ -149,7 +148,6 @@ Page({
     const rawPet = result.petSpace
     const pet = this.normalizePet(rawPet)
     const isOwner = Boolean(result.isOwner)
-    const isAdminReviewer = Boolean(result.isAdmin)
     const interactionSummary = await this.loadInteractionSummary(rawPet._id)
     const memorySummary = await this.loadMemorySummary(rawPet._id)
     const displayStats = {
@@ -164,7 +162,6 @@ Page({
       pet,
       rawPet,
       isOwner,
-      isAdminReviewer,
       canSharePet: this.canSharePet(rawPet),
       viewingPetSpaceId: petSpaceId,
       viewingSource,
@@ -227,8 +224,8 @@ Page({
       dateText,
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
-      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
-      cover: themeBackgrounds[item.theme] || item.coverFileId || item.avatarFileId || item.coverUrl || item.avatarUrl || defaultPetImage,
+      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
   },
@@ -349,7 +346,7 @@ Page({
       },
       hidden: {
         type: 'hidden',
-        text: pet.hiddenReason || '公开展示已被管理员隐藏。',
+        text: '公开展示已被管理员隐藏，可修改资料后重新提交公开申请。',
       },
     }
 
@@ -544,100 +541,6 @@ Page({
     } catch (error) {
       wx.showToast({ title: error.message || '下架失败，请稍后重试', icon: 'none' })
     }
-  },
-
-  approvePet() {
-    this.reviewPet('approve')
-  },
-
-  rejectPet() {
-    this.reviewPet('reject')
-  },
-
-  adminHidePet() {
-    this.adminHandlePet('hide')
-  },
-
-  adminRestorePet() {
-    this.adminHandlePet('restore')
-  },
-
-  async reviewPet(action) {
-    if (!this.data.isAdminReviewer || !this.data.pet || !this.data.pet.id) {
-      return
-    }
-
-    const title = action === 'approve' ? '通过小窝' : '拒绝小窝'
-    const content = action === 'approve' ? '通过后小窝可以公开展示。' : '拒绝后小窝不会进入星空广场。'
-    wx.showModal({
-      title,
-      content,
-      confirmColor: '#8b5cf6',
-      success: async (res) => {
-        if (!res.confirm) {
-          return
-        }
-
-        try {
-          const { result } = await wx.cloud.callFunction({
-            name: 'reviewContent',
-            data: {
-              targetType: 'pet_space',
-              targetId: this.data.pet.id,
-              action,
-              reason: action === 'reject' ? '内容未通过人工审核' : '',
-            },
-          })
-
-          if (!result || !result.ok) {
-            throw new Error((result && result.message) || '处理失败')
-          }
-
-          wx.showToast({ title: '已处理', icon: 'success' })
-          this.loadPetDetail()
-        } catch (error) {
-          wx.showToast({ title: error.message || '处理失败', icon: 'none' })
-        }
-      },
-    })
-  },
-
-  adminHandlePet(action) {
-    if (!this.data.isAdminReviewer || !this.data.pet || !this.data.pet.id) {
-      return
-    }
-
-    wx.showModal({
-      title: action === 'restore' ? '恢复小窝' : '隐藏小窝',
-      content: action === 'restore' ? '恢复后小窝会重新公开展示。' : '隐藏后小窝不会继续公开展示。',
-      confirmColor: '#8b5cf6',
-      success: async (res) => {
-        if (!res.confirm) {
-          return
-        }
-
-        try {
-          const { result } = await wx.cloud.callFunction({
-            name: 'hidePublicContent',
-            data: {
-              targetType: 'pet_space',
-              targetId: this.data.pet.id,
-              action,
-              reason: '管理员在详情页处理',
-            },
-          })
-
-          if (!result || !result.ok) {
-            throw new Error((result && result.message) || '处理失败')
-          }
-
-          wx.showToast({ title: '已处理', icon: 'success' })
-          this.loadPetDetail()
-        } catch (error) {
-          wx.showToast({ title: error.message || '处理失败', icon: 'none' })
-        }
-      },
-    })
   },
 
   async interact(e) {

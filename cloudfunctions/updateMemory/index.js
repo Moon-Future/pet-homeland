@@ -79,6 +79,7 @@ exports.main = async (event = {}) => {
 
     await db.collection('memories').doc(memoryId).update({
       data: {
+        status: 'active',
         title: memory.title || getDefaultTitle(memory.type),
         content: memory.content,
         memoryDate: memory.memoryDate,
@@ -96,6 +97,15 @@ exports.main = async (event = {}) => {
     await Promise.all(removed.map((fileId) => db.collection('media').where({ memoryId, fileId }).update({
       data: { status: 'deleted' },
     }).catch(() => {})))
+
+    await db.collection('media').where({
+      memoryId,
+      fileId: _.in(nextMedia),
+    }).update({
+      data: {
+        status: shouldReview ? 'pending_review' : 'active',
+      },
+    }).catch(() => {})
 
     await Promise.all(added.map((fileId, index) => db.collection('media').add({
       data: {

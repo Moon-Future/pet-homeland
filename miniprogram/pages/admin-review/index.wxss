@@ -4,7 +4,7 @@ page { min-height: 100vh; background: #f7f4fb; }
 .title { color: #2f2940; font-size: 38rpx; font-weight: 900; }
 .refresh { width: 132rpx; height: 60rpx; margin: 0; padding: 0; border-radius: 30rpx; color: #fff; background: #8b5cf6; font-size: 24rpx; font-weight: 900; line-height: 60rpx; }
 .refresh::after { border: 0; }
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; margin-top: 28rpx; padding: 8rpx; border-radius: 28rpx; background: rgba(255,255,255,.82); }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10rpx; margin-top: 28rpx; padding: 8rpx; border-radius: 28rpx; background: rgba(255,255,255,.82); }
 .tab { display: flex; align-items: center; justify-content: center; height: 64rpx; border-radius: 22rpx; color: #6f6090; font-size: 24rpx; font-weight: 900; }
 .tab.active { color: #fff; background: #8b5cf6; }
 .list { display: flex; flex-direction: column; gap: 18rpx; margin-top: 24rpx; }

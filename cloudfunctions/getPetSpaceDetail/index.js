@@ -34,11 +34,14 @@ exports.main = async (event = {}) => {
       return { ok: false, message: '这个小窝暂时不可访问' }
     }
 
+    const safePetSpace = sanitizePetSpace(petSpace)
+    await attachPetImageUrls(safePetSpace)
+
     return {
       ok: true,
       isOwner,
       isAdmin,
-      petSpace: sanitizePetSpace(petSpace),
+      petSpace: safePetSpace,
     }
   } catch (error) {
     return {
@@ -63,6 +66,8 @@ function sanitizePetSpace(item = {}) {
     avatarFileId: item.avatarFileId || '',
     coverUrl: item.coverUrl || '',
     coverFileId: item.coverFileId || '',
+    avatarTempUrl: item.avatarTempUrl || '',
+    coverTempUrl: item.coverTempUrl || '',
     theme: item.theme || 'rainbow',
     story: item.story || '',
     visibility: item.visibility || 'private',
@@ -70,9 +75,32 @@ function sanitizePetSpace(item = {}) {
     status: item.status || 'active',
     reviewStatus: item.reviewStatus || 'approved',
     hiddenReason: item.hiddenReason || '',
+    hiddenFromStatus: item.hiddenFromStatus || '',
+    hiddenFromReviewStatus: item.hiddenFromReviewStatus || '',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || '',
   }
+}
+
+async function attachPetImageUrls(petSpace) {
+  const fileIds = [...new Set([petSpace.avatarFileId, petSpace.coverFileId].filter(Boolean))]
+
+  if (!fileIds.length) {
+    petSpace.avatarTempUrl = petSpace.avatarUrl || ''
+    petSpace.coverTempUrl = petSpace.coverUrl || petSpace.avatarTempUrl || ''
+    return
+  }
+
+  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
+  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
+    if (item.fileID && item.tempFileURL) {
+      map[item.fileID] = item.tempFileURL
+    }
+    return map
+  }, {})
+
+  petSpace.avatarTempUrl = urlMap[petSpace.avatarFileId] || petSpace.avatarUrl || ''
+  petSpace.coverTempUrl = urlMap[petSpace.coverFileId] || petSpace.coverUrl || petSpace.avatarTempUrl || ''
 }
 
 async function getAdmin(openid) {

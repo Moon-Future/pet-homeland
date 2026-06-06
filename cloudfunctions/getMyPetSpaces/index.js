@@ -28,9 +28,12 @@ exports.main = async () => {
       .limit(20)
       .get()
 
+    const petSpaces = result.data || []
+    await attachPetImageUrls(petSpaces)
+
     return {
       ok: true,
-      petSpaces: result.data || [],
+      petSpaces,
     }
   } catch (error) {
     if (isCollectionNotFound(error)) {
@@ -46,6 +49,27 @@ exports.main = async () => {
       petSpaces: [],
     }
   }
+}
+
+async function attachPetImageUrls(petSpaces) {
+  const fileIds = [...new Set(petSpaces.flatMap((item) => [item.avatarFileId, item.coverFileId]).filter(Boolean))]
+
+  if (!fileIds.length) {
+    return
+  }
+
+  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
+  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
+    if (item.fileID && item.tempFileURL) {
+      map[item.fileID] = item.tempFileURL
+    }
+    return map
+  }, {})
+
+  petSpaces.forEach((item) => {
+    item.avatarTempUrl = urlMap[item.avatarFileId] || item.avatarUrl || ''
+    item.coverTempUrl = urlMap[item.coverFileId] || item.coverUrl || item.avatarTempUrl || ''
+  })
 }
 
 function isCollectionNotFound(error = {}) {
