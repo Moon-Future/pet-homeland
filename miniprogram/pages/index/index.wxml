@@ -72,7 +72,9 @@
       <view class="theme-strip">
         <view wx:for="{{themePreviews}}" wx:key="id" class="theme-item">
           <image src="{{item.image}}" mode="aspectFill"></image>
-          <text>{{item.name}}</text>
+          <view class="theme-name">
+            <text>{{item.name}}</text>
+          </view>
         </view>
       </view>
       <view class="guide-empty" bindtap="goLogin">
