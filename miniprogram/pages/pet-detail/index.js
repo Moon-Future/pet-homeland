@@ -192,7 +192,7 @@ Page({
         const recentMemories = memories.slice(0, 3).map((item) => ({
           id: item._id,
           title: item.title || '今天的记录',
-          content: item.content || '留下了一张照片。',
+          content: item.content || '留下了这些照片。',
           date: item.memoryDate || '',
           img: (item.mediaUrls || [])[0] || '',
         }))

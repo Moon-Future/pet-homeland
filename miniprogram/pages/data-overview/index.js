@@ -124,7 +124,7 @@ Page({
         id: item._id,
         title: item.title || '今天的记录',
         date: item.memoryDate || '',
-        content: item.content || '留下了一张照片。',
+        content: item.content || '留下了这些照片。',
       })),
     }
   },
