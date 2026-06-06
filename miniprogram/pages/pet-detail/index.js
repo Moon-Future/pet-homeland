@@ -8,6 +8,7 @@ const themeBackgrounds = {
   sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
 }
 const ownerCooldownMs = 10 * 60 * 1000
+const petDetailCacheKey = 'petDetailCache:v1'
 
 Page({
   data: {
@@ -29,18 +30,26 @@ Page({
     },
     recentMemories: [],
     reviewNotice: null,
+    skeletonActions: [1, 2, 3],
+    skeletonStats: [1, 2, 3, 4],
   },
 
   onLoad(options = {}) {
+    this._skipNextShow = true
     this.applyShareEntrance(options)
-    this.refreshPetDetail()
+    this.refreshPetDetail({ useCache: true })
   },
 
   onShow() {
-    this.refreshPetDetail()
+    if (this._skipNextShow) {
+      this._skipNextShow = false
+      return
+    }
+
+    this.refreshPetDetail({ useCache: true, silent: this.data.hasPet })
   },
 
-  refreshPetDetail() {
+  refreshPetDetail(options = {}) {
     const isLoggedIn = auth.isLoggedIn()
     this.setData({ isLoggedIn })
 
@@ -56,16 +65,22 @@ Page({
       return
     }
 
-    this.loadPetDetail()
+    if (options.useCache) {
+      this.applyPetDetailCache()
+    }
+
+    this.loadPetDetail({ silent: options.silent || this.data.hasPet })
   },
 
-  async loadPetDetail() {
+  async loadPetDetail(options = {}) {
     if (!wx.cloud) {
       wx.showToast({ title: '请先开通云开发', icon: 'none' })
       return
     }
 
-    this.setData({ loadingPet: true })
+    if (!options.silent) {
+      this.setData({ loadingPet: true })
+    }
 
     try {
       const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
@@ -104,12 +119,14 @@ Page({
       const pet = this.normalizePet(rawPet)
       const currentUser = auth.getUserProfile() || {}
       const isOwner = rawPet.ownerOpenid === currentUser.openid
-      const interactionSummary = await this.loadInteractionSummary(rawPet._id)
-      const memorySummary = await this.loadMemorySummary(rawPet._id)
+      const [interactionSummary, memorySummary] = await Promise.all([
+        this.loadInteractionSummary(rawPet._id),
+        this.loadMemorySummary(rawPet._id),
+      ])
       const displayStats = {
         ...(rawPet.stats || {}),
-        memoryCount: memorySummary.memoryCount,
-        mediaCount: memorySummary.mediaCount,
+        memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
+        mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
       }
       this.setData({
         loadingPet: false,
@@ -126,8 +143,15 @@ Page({
         visitorSummary: this.normalizeVisitorSummary(interactionSummary),
         reviewNotice: this.getReviewNotice(rawPet, isOwner),
       })
+      this.savePetDetailCache()
     } catch (error) {
-      this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [], recentMemories: [] })
+      this.setData({
+        loadingPet: false,
+        hasPet: this.data.hasPet,
+        pet: this.data.pet,
+        stats: this.data.stats,
+        recentMemories: this.data.recentMemories,
+      })
       wx.showToast({
         title: error.message || '读取宠物小窝失败',
         icon: 'none',
@@ -148,12 +172,14 @@ Page({
     const rawPet = result.petSpace
     const pet = this.normalizePet(rawPet)
     const isOwner = Boolean(result.isOwner)
-    const interactionSummary = await this.loadInteractionSummary(rawPet._id)
-    const memorySummary = await this.loadMemorySummary(rawPet._id)
+    const [interactionSummary, memorySummary] = await Promise.all([
+      this.loadInteractionSummary(rawPet._id),
+      this.loadMemorySummary(rawPet._id),
+    ])
     const displayStats = {
       ...(rawPet.stats || {}),
-      memoryCount: memorySummary.memoryCount,
-      mediaCount: memorySummary.mediaCount,
+      memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
+      mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
     }
 
     this.setData({
@@ -173,20 +199,70 @@ Page({
     })
   },
 
+  applyPetDetailCache() {
+    if (wx.getStorageSync('viewPetSpaceId') || this.data.hasPet) {
+      return
+    }
+
+    const cache = wx.getStorageSync(petDetailCacheKey)
+    if (!cache || !cache.pet || !cache.rawPet) {
+      return
+    }
+
+    const selectedId = wx.getStorageSync('selectedPetSpaceId')
+    if (selectedId && cache.rawPet._id && selectedId !== cache.rawPet._id) {
+      return
+    }
+
+    this.setData({
+      loadingPet: false,
+      hasPet: true,
+      pet: cache.pet,
+      rawPet: cache.rawPet,
+      isOwner: Boolean(cache.isOwner),
+      canSharePet: Boolean(cache.canSharePet),
+      viewingPetSpaceId: '',
+      viewingSource: '',
+      recentMemories: cache.recentMemories || [],
+      actions: cache.actions || [],
+      stats: cache.stats || [],
+      visitorSummary: cache.visitorSummary || this.data.visitorSummary,
+      reviewNotice: cache.reviewNotice || null,
+    })
+  },
+
+  savePetDetailCache() {
+    if (this.data.viewingPetSpaceId || !this.data.pet || !this.data.rawPet) {
+      return
+    }
+
+    wx.setStorageSync(petDetailCacheKey, {
+      pet: this.data.pet,
+      rawPet: this.data.rawPet,
+      isOwner: this.data.isOwner,
+      canSharePet: this.data.canSharePet,
+      recentMemories: this.data.recentMemories,
+      actions: this.data.actions,
+      stats: this.data.stats,
+      visitorSummary: this.data.visitorSummary,
+      reviewNotice: this.data.reviewNotice,
+      cachedAt: Date.now(),
+    })
+  },
+
   async loadMemorySummary(petSpaceId) {
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'getMemories',
         data: {
           petSpaceId,
-          limit: 100,
+          limit: 3,
         },
       })
 
       if (result && result.ok) {
         const memories = result.memories || []
-        const mediaCount = memories.reduce((total, item) => total + (item.mediaFileIds || []).length, 0)
-        const recentMemories = memories.slice(0, 3).map((item) => ({
+        const recentMemories = memories.map((item) => ({
           id: item._id,
           title: item.title || '今天的记录',
           content: item.content || '留下了这些照片。',
@@ -195,8 +271,8 @@ Page({
         }))
 
         return {
-          memoryCount: memories.length,
-          mediaCount,
+          memoryCount: null,
+          mediaCount: null,
           recentMemories,
         }
       }
@@ -205,8 +281,8 @@ Page({
     }
 
     return {
-      memoryCount: 0,
-      mediaCount: 0,
+      memoryCount: null,
+      mediaCount: null,
       recentMemories: [],
     }
   },

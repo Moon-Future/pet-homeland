@@ -396,3 +396,43 @@ page {
   font-weight: 700;
   line-height: 1.25;
 }
+
+.skeleton-card { overflow: hidden; }
+.skeleton-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
+.skeleton-filter { display: flex; gap: 12rpx; margin-bottom: 22rpx; }
+.skeleton-body { display: flex; align-items: center; min-height: 146rpx; }
+.skeleton-copy { flex: 1; margin-left: 22rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.skeleton-line,
+.skeleton-pill,
+.skeleton-chip,
+.skeleton-avatar {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,.64);
+}
+.skeleton-line::after,
+.skeleton-pill::after,
+.skeleton-chip::after,
+.skeleton-avatar::after {
+  content: "";
+  position: absolute;
+  left: -80%;
+  top: 0;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.58), rgba(255,255,255,0));
+  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.skeleton-line { width: 76%; height: 26rpx; border-radius: 999rpx; }
+.skeleton-line.title { width: 180rpx; height: 34rpx; }
+.skeleton-line.name { width: 220rpx; height: 34rpx; }
+.skeleton-line.short { width: 46%; }
+.skeleton-pill { width: 132rpx; height: 48rpx; border-radius: 999rpx; }
+.skeleton-chip { width: 150rpx; height: 54rpx; border-radius: 999rpx; }
+.skeleton-chip.short { width: 112rpx; }
+.skeleton-avatar { width: 124rpx; height: 124rpx; flex: 0 0 124rpx; border-radius: 50%; }
+
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(260%); }
+}

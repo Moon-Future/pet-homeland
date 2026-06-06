@@ -61,3 +61,49 @@ page { min-height: 100vh; background: #fff7f2; }
 .empty-title { margin-top: 28rpx; color: #2f2940; font-size: 34rpx; font-weight: 900; }
 .empty-desc { margin-top: 12rpx; color: #786994; font-size: 25rpx; font-weight: 800; }
 .login-empty .login-button { width: 320rpx; height: 78rpx; margin-top: 34rpx; border-radius: 39rpx; color: #fff; background: #8b5cf6; font-size: 28rpx; font-weight: 900; box-shadow: 0 14rpx 28rpx rgba(139,92,246,.24); }
+.pet-skeleton { position: relative; min-height: 100vh; overflow: hidden; background: #fff7f2; }
+.skeleton-bg { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #d9c3ff 0%, #f8d9e2 54%, #fff7f2 100%); }
+.skeleton-hero { position: relative; z-index: 1; padding: 40rpx; display: flex; flex-direction: column; align-items: flex-start; }
+.skeleton-sheet { position: relative; z-index: 2; margin: 24rpx; padding: 26rpx 22rpx 32rpx; border: 2rpx solid rgba(255,255,255,.5); border-radius: 32rpx; background: rgba(255,255,255,.58); box-shadow: 0 -12rpx 44rpx rgba(65,45,88,.14); }
+.skeleton-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 16rpx; }
+.skeleton-action { display: flex; flex-direction: column; align-items: center; gap: 10rpx; }
+.skeleton-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12rpx; margin-top: 28rpx; }
+.skeleton-card { margin-top: 24rpx; padding: 24rpx; border-radius: 24rpx; background: rgba(255,255,255,.76); display: flex; flex-direction: column; gap: 14rpx; }
+.skeleton-photo,
+.skeleton-line,
+.skeleton-pill,
+.skeleton-icon,
+.skeleton-stat {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,.66);
+}
+.skeleton-photo::after,
+.skeleton-line::after,
+.skeleton-pill::after,
+.skeleton-icon::after,
+.skeleton-stat::after {
+  content: "";
+  position: absolute;
+  left: -80%;
+  top: 0;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.58), rgba(255,255,255,0));
+  animation: pet-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.skeleton-photo { width: 136rpx; height: 136rpx; margin-bottom: 22rpx; border-radius: 50%; }
+.skeleton-line { width: 72%; height: 24rpx; border-radius: 999rpx; }
+.skeleton-line.name { width: 260rpx; height: 56rpx; }
+.skeleton-line.date { width: 220rpx; margin-top: 18rpx; }
+.skeleton-line.short { width: 90rpx; }
+.skeleton-line.medium { width: 52%; }
+.skeleton-line.card-title { width: 210rpx; height: 28rpx; }
+.skeleton-pill { width: 280rpx; height: 52rpx; margin-top: 18rpx; border-radius: 999rpx; }
+.skeleton-icon { width: 82rpx; height: 82rpx; border-radius: 50%; }
+.skeleton-stat { height: 92rpx; border-radius: 22rpx; }
+
+@keyframes pet-skeleton-shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(260%); }
+}

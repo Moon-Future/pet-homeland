@@ -85,7 +85,33 @@
     </view>
   </block>
 
-  <view wx:elif="{{isLoggedIn && !hasPet}}" class="login-empty">
+  <view wx:elif="{{isLoggedIn && loadingPet && !hasPet}}" class="pet-skeleton">
+    <view class="skeleton-bg"></view>
+    <view class="skeleton-hero">
+      <view class="skeleton-photo"></view>
+      <view class="skeleton-line name"></view>
+      <view class="skeleton-line date"></view>
+      <view class="skeleton-pill"></view>
+    </view>
+    <view class="skeleton-sheet">
+      <view class="skeleton-actions">
+        <view wx:for="{{skeletonActions}}" wx:key="*this" class="skeleton-action">
+          <view class="skeleton-icon"></view>
+          <view class="skeleton-line short"></view>
+        </view>
+      </view>
+      <view class="skeleton-stats">
+        <view wx:for="{{skeletonStats}}" wx:key="*this" class="skeleton-stat"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line card-title"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-line medium"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{isLoggedIn && !loadingPet && !hasPet}}" class="login-empty">
     <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
     <text class="empty-title">还没有宠物小窝</text>
     <text class="empty-desc">创建后，这里会展示真实宠物资料。</text>

@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
+const homeCacheKey = 'homePetSpacesCache:v1'
 
 Page({
   data: {
@@ -19,14 +20,20 @@ Page({
   },
 
   onLoad() {
-    this.refreshHome()
+    this._skipNextShow = true
+    this.refreshHome({ useCache: true })
   },
 
   onShow() {
-    this.refreshHome()
+    if (this._skipNextShow) {
+      this._skipNextShow = false
+      return
+    }
+
+    this.refreshHome({ useCache: true, silent: this.data.hasPetSpaces })
   },
 
-  refreshHome() {
+  refreshHome(options = {}) {
     const isLoggedIn = auth.isLoggedIn()
     this.setData({ isLoggedIn })
 
@@ -40,16 +47,22 @@ Page({
       return
     }
 
-    this.loadPetSpaces()
+    if (options.useCache) {
+      this.applyHomeCache()
+    }
+
+    this.loadPetSpaces({ silent: options.silent || this.data.hasPetSpaces })
   },
 
-  async loadPetSpaces() {
+  async loadPetSpaces(options = {}) {
     if (!wx.cloud) {
       wx.showToast({ title: '请先开通云开发', icon: 'none' })
       return
     }
 
-    this.setData({ loadingPets: true })
+    if (!options.silent) {
+      this.setData({ loadingPets: true })
+    }
 
     try {
       const { result } = await wx.cloud.callFunction({
@@ -78,13 +91,46 @@ Page({
         petSpaces,
         featuredPet,
       })
+
+      wx.setStorageSync(homeCacheKey, {
+        selectedId: selectedId || '',
+        petSpaces: rawList,
+        cachedAt: Date.now(),
+      })
     } catch (error) {
-      this.setData({ loadingPets: false, hasPetSpaces: false, petSpaces: [], featuredPet: null })
+      this.setData({
+        loadingPets: false,
+        hasPetSpaces: this.data.hasPetSpaces,
+        petSpaces: this.data.petSpaces,
+        featuredPet: this.data.featuredPet,
+      })
       wx.showToast({
         title: error.message || '读取宠物小窝失败',
         icon: 'none',
       })
     }
+  },
+
+  applyHomeCache() {
+    const cache = wx.getStorageSync(homeCacheKey)
+    const rawList = cache && Array.isArray(cache.petSpaces) ? cache.petSpaces : []
+
+    if (!rawList.length || this.data.hasPetSpaces) {
+      return
+    }
+
+    const savedId = wx.getStorageSync('selectedPetSpaceId') || cache.selectedId
+    const selectedRaw = rawList.find((item) => item._id === savedId) || rawList[0]
+    const selectedId = selectedRaw && selectedRaw._id
+    const petSpaces = rawList.map((item) => this.normalizePetSpace(item, item._id === selectedId))
+    const featuredPet = selectedRaw ? this.normalizeFeaturedPet(this.normalizePetSpace(selectedRaw, true)) : null
+
+    this.setData({
+      loadingPets: false,
+      hasPetSpaces: petSpaces.length > 0,
+      petSpaces,
+      featuredPet,
+    })
   },
 
   normalizePetSpace(item = {}, active = false) {
@@ -115,8 +161,8 @@ Page({
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
       metrics,
-      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
-      cover: item.coverFileId || item.avatarFileId || item.coverUrl || item.avatarUrl || defaultPetImage,
+      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '',
     }
   },
