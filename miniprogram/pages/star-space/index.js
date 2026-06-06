@@ -56,6 +56,7 @@ Page({
   },
 
   refreshSky() {
+    this.setData({ selectedPet: null })
     this.loadDiscoverPets()
   },
 
@@ -84,7 +85,7 @@ Page({
       this.setData({
         loading: false,
         pets,
-        selectedPet: pets[0] || null,
+        selectedPet: null,
         summary: this.buildSummary(pets),
       })
     } catch (error) {
@@ -104,7 +105,7 @@ Page({
     return {
       id: item._id,
       name: item.petName || '未命名小窝',
-      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
       lifeStatus: item.lifeStatus || 'with_me',
       isInStars,
       isOwner: Boolean(item.isOwner),

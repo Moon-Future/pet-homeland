@@ -58,7 +58,6 @@
       </view>
       <view class="actions">
         <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" catchtap="hide">隐藏内容</button>
-        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" catchtap="restore">恢复</button>
         <button data-id="{{item._id}}" catchtap="resolveReport">已处理</button>
       </view>
     </view>

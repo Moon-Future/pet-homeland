@@ -45,6 +45,7 @@ exports.main = async (event = {}) => {
     const petSpaces = source
       .slice(0, limit)
       .map((item) => sanitizePetSpace(item, openid))
+    await attachPetImageUrls(petSpaces)
 
     return {
       ok: true,
@@ -77,12 +78,35 @@ function sanitizePetSpace(item = {}, openid) {
     coverFileId: item.coverFileId || '',
     avatarUrl: item.avatarUrl || '',
     coverUrl: item.coverUrl || '',
+    avatarTempUrl: item.avatarTempUrl || '',
+    coverTempUrl: item.coverTempUrl || '',
     story: item.story || '',
     theme: item.theme || 'rainbow',
     visibility: item.visibility || 'private',
     stats: item.stats || {},
     isOwner: item.ownerOpenid === openid,
   }
+}
+
+async function attachPetImageUrls(petSpaces) {
+  const fileIds = [...new Set(petSpaces.flatMap((item) => [item.avatarFileId, item.coverFileId]).filter(Boolean))]
+
+  if (!fileIds.length) {
+    return
+  }
+
+  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
+  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
+    if (item.fileID && item.tempFileURL) {
+      map[item.fileID] = item.tempFileURL
+    }
+    return map
+  }, {})
+
+  petSpaces.forEach((item) => {
+    item.avatarTempUrl = urlMap[item.avatarFileId] || item.avatarUrl || ''
+    item.coverTempUrl = urlMap[item.coverFileId] || item.coverUrl || item.avatarTempUrl || ''
+  })
 }
 
 function shuffle(list) {
