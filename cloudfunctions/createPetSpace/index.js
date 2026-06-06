@@ -25,6 +25,11 @@ exports.main = async (event = {}) => {
     return validation
   }
 
+  const security = await checkPetSecurity(openid, pet)
+  if (!security.ok) {
+    return security
+  }
+
   await ensureCollection('pet_spaces')
 
   const data = {
@@ -140,6 +145,28 @@ async function incrementUserPetCount(openid) {
     })
   } catch (error) {
     // User stats are secondary; the pet space record is the source of truth.
+  }
+}
+
+async function checkPetSecurity(openid, pet) {
+  try {
+    const fileIds = [...new Set([pet.avatarFileId, pet.coverFileId].filter(Boolean))]
+    const { result } = await cloud.callFunction({
+      name: 'checkContentSecurity',
+      data: {
+        openid,
+        texts: [
+          { field: 'petName', content: pet.petName, message: '宝贝名字未通过安全校验' },
+          { field: 'breed', content: pet.breed, message: '品种内容未通过安全校验' },
+          { field: 'story', content: pet.story, message: '小窝故事未通过安全校验' },
+        ],
+        fileIds: fileIds.map((fileId) => ({ fileId, message: '宠物图片未通过安全校验' })),
+      },
+    })
+
+    return result || { ok: false, message: '内容安全校验失败' }
+  } catch (error) {
+    return { ok: false, message: error.message || error.errMsg || '内容安全校验失败，请稍后重试' }
   }
 }
 

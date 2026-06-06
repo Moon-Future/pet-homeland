@@ -61,6 +61,11 @@ exports.main = async (event = {}) => {
       return validation
     }
 
+    const security = await checkMemorySecurity(openid, memory)
+    if (!security.ok) {
+      return security
+    }
+
     const oldMedia = existing.mediaFileIds || []
     const nextMedia = memory.mediaFileIds
     const oldSet = new Set(oldMedia)
@@ -184,6 +189,26 @@ function validateMemory(memory) {
   }
 
   return { ok: true }
+}
+
+async function checkMemorySecurity(openid, memory) {
+  try {
+    const { result } = await cloud.callFunction({
+      name: 'checkContentSecurity',
+      data: {
+        openid,
+        texts: [
+          { field: 'title', content: memory.title, message: '记录标题未通过安全校验' },
+          { field: 'content', content: memory.content, message: '记录内容未通过安全校验' },
+        ],
+        fileIds: memory.mediaFileIds.map((fileId) => ({ fileId, message: '记录图片未通过安全校验' })),
+      },
+    })
+
+    return result || { ok: false, message: '内容安全校验失败' }
+  } catch (error) {
+    return { ok: false, message: error.message || error.errMsg || '内容安全校验失败，请稍后重试' }
+  }
 }
 
 function getDefaultTitle(type) {

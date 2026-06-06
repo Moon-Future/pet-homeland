@@ -18,6 +18,7 @@ Page({
     rawPet: null,
     interacting: false,
     isOwner: false,
+    isAdminReviewer: false,
     canSharePet: false,
     viewingPetSpaceId: '',
     viewingSource: '',
@@ -28,6 +29,7 @@ Page({
       visitorInteractionCountToday: 0,
     },
     recentMemories: [],
+    reviewNotice: null,
   },
 
   onLoad(options = {}) {
@@ -50,6 +52,7 @@ Page({
         pet: null,
         stats: [],
         recentMemories: [],
+        reviewNotice: null,
       })
       return
     }
@@ -114,6 +117,7 @@ Page({
         pet,
         rawPet,
         isOwner,
+        isAdminReviewer: false,
         canSharePet: this.canSharePet(rawPet),
         viewingPetSpaceId: '',
         viewingSource: '',
@@ -121,6 +125,7 @@ Page({
         actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
         stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
         visitorSummary: this.normalizeVisitorSummary(interactionSummary),
+        reviewNotice: this.getReviewNotice(rawPet, isOwner),
       })
     } catch (error) {
       this.setData({ loadingPet: false, hasPet: false, pet: null, stats: [], recentMemories: [] })
@@ -134,7 +139,7 @@ Page({
   async loadViewingPetDetail(petSpaceId, viewingSource = '') {
     const { result } = await wx.cloud.callFunction({
       name: 'getPetSpaceDetail',
-      data: { petSpaceId },
+      data: { petSpaceId, source: viewingSource },
     })
 
     if (!result || !result.ok) {
@@ -144,6 +149,7 @@ Page({
     const rawPet = result.petSpace
     const pet = this.normalizePet(rawPet)
     const isOwner = Boolean(result.isOwner)
+    const isAdminReviewer = Boolean(result.isAdmin)
     const interactionSummary = await this.loadInteractionSummary(rawPet._id)
     const memorySummary = await this.loadMemorySummary(rawPet._id)
     const displayStats = {
@@ -158,6 +164,7 @@ Page({
       pet,
       rawPet,
       isOwner,
+      isAdminReviewer,
       canSharePet: this.canSharePet(rawPet),
       viewingPetSpaceId: petSpaceId,
       viewingSource,
@@ -165,6 +172,7 @@ Page({
       actions: this.normalizeActions(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
       stats: this.normalizeStats(displayStats, rawPet.lifeStatus),
       visitorSummary: this.normalizeVisitorSummary(interactionSummary),
+      reviewNotice: this.getReviewNotice(rawPet, isOwner),
     })
   },
 
@@ -305,7 +313,48 @@ Page({
   },
 
   canSharePet(pet = {}) {
-    return ['share', 'discover'].includes(pet.visibility)
+    if (pet.status && pet.status !== 'active') {
+      return false
+    }
+
+    if (pet.visibility === 'share') {
+      return true
+    }
+
+    return pet.visibility === 'discover' && (pet.reviewStatus || 'approved') === 'approved'
+  },
+
+  getReviewNotice(pet = {}, isOwner = this.data.isOwner) {
+    if (!isOwner) {
+      return null
+    }
+
+    const reviewStatus = pet.reviewStatus || 'approved'
+    if (pet.visibility !== 'discover' && reviewStatus === 'approved') {
+      return null
+    }
+
+    const noticeByStatus = {
+      pending_review: {
+        type: 'pending',
+        text: '公开展示审核中，通过后会出现在星空广场。',
+      },
+      approved: {
+        type: 'approved',
+        text: pet.visibility === 'discover' ? '公开展示已通过审核。' : '',
+      },
+      rejected: {
+        type: 'rejected',
+        text: '公开展示未通过审核，可修改后重新提交。',
+      },
+      hidden: {
+        type: 'hidden',
+        text: pet.hiddenReason || '公开展示已被管理员隐藏。',
+      },
+    }
+
+    const notice = noticeByStatus[reviewStatus]
+    return notice && notice.text ? notice : null
   },
 
   getDateText(item = {}) {
@@ -495,6 +544,100 @@ Page({
     } catch (error) {
       wx.showToast({ title: error.message || '下架失败，请稍后重试', icon: 'none' })
     }
+  },
+
+  approvePet() {
+    this.reviewPet('approve')
+  },
+
+  rejectPet() {
+    this.reviewPet('reject')
+  },
+
+  adminHidePet() {
+    this.adminHandlePet('hide')
+  },
+
+  adminRestorePet() {
+    this.adminHandlePet('restore')
+  },
+
+  async reviewPet(action) {
+    if (!this.data.isAdminReviewer || !this.data.pet || !this.data.pet.id) {
+      return
+    }
+
+    const title = action === 'approve' ? '通过小窝' : '拒绝小窝'
+    const content = action === 'approve' ? '通过后小窝可以公开展示。' : '拒绝后小窝不会进入星空广场。'
+    wx.showModal({
+      title,
+      content,
+      confirmColor: '#8b5cf6',
+      success: async (res) => {
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          const { result } = await wx.cloud.callFunction({
+            name: 'reviewContent',
+            data: {
+              targetType: 'pet_space',
+              targetId: this.data.pet.id,
+              action,
+              reason: action === 'reject' ? '内容未通过人工审核' : '',
+            },
+          })
+
+          if (!result || !result.ok) {
+            throw new Error((result && result.message) || '处理失败')
+          }
+
+          wx.showToast({ title: '已处理', icon: 'success' })
+          this.loadPetDetail()
+        } catch (error) {
+          wx.showToast({ title: error.message || '处理失败', icon: 'none' })
+        }
+      },
+    })
+  },
+
+  adminHandlePet(action) {
+    if (!this.data.isAdminReviewer || !this.data.pet || !this.data.pet.id) {
+      return
+    }
+
+    wx.showModal({
+      title: action === 'restore' ? '恢复小窝' : '隐藏小窝',
+      content: action === 'restore' ? '恢复后小窝会重新公开展示。' : '隐藏后小窝不会继续公开展示。',
+      confirmColor: '#8b5cf6',
+      success: async (res) => {
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          const { result } = await wx.cloud.callFunction({
+            name: 'hidePublicContent',
+            data: {
+              targetType: 'pet_space',
+              targetId: this.data.pet.id,
+              action,
+              reason: '管理员在详情页处理',
+            },
+          })
+
+          if (!result || !result.ok) {
+            throw new Error((result && result.message) || '处理失败')
+          }
+
+          wx.showToast({ title: '已处理', icon: 'success' })
+          this.loadPetDetail()
+        } catch (error) {
+          wx.showToast({ title: error.message || '处理失败', icon: 'none' })
+        }
+      },
+    })
   },
 
   async interact(e) {

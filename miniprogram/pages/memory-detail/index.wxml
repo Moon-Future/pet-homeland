@@ -2,6 +2,17 @@
   <view wx:if="{{loading}}" class="state">正在读取详情...</view>
 
   <view wx:elif="{{memory}}" class="detail">
+    <view wx:if="{{isAdminReviewer}}" class="admin-actions">
+      <button wx:if="{{memory.reviewStatus === 'pending_review'}}" bindtap="approveMemory">通过</button>
+      <button wx:if="{{memory.reviewStatus === 'pending_review'}}" bindtap="rejectMemory">拒绝</button>
+      <button wx:if="{{memory.reviewStatus !== 'hidden'}}" bindtap="hideMemory">隐藏</button>
+      <button wx:if="{{memory.reviewStatus === 'hidden'}}" bindtap="restoreMemory">恢复</button>
+    </view>
+
+    <view wx:if="{{memory.reviewNotice && (isOwner || isAdminReviewer)}}" class="review-notice {{memory.reviewNotice.type}}">
+      <text>{{memory.reviewNotice.text}}</text>
+    </view>
+
     <view class="head">
       <view>
         <text class="date">{{memory.dateText}}</text>
@@ -18,7 +29,7 @@
       </view>
     </view>
 
-    <button class="edit-button" bindtap="goEdit">编辑这条日常</button>
+    <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEdit">编辑这条日常</button>
   </view>
 
   <view wx:else class="empty">

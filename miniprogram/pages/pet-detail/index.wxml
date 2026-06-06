@@ -4,12 +4,23 @@
     <view class="theme-shade"></view>
 
     <view class="topbar">
+      <view class="topbar-left">
+        <button wx:if="{{viewingPetSpaceId && !isOwner}}" class="top-pill" bindtap="goMyPetSpace">访问中 · 回我的</button>
+        <text wx:elif="{{isAdminReviewer}}" class="top-pill static">审核查看</text>
+      </view>
+      <view class="topbar-actions">
+        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="top-text-button" bindtap="approvePet">通过</button>
+        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'pending_review'}}" class="top-text-button" bindtap="rejectPet">拒绝</button>
+        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus !== 'hidden'}}" class="top-text-button" bindtap="adminHidePet">隐藏</button>
+        <button wx:if="{{isAdminReviewer && rawPet.reviewStatus === 'hidden'}}" class="top-text-button" bindtap="adminRestorePet">恢复</button>
+        <button wx:if="{{rawPet.visibility === 'discover' && !isOwner && !isAdminReviewer}}" class="top-text-button" bindtap="reportPet">举报</button>
       <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
         <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
       </button>
       <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
         <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
       </button>
+      </view>
     </view>
 
     <view class="hero">
@@ -20,14 +31,12 @@
     </view>
 
     <view class="sheet">
-      <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="visitor-tip">
-        <text>正在访问 {{pet.name}} 的小窝，可以查看回忆并留下轻互动。</text>
-        <text class="visitor-back" bindtap="goMyPetSpace">回到我的小窝</text>
+      <view wx:if="{{reviewNotice}}" class="review-notice {{reviewNotice.type}}">
+        <text>{{reviewNotice.text}}</text>
       </view>
 
-      <view wx:if="{{rawPet.visibility === 'discover'}}" class="governance-bar">
-        <button wx:if="{{isOwner}}" class="governance-action" bindtap="unpublishPet">下架公开展示</button>
-        <button wx:elif="{{!isOwner}}" class="governance-action" bindtap="reportPet">举报</button>
+      <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="governance-bar">
+        <button class="governance-action" bindtap="unpublishPet">下架公开展示</button>
       </view>
 
       <view class="actions">

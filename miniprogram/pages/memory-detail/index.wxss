@@ -2,6 +2,13 @@ page { min-height: 100vh; background: #f7f0ff; }
 .page { min-height: 100vh; padding: 30rpx 26rpx 48rpx; background: linear-gradient(180deg, #f3eaff 0%, #fff7fb 62%, #fff9f2 100%); box-sizing: border-box; }
 .state { margin-top: 140rpx; color: #74668f; text-align: center; font-size: 25rpx; font-weight: 800; }
 .detail { padding: 28rpx; border-radius: 26rpx; background: rgba(255,255,255,.78); box-shadow: 0 16rpx 34rpx rgba(126, 86, 194, .12); }
+.admin-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; margin-bottom: 18rpx; }
+.admin-actions button { width: 100%; height: 62rpx; margin: 0; padding: 0; border-radius: 8rpx; color: #7a53e8; background: rgba(139,92,246,.1); font-size: 23rpx; font-weight: 900; line-height: 62rpx; }
+.admin-actions button::after { border: 0; }
+.review-notice { margin-bottom: 18rpx; padding: 16rpx 18rpx; border-radius: 18rpx; color: #6f6090; background: rgba(255,255,255,.78); font-size: 22rpx; font-weight: 900; line-height: 1.45; }
+.review-notice.pending { color: #7c5c14; background: rgba(255,238,185,.82); }
+.review-notice.rejected, .review-notice.hidden { color: #b34353; background: rgba(255,224,230,.82); }
+.review-notice.approved { color: #29725d; background: rgba(216,246,235,.82); }
 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; }
 .date { display: block; color: #8e7ba6; font-size: 23rpx; font-weight: 800; }
 .title { display: block; margin-top: 10rpx; color: #2f2940; font-size: 36rpx; font-weight: 900; line-height: 1.25; }

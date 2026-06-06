@@ -22,6 +22,11 @@ exports.main = async (event = {}) => {
     return { ok: false, message: '缺少举报对象' }
   }
 
+  const security = await checkReportSecurity(openid, { reason, detail })
+  if (!security.ok) {
+    return security
+  }
+
   await ensureCollection('reports')
 
   const existed = await db.collection('reports').where({
@@ -81,6 +86,26 @@ async function ensureCollection(name) {
         throw createError
       }
     })
+  }
+}
+
+async function checkReportSecurity(openid, report) {
+  try {
+    const { result } = await cloud.callFunction({
+      name: 'checkContentSecurity',
+      data: {
+        openid,
+        texts: [
+          { field: 'reason', content: report.reason, message: '举报原因未通过安全校验' },
+          { field: 'detail', content: report.detail, message: '举报说明未通过安全校验' },
+        ],
+        fileIds: [],
+      },
+    })
+
+    return result || { ok: false, message: '内容安全校验失败' }
+  } catch (error) {
+    return { ok: false, message: error.message || error.errMsg || '内容安全校验失败，请稍后重试' }
   }
 }
 

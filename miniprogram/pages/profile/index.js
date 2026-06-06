@@ -137,6 +137,7 @@ Page({
   buildMore(isAdmin) {
     const items = [
       { label: '数据概览', icon: '/assets/icons/star.svg', url: '/pages/data-overview/index' },
+      { label: '审核通知', icon: '/assets/icons/star.svg', url: '/pages/review-notices/index' },
       { label: '意见反馈', icon: '/assets/icons/share.svg', url: '/pages/feedback/index' },
     ]
 

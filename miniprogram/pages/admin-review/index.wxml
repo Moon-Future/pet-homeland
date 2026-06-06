@@ -17,7 +17,7 @@
   </view>
 
   <view wx:if="{{activeTab === 'petSpaces'}}" class="list">
-    <view wx:for="{{petSpaces}}" wx:key="_id" class="review-card">
+    <view wx:for="{{petSpaces}}" wx:key="_id" class="review-card" data-id="{{item._id}}" bindtap="openPetSpace">
       <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
       <view class="copy">
         <text class="item-title">{{item.title}}</text>
@@ -25,41 +25,41 @@
         <text class="meta">{{item.meta}}</text>
       </view>
       <view class="actions">
-        <button data-type="pet_space" data-id="{{item._id}}" bindtap="approve">通过</button>
-        <button data-type="pet_space" data-id="{{item._id}}" bindtap="reject">拒绝</button>
-        <button data-type="pet_space" data-id="{{item._id}}" bindtap="hide">隐藏</button>
+        <button data-type="pet_space" data-id="{{item._id}}" catchtap="approve">通过</button>
+        <button data-type="pet_space" data-id="{{item._id}}" catchtap="reject">拒绝</button>
+        <button data-type="pet_space" data-id="{{item._id}}" catchtap="hide">隐藏</button>
       </view>
     </view>
     <view wx:if="{{!loading && !petSpaces.length}}" class="empty">暂无待审核小窝</view>
   </view>
 
   <view wx:elif="{{activeTab === 'memories'}}" class="list">
-    <view wx:for="{{memories}}" wx:key="_id" class="review-card compact">
+    <view wx:for="{{memories}}" wx:key="_id" class="review-card compact" data-id="{{item._id}}" data-pet-space-id="{{item.petSpaceId}}" bindtap="openMemory">
       <view class="copy">
         <text class="item-title">{{item.title}}</text>
         <text class="desc">{{item.desc}}</text>
         <text class="meta">{{item.meta}}</text>
       </view>
       <view class="actions">
-        <button data-type="memory" data-id="{{item._id}}" bindtap="approve">通过</button>
-        <button data-type="memory" data-id="{{item._id}}" bindtap="reject">拒绝</button>
-        <button data-type="memory" data-id="{{item._id}}" bindtap="hide">隐藏</button>
+        <button data-type="memory" data-id="{{item._id}}" catchtap="approve">通过</button>
+        <button data-type="memory" data-id="{{item._id}}" catchtap="reject">拒绝</button>
+        <button data-type="memory" data-id="{{item._id}}" catchtap="hide">隐藏</button>
       </view>
     </view>
     <view wx:if="{{!loading && !memories.length}}" class="empty">暂无待审核回忆</view>
   </view>
 
   <view wx:else class="list">
-    <view wx:for="{{reports}}" wx:key="_id" class="review-card compact">
+    <view wx:for="{{reports}}" wx:key="_id" class="review-card compact" data-type="{{item.targetType}}" data-target-id="{{item.targetId}}" bindtap="openReportTarget">
       <view class="copy">
         <text class="item-title">{{item.reason}}</text>
         <text class="desc">{{item.detail || '用户没有补充说明'}}</text>
         <text class="meta">{{item.targetType === 'memory' ? '回忆' : '小窝'}} · {{item.targetId}}</text>
       </view>
       <view class="actions">
-        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" bindtap="hide">隐藏内容</button>
-        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" bindtap="restore">恢复</button>
-        <button data-id="{{item._id}}" bindtap="resolveReport">已处理</button>
+        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" catchtap="hide">隐藏内容</button>
+        <button data-type="{{item.targetType}}" data-id="{{item.targetId}}" catchtap="restore">恢复</button>
+        <button data-id="{{item._id}}" catchtap="resolveReport">已处理</button>
       </view>
     </view>
     <view wx:if="{{!loading && !reports.length}}" class="empty">暂无待处理举报</view>

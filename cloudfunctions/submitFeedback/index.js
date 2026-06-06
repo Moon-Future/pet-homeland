@@ -19,6 +19,11 @@ exports.main = async (event = {}) => {
     return { ok: false, message: '请填写反馈内容' }
   }
 
+  const security = await checkFeedbackSecurity(openid, feedback)
+  if (!security.ok) {
+    return security
+  }
+
   try {
     await ensureCollection('feedbacks')
     const added = await db.collection('feedbacks').add({
@@ -50,6 +55,26 @@ function sanitizeFeedback(feedback = {}) {
     type: allowedTypes.includes(feedback.type) ? feedback.type : 'other',
     content: sanitizeString(feedback.content, 500),
     contact: sanitizeString(feedback.contact, 64),
+  }
+}
+
+async function checkFeedbackSecurity(openid, feedback) {
+  try {
+    const { result } = await cloud.callFunction({
+      name: 'checkContentSecurity',
+      data: {
+        openid,
+        texts: [
+          { field: 'content', content: feedback.content, message: '反馈内容未通过安全校验' },
+          { field: 'contact', content: feedback.contact, message: '联系方式未通过安全校验' },
+        ],
+        fileIds: [],
+      },
+    })
+
+    return result || { ok: false, message: '内容安全校验失败' }
+  } catch (error) {
+    return { ok: false, message: error.message || error.errMsg || '内容安全校验失败，请稍后重试' }
   }
 }
 

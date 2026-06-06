@@ -12,6 +12,7 @@ exports.main = async (event = {}) => {
   const petSpaceId = sanitizeString(event.petSpaceId, 64)
   const memoryId = sanitizeString(event.memoryId, 64)
   const type = sanitizeString(event.type, 24)
+  const source = sanitizeString(event.source, 32)
   const limit = Math.min(Math.max(Number(event.limit) || 50, 1), 100)
 
   if (!openid) {
@@ -27,6 +28,7 @@ exports.main = async (event = {}) => {
     await ensureCollection('pet_spaces')
 
     let ownerView = false
+    const adminView = source === 'admin_review' ? Boolean(await getAdmin(openid)) : false
     let query = db.collection('memories').where({ status: 'active' })
 
     if (memoryId) {
@@ -36,16 +38,16 @@ exports.main = async (event = {}) => {
       })
     } else {
       const petSpace = await getViewablePetSpace(petSpaceId, openid)
-      if (!petSpace) {
+      if (!petSpace && !adminView) {
         return { ok: false, message: '小窝不存在', memories: [] }
       }
 
-      ownerView = petSpace.ownerOpenid === openid
+      ownerView = petSpace && petSpace.ownerOpenid === openid
 
       query = db.collection('memories').where({
         petSpaceId,
-        status: ownerView ? _.neq('deleted') : 'active',
-        ...(ownerView ? {} : { reviewStatus: 'approved' }),
+        status: ownerView || adminView ? _.neq('deleted') : 'active',
+        ...(ownerView || adminView ? {} : { reviewStatus: 'approved' }),
         ...(type && type !== 'all' ? { type } : {}),
       })
     }
@@ -56,7 +58,7 @@ exports.main = async (event = {}) => {
       .get()
 
     const memories = result.data || []
-    if (memoryId && memories[0] && memories[0].ownerOpenid !== openid) {
+    if (memoryId && memories[0] && memories[0].ownerOpenid !== openid && !adminView) {
       const petSpace = await getViewablePetSpace(memories[0].petSpaceId, openid)
       if (!petSpace) {
         return { ok: false, message: '无权查看这条记录', memories: [] }
@@ -70,6 +72,7 @@ exports.main = async (event = {}) => {
 
     return {
       ok: true,
+      isAdmin: adminView,
       memories,
     }
   } catch (error) {
@@ -93,7 +96,15 @@ async function getViewablePetSpace(petSpaceId, openid) {
       return null
     }
 
-    if (petSpace.ownerOpenid === openid || petSpace.visibility === 'share') {
+    if (petSpace.ownerOpenid === openid) {
+      return petSpace
+    }
+
+    if (petSpace.status !== 'active') {
+      return null
+    }
+
+    if (petSpace.visibility === 'share') {
       return petSpace
     }
 
@@ -109,6 +120,11 @@ async function getViewablePetSpace(petSpaceId, openid) {
 
     throw error
   }
+}
+
+async function getAdmin(openid) {
+  const result = await db.collection('users').where({ openid, role: 'admin', status: _.neq('deleted') }).limit(1).get()
+  return (result.data || [])[0] || null
 }
 
 async function attachMediaUrls(memories) {

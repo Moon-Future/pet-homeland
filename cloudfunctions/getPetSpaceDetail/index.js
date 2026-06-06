@@ -5,10 +5,12 @@ cloud.init({
 })
 
 const db = cloud.database()
+const _ = db.command
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
   const petSpaceId = sanitizeString(event.petSpaceId, 64)
+  const source = sanitizeString(event.source, 32)
 
   if (!openid) {
     return { ok: false, message: '无法获取微信登录态' }
@@ -22,18 +24,20 @@ exports.main = async (event = {}) => {
     const current = await db.collection('pet_spaces').doc(petSpaceId).get()
     const petSpace = current.data
 
-    if (!petSpace || petSpace.status === 'deleted' || petSpace.status === 'hidden') {
+    if (!petSpace || petSpace.status === 'deleted') {
       return { ok: false, message: '小窝不存在' }
     }
 
     const isOwner = petSpace.ownerOpenid === openid
-    if (!canViewPetSpace(petSpace, openid)) {
+    const isAdmin = source === 'admin_review' ? Boolean(await getAdmin(openid)) : false
+    if (!canViewPetSpace(petSpace, openid, isAdmin)) {
       return { ok: false, message: '这个小窝暂时不可访问' }
     }
 
     return {
       ok: true,
       isOwner,
+      isAdmin,
       petSpace: sanitizePetSpace(petSpace),
     }
   } catch (error) {
@@ -65,18 +69,32 @@ function sanitizePetSpace(item = {}) {
     stats: item.stats || {},
     status: item.status || 'active',
     reviewStatus: item.reviewStatus || 'approved',
+    hiddenReason: item.hiddenReason || '',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || '',
   }
 }
 
-function canViewPetSpace(petSpace = {}, openid) {
+async function getAdmin(openid) {
+  const result = await db.collection('users').where({ openid, role: 'admin', status: _.neq('deleted') }).limit(1).get()
+  return (result.data || [])[0] || null
+}
+
+function canViewPetSpace(petSpace = {}, openid, isAdmin = false) {
+  if (isAdmin) {
+    return true
+  }
+
   if (petSpace.ownerOpenid === openid) {
     return true
   }
 
+  if (petSpace.status !== 'active') {
+    return false
+  }
+
   if (petSpace.visibility === 'share') {
-    return petSpace.status === 'active'
+    return true
   }
 
   return petSpace.visibility === 'discover'

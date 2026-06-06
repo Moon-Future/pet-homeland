@@ -1,0 +1,22 @@
+<view class="page">
+  <view class="header">
+    <text class="title">审核通知</text>
+    <button class="refresh" disabled="{{loading}}" bindtap="loadNotices">{{loading ? '读取中' : '刷新'}}</button>
+  </view>
+
+  <view wx:if="{{notices.length}}" class="list">
+    <view wx:for="{{notices}}" wx:key="id" class="notice" data-id="{{item.id}}" bindtap="openNotice">
+      <view class="notice-head">
+        <text class="notice-title">{{item.title}}</text>
+        <text class="status {{item.statusClass}}">{{item.statusText}}</text>
+      </view>
+      <text class="type">{{item.typeText}}</text>
+      <text class="desc">{{item.desc}}</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <text>暂无审核通知</text>
+  </view>
+</view>

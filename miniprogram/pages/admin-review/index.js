@@ -81,6 +81,46 @@ Page({
     }
   },
 
+  openPetSpace(e) {
+    const id = e.currentTarget.dataset.id
+    if (!id) {
+      return
+    }
+
+    wx.setStorageSync('viewPetSpaceId', id)
+    wx.setStorageSync('viewSource', 'admin_review')
+    wx.switchTab({ url: '/pages/pet-detail/index' })
+  },
+
+  openMemory(e) {
+    const { id, petSpaceId } = e.currentTarget.dataset
+    if (!id) {
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/memory-detail/index?petSpaceId=${petSpaceId || ''}&memoryId=${id}&source=admin_review`,
+    })
+  },
+
+  openReportTarget(e) {
+    const { type, targetId } = e.currentTarget.dataset
+    if (!targetId) {
+      return
+    }
+
+    if (type === 'memory') {
+      wx.navigateTo({
+        url: `/pages/memory-detail/index?memoryId=${targetId}&source=admin_review`,
+      })
+      return
+    }
+
+    wx.setStorageSync('viewPetSpaceId', targetId)
+    wx.setStorageSync('viewSource', 'admin_review')
+    wx.switchTab({ url: '/pages/pet-detail/index' })
+  },
+
   approve(e) {
     this.review(e.currentTarget.dataset, 'approve')
   },
