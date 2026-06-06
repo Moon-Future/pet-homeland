@@ -24,9 +24,9 @@ Page({
       { label: '资料设置', icon: '/assets/icons/settings.svg', url: '/pages/profile-edit/index' },
     ],
     more: [
-      { label: '备份云存档', icon: '/assets/icons/star.svg' },
-      { label: '意见反馈', icon: '/assets/icons/share.svg' },
-      { label: '分享给好友', icon: '/assets/icons/heart.svg' },
+      { label: '数据概览', icon: '/assets/icons/star.svg', url: '/pages/data-overview/index' },
+      { label: '意见反馈', icon: '/assets/icons/share.svg', url: '/pages/feedback/index' },
+      { label: '分享给好友', icon: '/assets/icons/heart.svg', type: 'share' },
     ],
   },
 
@@ -185,7 +185,11 @@ Page({
   },
 
   go(e) {
-    const { url } = e.currentTarget.dataset
+    const { url, type } = e.currentTarget.dataset
+    if (type === 'share') {
+      return
+    }
+
     if (!url) {
       wx.showToast({ title: '功能下期开放', icon: 'none' })
       return
@@ -201,5 +205,13 @@ Page({
     }
 
     wx.navigateTo({ url })
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '星宠乡：记录陪伴，也安放心念',
+      path: '/pages/index/index',
+      imageUrl: '/assets/home/default-pet.png',
+    }
   },
 })

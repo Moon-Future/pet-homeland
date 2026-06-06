@@ -1,0 +1,15 @@
+page { min-height: 100vh; background: #f6f0ff; }
+.page { min-height: 100vh; padding: 34rpx 26rpx 48rpx; background: linear-gradient(180deg,#f0e6ff,#fff8fb); box-sizing: border-box; }
+.hero { padding: 10rpx 4rpx 20rpx; }
+.title { display: block; color: #2f2940; font-size: 42rpx; font-weight: 900; }
+.subtitle { display: block; margin-top: 10rpx; color: #74668f; font-size: 25rpx; font-weight: 800; line-height: 1.45; }
+.panel { margin-top: 22rpx; padding: 24rpx; border-radius: 24rpx; background: rgba(255,255,255,.78); box-shadow: 0 12rpx 28rpx rgba(126,86,194,.1); }
+.field-label { display: block; margin-bottom: 16rpx; color: #2f2940; font-size: 26rpx; font-weight: 900; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.chip { min-width: 136rpx; height: 62rpx; display: flex; align-items: center; justify-content: center; padding: 0 18rpx; border-radius: 999rpx; color: #5e526f; background: rgba(139,92,246,.08); font-size: 24rpx; font-weight: 900; box-sizing: border-box; }
+.chip.active { color: #fff; background: #8b5cf6; }
+.textarea, .input { width: 100%; border: 2rpx solid rgba(139,92,246,.14); border-radius: 20rpx; color: #2f2940; background: rgba(255,255,255,.86); font-size: 27rpx; font-weight: 700; box-sizing: border-box; }
+.textarea { height: 260rpx; padding: 22rpx; line-height: 1.45; }
+.input { height: 84rpx; padding: 0 22rpx; }
+.submit-button { width: 100%; min-width: 0; height: 84rpx; margin: 28rpx 0 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 999rpx; color: #fff; background: linear-gradient(135deg,#b46dff,#8b5cf6); box-shadow: 0 14rpx 28rpx rgba(139,92,246,.28); font-size: 29rpx; font-weight: 900; line-height: 1; }
+.submit-button::after { border: 0; }

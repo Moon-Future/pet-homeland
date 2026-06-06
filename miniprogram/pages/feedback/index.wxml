@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="hero">
+    <text class="title">意见反馈</text>
+    <text class="subtitle">哪里不好用、哪里想补强，都可以告诉我们。</text>
+  </view>
+
+  <view class="panel">
+    <text class="field-label">反馈类型</text>
+    <view class="chip-row">
+      <view wx:for="{{feedbackTypes}}" wx:key="id" class="chip {{form.type === item.id ? 'active' : ''}}" data-type="{{item.id}}" bindtap="selectType">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <text class="field-label">反馈内容</text>
+    <textarea class="textarea" value="{{form.content}}" placeholder="请描述你遇到的问题或想要的功能" maxlength="500" bindinput="onContentInput" />
+  </view>
+
+  <view class="panel">
+    <text class="field-label">联系方式（选填）</text>
+    <input class="input" value="{{form.contact}}" placeholder="微信号 / 手机 / 邮箱" maxlength="64" bindinput="onContactInput" />
+  </view>
+
+  <button class="submit-button" disabled="{{submitting}}" bindtap="submitFeedback">
+    <text>{{submitting ? '提交中...' : '提交反馈'}}</text>
+  </button>
+</view>

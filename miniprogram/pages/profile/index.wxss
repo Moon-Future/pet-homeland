@@ -218,6 +218,18 @@ page {
   text-align: center;
 }
 
+.share-tool {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.share-tool::after {
+  border: 0;
+}
+
 .tool image {
   width: 42rpx;
   height: 42rpx;

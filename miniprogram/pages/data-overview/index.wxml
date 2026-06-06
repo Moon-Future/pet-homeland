@@ -1,0 +1,49 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在整理数据...</view>
+
+  <block wx:else>
+    <view class="hero">
+      <text class="title">数据概览</text>
+      <text class="subtitle">看看陪伴留下了多少小小证据</text>
+    </view>
+
+    <scroll-view wx:if="{{petSpaces.length}}" class="pet-tabs" scroll-x>
+      <view class="pet-list">
+        <view wx:for="{{petSpaces}}" wx:key="id" class="pet-chip {{item.id === selectedPetId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPet">
+          <image src="{{item.avatar}}" mode="aspectFill"></image>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="summary-grid">
+      <view wx:for="{{summary}}" wx:key="label" class="summary-card">
+        <text class="summary-value">{{item.value}}</text>
+        <text class="summary-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="panel">
+      <text class="panel-title">回忆类型</text>
+      <view class="type-list">
+        <view wx:for="{{typeStats}}" wx:key="label" class="type-row">
+          <text>{{item.label}}</text>
+          <view class="type-bar"><view style="width: {{item.percent}}%;"></view></view>
+          <text class="type-value">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel">
+      <text class="panel-title">最近回忆</text>
+      <view wx:if="{{recentMemories.length}}" class="memory-list">
+        <view wx:for="{{recentMemories}}" wx:key="id" class="memory-row" data-id="{{item.id}}" bindtap="goMemory">
+          <text class="memory-title">{{item.title}}</text>
+          <text class="memory-date">{{item.date}}</text>
+          <text class="memory-content">{{item.content}}</text>
+        </view>
+      </view>
+      <text wx:else class="empty-text">还没有记录，去小窝写下第一条日常吧。</text>
+    </view>
+  </block>
+</view>

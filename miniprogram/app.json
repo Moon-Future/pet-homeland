@@ -11,6 +11,8 @@
     "pages/album/index",
     "pages/star-space/index",
     "pages/profile/index",
+    "pages/data-overview/index",
+    "pages/feedback/index",
     "pages/profile-edit/index"
   ],
   "window": {

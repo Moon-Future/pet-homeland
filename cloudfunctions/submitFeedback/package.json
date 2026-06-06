@@ -1,0 +1,9 @@
+{
+  "name": "submitFeedback",
+  "version": "1.0.0",
+  "description": "Submit user feedback",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

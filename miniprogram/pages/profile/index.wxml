@@ -49,10 +49,28 @@
     <view class="panel">
       <text class="panel-title">更多功能</text>
       <view class="grid">
-        <view wx:for="{{more}}" wx:key="label" class="tool {{isLoggedIn ? '' : 'locked'}}" data-url="{{item.url}}" bindtap="go">
-          <image src="{{item.icon}}"></image>
-          <text>{{item.label}}</text>
-        </view>
+        <block wx:for="{{more}}" wx:key="label">
+          <button
+            wx:if="{{item.type === 'share'}}"
+            class="tool share-tool {{isLoggedIn ? '' : 'locked'}}"
+            open-type="share"
+            data-type="{{item.type}}"
+            bindtap="go"
+          >
+            <image src="{{item.icon}}"></image>
+            <text>{{item.label}}</text>
+          </button>
+          <view
+            wx:else
+            class="tool {{isLoggedIn ? '' : 'locked'}}"
+            data-url="{{item.url}}"
+            data-type="{{item.type || ''}}"
+            bindtap="go"
+          >
+            <image src="{{item.icon}}"></image>
+            <text>{{item.label}}</text>
+          </view>
+        </block>
       </view>
     </view>
 

@@ -1,0 +1,28 @@
+page { min-height: 100vh; background: #f6f0ff; }
+.page { min-height: 100vh; padding: 34rpx 26rpx 48rpx; background: linear-gradient(180deg,#f0e6ff,#fff8fb); box-sizing: border-box; }
+.hero { padding: 10rpx 4rpx 20rpx; }
+.title { display: block; color: #2f2940; font-size: 42rpx; font-weight: 900; }
+.subtitle { display: block; margin-top: 10rpx; color: #74668f; font-size: 25rpx; font-weight: 800; }
+.pet-tabs { margin-top: 8rpx; white-space: nowrap; }
+.pet-list { display: flex; gap: 14rpx; padding-right: 24rpx; }
+.pet-chip { display: flex; align-items: center; gap: 10rpx; padding: 10rpx 18rpx 10rpx 10rpx; border-radius: 999rpx; color: #5e526f; background: rgba(255,255,255,.78); font-size: 23rpx; font-weight: 900; }
+.pet-chip.active { color: #fff; background: #8b5cf6; }
+.pet-chip image { width: 48rpx; height: 48rpx; border-radius: 50%; background: #fff; }
+.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16rpx; margin-top: 24rpx; }
+.summary-card { padding: 28rpx; border-radius: 22rpx; background: rgba(255,255,255,.78); box-shadow: 0 12rpx 28rpx rgba(126,86,194,.1); }
+.summary-value { display: block; color: #2f2940; font-size: 42rpx; font-weight: 900; }
+.summary-label { display: block; margin-top: 8rpx; color: #74668f; font-size: 23rpx; font-weight: 900; }
+.panel { margin-top: 22rpx; padding: 24rpx; border-radius: 24rpx; background: rgba(255,255,255,.78); box-shadow: 0 12rpx 28rpx rgba(126,86,194,.1); }
+.panel-title { color: #2f2940; font-size: 28rpx; font-weight: 900; }
+.type-list { margin-top: 20rpx; }
+.type-row { display: grid; grid-template-columns: 80rpx 1fr 48rpx; align-items: center; gap: 14rpx; min-height: 52rpx; color: #5e526f; font-size: 23rpx; font-weight: 900; }
+.type-bar { height: 14rpx; overflow: hidden; border-radius: 999rpx; background: rgba(139,92,246,.1); }
+.type-bar view { height: 100%; border-radius: 999rpx; background: #8b5cf6; }
+.type-value { text-align: right; color: #8b5cf6; }
+.memory-list { margin-top: 18rpx; }
+.memory-row { padding: 18rpx 0; border-top: 1rpx solid rgba(126,86,194,.12); }
+.memory-row:first-child { border-top: 0; }
+.memory-title { display: block; color: #2f2940; font-size: 26rpx; font-weight: 900; }
+.memory-date { display: block; margin-top: 6rpx; color: #9a7791; font-size: 21rpx; font-weight: 800; }
+.memory-content { display: block; margin-top: 8rpx; overflow: hidden; color: #5e526f; font-size: 23rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.empty-text, .state { display: block; margin-top: 120rpx; color: #74668f; text-align: center; font-size: 25rpx; font-weight: 800; }
