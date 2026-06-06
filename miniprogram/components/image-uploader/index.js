@@ -414,9 +414,10 @@ Component({
       })
 
       return {
-        avatarUrl: upload.fileID,
-        avatarFileId: upload.fileID,
-        fileId: upload.fileID,
+        avatarUrl: upload.fileID || upload.fileId,
+        avatarFileId: upload.fileID || upload.fileId,
+        fileId: upload.fileID || upload.fileId,
+        fileID: upload.fileID || upload.fileId,
       }
     },
 

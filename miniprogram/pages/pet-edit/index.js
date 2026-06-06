@@ -201,6 +201,12 @@ Page({
             avatarUrl: this.data.form.coverUrl,
             avatarFileId: this.data.form.coverFileId,
           }
+      const uploadedFileId = upload.avatarFileId || upload.coverFileId || upload.fileId || upload.fileID || ''
+
+      if (!uploadedFileId || !uploadedFileId.startsWith('cloud://')) {
+        throw new Error('宠物照片上传失败，请重新选择照片')
+      }
+
       const form = this.data.form
       const { result } = await wx.cloud.callFunction({
         name: 'updatePetSpace',
@@ -217,10 +223,10 @@ Page({
             deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
             story: form.story,
             visibility: form.visibility,
-            avatarUrl: upload.avatarUrl,
-            avatarFileId: upload.avatarFileId,
-            coverUrl: upload.avatarUrl,
-            coverFileId: upload.avatarFileId,
+            avatarUrl: upload.avatarUrl || uploadedFileId,
+            avatarFileId: uploadedFileId,
+            coverUrl: upload.coverUrl || upload.avatarUrl || uploadedFileId,
+            coverFileId: uploadedFileId,
             theme: this.data.selectedTheme,
           },
         },

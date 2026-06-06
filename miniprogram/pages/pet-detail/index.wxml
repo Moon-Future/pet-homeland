@@ -22,10 +22,6 @@
     </view>
 
     <view class="sheet">
-      <view wx:if="{{reviewNotice && reviewNotice.type !== 'approved'}}" class="review-notice {{reviewNotice.type}}">
-        <text>{{reviewNotice.text}}</text>
-      </view>
-
       <view class="actions">
         <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
           <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
@@ -70,7 +66,7 @@
         <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
       </view>
 
-      <view wx:if="{{(viewingPetSpaceId && !isOwner) || (rawPet.visibility === 'discover' && isOwner) || isAdminReviewer}}" class="support-panel">
+      <view wx:if="{{(viewingPetSpaceId && !isOwner) || reviewNotice || isAdminReviewer}}" class="support-panel">
         <view wx:if="{{viewingPetSpaceId && !isOwner && !isAdminReviewer}}" class="support-copy">
           <text class="support-title">正在访问 {{pet.name}} 的小窝</text>
           <text class="support-desc">可以查看公开回忆、留下轻互动，也可以回到自己的小窝。</text>
@@ -79,9 +75,9 @@
           <text class="support-title">审核查看</text>
           <text class="support-desc">这里的操作只影响公开展示，不会删除主人原始资料。</text>
         </view>
-        <view wx:elif="{{rawPet.visibility === 'discover' && isOwner}}" class="support-copy">
+        <view wx:elif="{{reviewNotice}}" class="support-copy status-{{reviewNotice.type}}">
           <text class="support-title">公开展示管理</text>
-          <text class="support-desc">{{reviewNotice && reviewNotice.type === 'approved' ? reviewNotice.text : '下架后小窝会转为私密，不再出现在星空广场。'}}</text>
+          <text class="support-desc">{{reviewNotice.text}}</text>
         </view>
 
         <view class="support-actions {{isAdminReviewer ? 'admin' : ''}}">

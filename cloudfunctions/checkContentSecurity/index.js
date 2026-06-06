@@ -52,7 +52,9 @@ exports.main = async (event = {}) => {
     return {
       ok: false,
       kind: 'system',
-      message: error.message || error.errMsg || '内容安全校验失败，请稍后重试',
+      message: isOpenapiPermissionError(error)
+        ? '内容安全云函数缺少 OpenAPI 权限，请重新上传部署 checkContentSecurity 云函数并确认 config.json 已生效'
+        : error.message || error.errMsg || '内容安全校验失败，请稍后重试',
     }
   }
 }
@@ -131,6 +133,11 @@ function getSecurityMessage(result = {}) {
 function isSecurityReject(error = {}) {
   const text = `${error.errCode || error.errcode || ''} ${error.errMsg || error.errmsg || ''} ${error.message || ''}`
   return text.includes('87014') || text.toLowerCase().includes('risky')
+}
+
+function isOpenapiPermissionError(error = {}) {
+  const text = `${error.errCode || error.errcode || ''} ${error.errMsg || error.errmsg || ''} ${error.message || ''}`
+  return text.includes('-604101') || text.toLowerCase().includes('no permission to call this api')
 }
 
 function sanitizeString(value, maxLength) {

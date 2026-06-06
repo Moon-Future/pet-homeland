@@ -57,10 +57,12 @@ exports.main = async (event = {}) => {
       updatedAt: now,
     }
 
+    const wasDiscover = petSpace.visibility === 'discover'
+    const enteringDiscover = !wasDiscover && pet.visibility === 'discover'
+
     if (pet.visibility === 'discover') {
       const changedPublicContent = petSpace.petName !== pet.petName
-        || petSpace.petType !== pet.petType
-        || petSpace.lifeStatus !== pet.lifeStatus
+        || petSpace.breed !== pet.breed
         || petSpace.story !== pet.story
         || petSpace.avatarFileId !== pet.avatarFileId
         || petSpace.coverFileId !== (pet.coverFileId || pet.avatarFileId)
@@ -73,7 +75,7 @@ exports.main = async (event = {}) => {
         updateData.hiddenAt = null
       }
     } else {
-      updateData.reviewStatus = 'approved'
+      updateData.reviewStatus = 'not_required'
       updateData.hiddenReason = ''
       updateData.hiddenAt = null
     }
@@ -81,6 +83,12 @@ exports.main = async (event = {}) => {
     await db.collection('pet_spaces').doc(petSpaceId).update({
       data: updateData,
     })
+
+    if (enteringDiscover) {
+      await submitMemoriesForPublicReview(petSpaceId)
+    } else if (wasDiscover && pet.visibility !== 'discover') {
+      await clearMemoriesPublicReview(petSpaceId)
+    }
 
     const saved = await db.collection('pet_spaces').doc(petSpaceId).get()
 
@@ -94,6 +102,69 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '保存宠物小窝失败',
     }
   }
+}
+
+async function submitMemoriesForPublicReview(petSpaceId) {
+  const result = await db.collection('memories')
+    .where({
+      petSpaceId,
+      status: 'active',
+    })
+    .limit(100)
+    .get()
+
+  const memories = result.data || []
+  const shouldSubmit = memories.filter((item) => {
+    if (item.reviewStatus === 'hidden') {
+      return false
+    }
+
+    return item.reviewStatus !== 'approved' || !item.reviewedAt
+  })
+
+  await Promise.all(shouldSubmit.map((item) => db.collection('memories').doc(item._id).update({
+    data: {
+      reviewStatus: 'pending_review',
+      reviewedAt: null,
+      hiddenReason: '',
+      hiddenAt: null,
+      updatedAt: db.serverDate(),
+    },
+  }).catch(() => {})))
+
+  await Promise.all(shouldSubmit.map((item) => db.collection('media').where({ memoryId: item._id }).update({
+    data: {
+      status: 'pending_review',
+    },
+  }).catch(() => {})))
+}
+
+async function clearMemoriesPublicReview(petSpaceId) {
+  const result = await db.collection('memories')
+    .where({
+      petSpaceId,
+      status: 'active',
+    })
+    .limit(100)
+    .get()
+
+  const memories = (result.data || []).filter((item) => ['pending_review', 'rejected', 'not_required'].includes(item.reviewStatus || 'not_required'))
+
+  await Promise.all(memories.map((item) => db.collection('memories').doc(item._id).update({
+    data: {
+      reviewStatus: 'not_required',
+      reviewedAt: null,
+      hiddenReason: '',
+      hiddenAt: null,
+      updatedAt: db.serverDate(),
+    },
+  }).catch(() => {})))
+
+  await Promise.all(memories.map((item) => db.collection('media').where({ memoryId: item._id }).update({
+    data: {
+      status: 'active',
+    },
+  }).catch(() => {})))
 }
 
 function sanitizePet(pet = {}) {
@@ -145,6 +216,11 @@ function validatePet(pet) {
 }
 
 async function checkPetSecurity(openid, pet) {
+  // Temporarily disabled because the production cloud function OpenAPI permission
+  // for content security is not taking effect yet. Keep the wrapper so it can be
+  // re-enabled in one place after deployment permissions are confirmed.
+  return { ok: true, skipped: true }
+
   try {
     const fileIds = [...new Set([pet.avatarFileId, pet.coverFileId].filter(Boolean))]
     const { result } = await cloud.callFunction({

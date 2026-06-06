@@ -94,15 +94,16 @@ Page({
       dateText: this.formatDate(item.memoryDate || ''),
       typeLabel: typeLabels[item.type] || '日常',
       mediaUrls: item.mediaUrls || [],
-      reviewStatus: item.reviewStatus || 'approved',
+      reviewStatus: item.reviewStatus || 'not_required',
       hiddenReason: item.hiddenReason || '',
       reviewNotice: this.getReviewNotice(item),
     }
   },
 
   getReviewNotice(item = {}) {
-    const reviewStatus = item.reviewStatus || 'approved'
+    const reviewStatus = item.reviewStatus || 'not_required'
     const noticeByStatus = {
+      not_required: null,
       pending_review: { type: 'pending', text: '这条记录审核中，通过后访客可见。' },
       approved: { type: 'approved', text: '这条记录已通过审核。' },
       rejected: { type: 'rejected', text: '这条记录未通过审核，可修改后重新提交。' },

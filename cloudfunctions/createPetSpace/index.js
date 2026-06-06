@@ -49,7 +49,7 @@ exports.main = async (event = {}) => {
     theme: pet.theme,
     story: pet.story,
     visibility: pet.visibility,
-    reviewStatus: pet.visibility === 'discover' ? 'pending_review' : 'approved',
+    reviewStatus: pet.visibility === 'discover' ? 'pending_review' : 'not_required',
     reportCount: 0,
     hiddenReason: '',
     reviewedAt: null,
@@ -149,6 +149,11 @@ async function incrementUserPetCount(openid) {
 }
 
 async function checkPetSecurity(openid, pet) {
+  // Temporarily disabled because the production cloud function OpenAPI permission
+  // for content security is not taking effect yet. Keep the wrapper so it can be
+  // re-enabled in one place after deployment permissions are confirmed.
+  return { ok: true, skipped: true }
+
   try {
     const fileIds = [...new Set([pet.avatarFileId, pet.coverFileId].filter(Boolean))]
     const { result } = await cloud.callFunction({

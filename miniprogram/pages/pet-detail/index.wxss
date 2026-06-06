@@ -19,10 +19,6 @@ page { min-height: 100vh; background: #fff7f2; }
 .sheet { position: relative; z-index: 2; margin: 24rpx; padding: 26rpx 22rpx 32rpx; border: 2rpx solid rgba(255,255,255,.5); border-radius: 32rpx; background: rgba(255,255,255,.58); box-shadow: 0 -12rpx 44rpx rgba(65,45,88,.14); }
 .visitor-tip { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-bottom: 22rpx; padding: 18rpx 20rpx; border-radius: 20rpx; color: #6f6090; background: rgba(255,255,255,.78); font-size: 22rpx; font-weight: 800; line-height: 1.4; }
 .visitor-back { flex-shrink: 0; color: #7a53e8; font-weight: 900; }
-.review-notice { margin-bottom: 18rpx; padding: 16rpx 18rpx; border-radius: 18rpx; color: #6f6090; background: rgba(255,255,255,.78); font-size: 22rpx; font-weight: 900; line-height: 1.45; }
-.review-notice.pending { color: #7c5c14; background: rgba(255,238,185,.82); }
-.review-notice.rejected, .review-notice.hidden { color: #b34353; background: rgba(255,224,230,.82); }
-.review-notice.approved { color: #29725d; background: rgba(216,246,235,.82); }
 .actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 16rpx; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 8rpx; color: #5e526f; font-size: 22rpx; font-weight: 800; }
 .action-icon { width: 82rpx; height: 82rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.86); box-shadow: 0 8rpx 22rpx rgba(126,84,230,.16); }
@@ -51,6 +47,9 @@ page { min-height: 100vh; background: #fff7f2; }
 .support-copy { display: flex; flex-direction: column; gap: 8rpx; }
 .support-title { color: #2f2940; font-size: 24rpx; font-weight: 900; }
 .support-desc { color: #7d708f; font-size: 21rpx; font-weight: 800; line-height: 1.45; }
+.support-copy.status-approved .support-title, .support-copy.status-approved .support-desc { color: #29725d; }
+.support-copy.status-pending .support-title, .support-copy.status-pending .support-desc { color: #7c5c14; }
+.support-copy.status-rejected .support-title, .support-copy.status-rejected .support-desc, .support-copy.status-hidden .support-title, .support-copy.status-hidden .support-desc { color: #b34353; }
 .support-actions { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 18rpx; }
 .support-button { flex: 1 1 0; min-width: 0; height: 64rpx; padding: 0 16rpx; display: flex; align-items: center; justify-content: center; border-radius: 8rpx; color: #7a53e8; background: rgba(139,92,246,.1); font-size: 23rpx; font-weight: 900; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
 .support-button.wide { flex-basis: 100%; }
