@@ -22,7 +22,7 @@
     </view>
 
     <view class="sheet">
-      <view wx:if="{{reviewNotice}}" class="review-notice {{reviewNotice.type}}">
+      <view wx:if="{{reviewNotice && reviewNotice.type !== 'approved'}}" class="review-notice {{reviewNotice.type}}">
         <text>{{reviewNotice.text}}</text>
       </view>
 
@@ -81,7 +81,7 @@
         </view>
         <view wx:elif="{{rawPet.visibility === 'discover' && isOwner}}" class="support-copy">
           <text class="support-title">公开展示管理</text>
-          <text class="support-desc">下架后小窝会转为私密，不再出现在星空广场。</text>
+          <text class="support-desc">{{reviewNotice && reviewNotice.type === 'approved' ? reviewNotice.text : '下架后小窝会转为私密，不再出现在星空广场。'}}</text>
         </view>
 
         <view class="support-actions {{isAdminReviewer ? 'admin' : ''}}">
