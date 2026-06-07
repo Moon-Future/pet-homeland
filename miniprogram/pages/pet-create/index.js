@@ -51,6 +51,8 @@ Page({
     selectedTheme: 'rainbow',
   },
 
+  noop() {},
+
   onLoad() {
     if (!auth.requireLogin({
       redirectToProfile: true,

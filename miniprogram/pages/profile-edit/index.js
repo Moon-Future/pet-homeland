@@ -13,6 +13,8 @@ Page({
     },
   },
 
+  noop() {},
+
   onLoad() {
     if (!auth.requireLogin({
       redirectToProfile: true,

@@ -105,4 +105,12 @@
   <button class="save-button" disabled="{{saving || loading}}" bindtap="savePetSpace">
     <text>{{saving ? '保存中...' : '保存小窝'}}</text>
   </button>
+
+  <view wx:if="{{saving}}" class="submit-mask" catchtouchmove="noop">
+    <view class="submit-dialog">
+      <view class="submit-spinner"></view>
+      <text class="submit-title">正在保存</text>
+      <text class="submit-desc">请稍候，正在处理照片和资料</text>
+    </view>
+  </view>
 </view>

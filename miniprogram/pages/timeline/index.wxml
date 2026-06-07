@@ -1,4 +1,38 @@
 <view class="page">
+  <view wx:if="{{initialLoading}}" class="timeline-skeleton">
+    <view class="skeleton-cover">
+      <view class="skeleton-copy">
+        <view class="skeleton-line title"></view>
+        <view class="skeleton-line subtitle"></view>
+      </view>
+      <view class="skeleton-profile">
+        <view class="skeleton-line name"></view>
+        <view class="skeleton-avatar"></view>
+      </view>
+    </view>
+    <view class="skeleton-tabs">
+      <view wx:for="{{tabs}}" wx:key="id" class="skeleton-tab"></view>
+    </view>
+    <view class="skeleton-list">
+      <view wx:for="{{skeletonDays}}" wx:key="*this" class="skeleton-day">
+        <view class="skeleton-date">
+          <view class="skeleton-line date"></view>
+          <view class="skeleton-line count"></view>
+        </view>
+        <view class="skeleton-post">
+          <view class="skeleton-avatar small"></view>
+          <view class="skeleton-post-main">
+            <view class="skeleton-line post-name"></view>
+            <view class="skeleton-line post-title"></view>
+            <view class="skeleton-line post-text"></view>
+            <view class="skeleton-line post-text short"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <block wx:else>
   <view class="moments-cover">
     <image class="cover-img" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="cover-shade"></view>
@@ -81,4 +115,5 @@
     <text class="empty-title">还没有朋友圈动态</text>
     <text class="empty-desc">记录一次日常，{{pet.name}}的朋友圈就会更新。</text>
   </view>
+  </block>
 </view>

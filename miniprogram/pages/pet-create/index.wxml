@@ -130,4 +130,12 @@
       </button>
     </view>
   </view>
+
+  <view wx:if="{{saving}}" class="submit-mask" catchtouchmove="noop">
+    <view class="submit-dialog">
+      <view class="submit-spinner"></view>
+      <text class="submit-title">正在创建</text>
+      <text class="submit-desc">请稍候，正在生成档案和上传照片</text>
+    </view>
+  </view>
 </view>

@@ -59,4 +59,12 @@
   <button wx:if="{{isEditing}}" class="delete-button" disabled="{{saving || deleting}}" bindtap="deleteMemory">
     <text>{{deleting ? '删除中...' : '删除这条日常'}}</text>
   </button>
+
+  <view wx:if="{{saving || deleting}}" class="submit-mask" catchtouchmove="noop">
+    <view class="submit-dialog">
+      <view class="submit-spinner"></view>
+      <text class="submit-title">{{deleting ? '正在删除' : '正在保存'}}</text>
+      <text class="submit-desc">请稍候，正在处理照片和资料</text>
+    </view>
+  </view>
 </view>

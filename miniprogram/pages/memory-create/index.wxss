@@ -211,3 +211,58 @@ button.delete-button {
 button.delete-button::after {
   border: 0;
 }
+
+.submit-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 41, 64, .36);
+  backdrop-filter: blur(8rpx);
+}
+
+.submit-dialog {
+  width: 320rpx;
+  min-height: 230rpx;
+  padding: 34rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 18rpx 44rpx rgba(47, 41, 64, .18);
+  box-sizing: border-box;
+}
+
+.submit-spinner {
+  width: 58rpx;
+  height: 58rpx;
+  border: 6rpx solid rgba(139, 92, 246, .16);
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: submit-spin .8s linear infinite;
+}
+
+.submit-title {
+  margin-top: 22rpx;
+  color: #2f2940;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.submit-desc {
+  margin-top: 8rpx;
+  color: #8e7ba6;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+@keyframes submit-spin {
+  to { transform: rotate(360deg); }
+}

@@ -28,6 +28,7 @@ typeLabels.identity = '身份'
 Page({
   data: {
     tabs,
+    skeletonDays: [1, 2, 3],
     activeTab: 'all',
     petSpaceId: '',
     pet: {
@@ -35,6 +36,7 @@ Page({
       avatar: defaultPetImage,
       cover: defaultPetImage,
     },
+    initialLoading: true,
     loading: false,
     groups: [],
     dirtyVersion: 0,
@@ -64,8 +66,13 @@ Page({
   },
 
   async initializeTimeline() {
+    if (!this.data.groups.length) {
+      this.setData({ initialLoading: true })
+    }
+
     const loaded = await this.loadPetProfile()
     if (!loaded) {
+      this.setData({ initialLoading: false })
       return
     }
     this.loadMemories()
@@ -162,11 +169,12 @@ Page({
 
       this.setData({
         loading: false,
+        initialLoading: false,
         dirtyVersion: this.getDirtyVersion(),
         groups: this.groupTimelineItems(result.memories || []),
       })
     } catch (error) {
-      this.setData({ loading: false, groups: [] })
+      this.setData({ loading: false, initialLoading: false, groups: [] })
       wx.showToast({
         title: error.message || '读取时间轴失败',
         icon: 'none',
