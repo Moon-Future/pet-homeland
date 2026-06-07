@@ -1,4 +1,4 @@
-const { getImageUploadDir } = require('../../utils/image-dirs')
+const { getImageUploadDir, getUserImageUploadDir } = require('../../utils/image-dirs')
 const auth = require('../../utils/auth')
 
 const defaultImage = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
@@ -39,6 +39,10 @@ Component({
       value: '',
     },
     uploadDir: {
+      type: String,
+      value: '',
+    },
+    petSpaceId: {
       type: String,
       value: '',
     },
@@ -444,14 +448,16 @@ Component({
     },
 
     getCloudPath() {
-      const uploadDir = this.properties.uploadDir || getImageUploadDir(this.properties.imageType)
-
-      if (this.properties.imageType === 'avatar') {
-        const user = auth.getUserProfile()
-        if (user && user.openid) {
-          return `${uploadDir}/${user.openid}-${Date.now()}.jpg`
-        }
+      const user = auth.getUserProfile()
+      if (!user || !user.openid) {
+        throw new Error('missing user openid for image upload')
       }
+
+      const uploadDir = this.properties.uploadDir
+        || getUserImageUploadDir(user.openid, this.properties.imageType, {
+          petSpaceId: this.properties.petSpaceId,
+        })
+        || getImageUploadDir(this.properties.imageType)
 
       return `${uploadDir}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
     },

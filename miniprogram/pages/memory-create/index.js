@@ -1,4 +1,5 @@
 const auth = require('../../utils/auth')
+const { getUserImageUploadDir } = require('../../utils/image-dirs')
 
 const maxImages = 3
 const memoryTypes = [
@@ -242,7 +243,11 @@ Page({
         continue
       }
 
-      const cloudPath = `pet-spaces/memories/${this.data.petSpaceId}/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
+      const user = auth.getUserProfile() || {}
+      const uploadDir = getUserImageUploadDir(user.openid, 'memory', {
+        petSpaceId: this.data.petSpaceId,
+      })
+      const cloudPath = `${uploadDir}/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
       const upload = await wx.cloud.uploadFile({
         cloudPath,
         filePath: image.tempFilePath,

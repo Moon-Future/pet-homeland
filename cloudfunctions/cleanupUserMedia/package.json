@@ -1,0 +1,9 @@
+{
+  "name": "cleanupUserMedia",
+  "version": "1.0.0",
+  "description": "Admin cleanup for a user's cloud files",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
