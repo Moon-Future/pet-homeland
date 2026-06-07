@@ -1,0 +1,62 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">
+    <text>正在读取数字身份...</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state">
+    <text class="state-title">身份暂不可访问</text>
+    <text class="state-desc">{{error}}</text>
+    <button bindtap="goHome">返回首页</button>
+  </view>
+
+  <view wx:elif="{{pet}}" class="identity">
+    <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
+    <view class="shade"></view>
+
+    <view class="hero">
+      <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+      <text class="name">{{pet.petName}}</text>
+      <text class="phase">{{pet.phaseText}}</text>
+    </view>
+
+    <view class="panel">
+      <view class="identity-card">
+        <text class="card-label">数字身份编号</text>
+        <text class="identity-no">{{pet.identityNo}}</text>
+        <view class="card-row">
+          <text>身份状态</text>
+          <text>{{pet.identityStatusText}}</text>
+        </view>
+        <view class="card-row">
+          <text>NFC 铭牌</text>
+          <text>{{pet.nfcStatusText}}</text>
+        </view>
+      </view>
+
+      <view class="profile-card">
+        <view class="profile-row">
+          <text>档案类型</text>
+          <text>{{pet.phaseText}}</text>
+        </view>
+        <view class="profile-row" wx:if="{{pet.birthDate}}">
+          <text>出生日期</text>
+          <text>{{pet.birthDate}}</text>
+        </view>
+        <view class="profile-row" wx:if="{{pet.arrivalDate}}">
+          <text>来到身边</text>
+          <text>{{pet.arrivalDate}}</text>
+        </view>
+        <view class="profile-row" wx:if="{{pet.deathDate}}">
+          <text>离开日期</text>
+          <text>{{pet.deathDate}}</text>
+        </view>
+        <text wx:if="{{pet.story}}" class="story">{{pet.story}}</text>
+      </view>
+
+      <view class="actions">
+        <button class="primary" bindtap="openPetSpace">进入档案</button>
+        <button class="plain" bindtap="copyIdentityNo">复制编号</button>
+      </view>
+    </view>
+  </view>
+</view>

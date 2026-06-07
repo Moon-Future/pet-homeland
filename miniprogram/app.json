@@ -4,6 +4,7 @@
     "pages/pet-list/index",
     "pages/pet-create/index",
     "pages/pet-edit/index",
+    "pages/identity/index",
     "pages/pet-detail/index",
     "pages/memory-detail/index",
     "pages/memory-create/index",

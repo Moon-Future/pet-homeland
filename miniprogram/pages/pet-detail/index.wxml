@@ -37,6 +37,27 @@
         </view>
       </view>
 
+      <view wx:if="{{pet.identityNo}}" class="identity-card" bindtap="goIdentity">
+        <view class="identity-main">
+          <text class="identity-label">数字身份编号</text>
+          <text class="identity-no">{{pet.identityNo}}</text>
+        </view>
+        <view class="identity-meta">
+          <view>
+            <text>档案</text>
+            <text>{{pet.phaseText}}</text>
+          </view>
+          <view>
+            <text>身份</text>
+            <text>{{pet.identityStatusText}}</text>
+          </view>
+          <view>
+            <text>NFC</text>
+            <text>{{pet.nfcStatusText}}</text>
+          </view>
+        </view>
+      </view>
+
       <view wx:if="{{isOwner}}" class="visitor-summary">
         <text>今天有 {{visitorSummary.visitorCountToday}} 位朋友来过</text>
         <text>{{visitorSummary.visitorInteractionCountToday}} 次轻互动被留下</text>

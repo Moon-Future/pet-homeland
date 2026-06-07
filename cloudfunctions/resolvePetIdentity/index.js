@@ -5,33 +5,22 @@ cloud.init({
 })
 
 const db = cloud.database()
-const _ = db.command
 
 exports.main = async (event = {}) => {
-  const { OPENID: openid } = cloud.getWXContext()
-  const petSpaceId = sanitizeString(event.petSpaceId, 64)
-  const source = sanitizeString(event.source, 32)
+  const token = sanitizeString(event.token, 64)
+  const identityNo = normalizeIdentityNo(event.identityNo || event.code)
 
-  if (!openid) {
-    return { ok: false, message: '无法获取微信登录态' }
-  }
-
-  if (!petSpaceId) {
-    return { ok: false, message: '缺少宠物小窝ID' }
+  if (!token && !identityNo) {
+    return { ok: false, message: 'missing pet identity' }
   }
 
   try {
-    const current = await db.collection('pet_spaces').doc(petSpaceId).get()
-    const petSpace = current.data
+    const where = token ? { identityToken: token } : { identityNo }
+    const result = await db.collection('pet_spaces').where(where).limit(1).get()
+    const petSpace = (result.data || [])[0]
 
     if (!petSpace || petSpace.status === 'deleted') {
-      return { ok: false, message: '小窝不存在' }
-    }
-
-    const isOwner = petSpace.ownerOpenid === openid
-    const isAdmin = source === 'admin_review' ? Boolean(await getAdmin(openid)) : false
-    if (!canViewPetSpace(petSpace, openid, isAdmin)) {
-      return { ok: false, message: '这个小窝暂时不可访问' }
+      return { ok: false, message: 'pet identity not found' }
     }
 
     const safePetSpace = sanitizePetSpace(petSpace)
@@ -39,14 +28,16 @@ exports.main = async (event = {}) => {
 
     return {
       ok: true,
-      isOwner,
-      isAdmin,
       petSpace: safePetSpace,
     }
   } catch (error) {
+    if (isCollectionNotFound(error)) {
+      return { ok: false, message: 'pet identity not found' }
+    }
+
     return {
       ok: false,
-      message: error.message || error.errMsg || '读取宠物小窝失败',
+      message: error.message || error.errMsg || 'resolve pet identity failed',
     }
   }
 }
@@ -55,12 +46,11 @@ function sanitizePetSpace(item = {}) {
   return {
     _id: item._id,
     identityNo: item.identityNo || '',
-    identityCode: item.identityCode || '',
     identityYear: item.identityYear || '',
     identityStatus: item.identityStatus || 'active',
     identityCreatedAt: item.identityCreatedAt || '',
     nfc: item.nfc || { status: 'unbound', tagId: '', boundAt: null },
-    petName: item.petName || '未命名小窝',
+    petName: item.petName || '',
     petType: item.petType || 'other',
     breed: item.breed || '',
     gender: item.gender || 'unknown',
@@ -72,19 +62,13 @@ function sanitizePetSpace(item = {}) {
     avatarFileId: item.avatarFileId || '',
     coverUrl: item.coverUrl || '',
     coverFileId: item.coverFileId || '',
-    avatarTempUrl: item.avatarTempUrl || '',
-    coverTempUrl: item.coverTempUrl || '',
+    avatarTempUrl: '',
+    coverTempUrl: '',
     theme: item.theme || 'rainbow',
     story: item.story || '',
     visibility: item.visibility || 'private',
-    stats: item.stats || {},
     status: item.status || 'active',
-    reviewStatus: item.reviewStatus || 'approved',
-    hiddenReason: item.hiddenReason || '',
-    hiddenFromStatus: item.hiddenFromStatus || '',
-    hiddenFromReviewStatus: item.hiddenFromReviewStatus || '',
-    createdAt: item.createdAt || '',
-    updatedAt: item.updatedAt || '',
+    stats: item.stats || {},
   }
 }
 
@@ -109,31 +93,9 @@ async function attachPetImageUrls(petSpace) {
   petSpace.coverTempUrl = urlMap[petSpace.coverFileId] || petSpace.coverUrl || petSpace.avatarTempUrl || ''
 }
 
-async function getAdmin(openid) {
-  const result = await db.collection('users').where({ openid, role: 'admin', status: _.neq('deleted') }).limit(1).get()
-  return (result.data || [])[0] || null
-}
-
-function canViewPetSpace(petSpace = {}, openid, isAdmin = false) {
-  if (isAdmin) {
-    return true
-  }
-
-  if (petSpace.ownerOpenid === openid) {
-    return true
-  }
-
-  if (petSpace.status !== 'active') {
-    return false
-  }
-
-  if (petSpace.visibility === 'share') {
-    return true
-  }
-
-  return petSpace.visibility === 'discover'
-    && petSpace.status === 'active'
-    && (petSpace.reviewStatus || 'approved') === 'approved'
+function normalizeIdentityNo(value) {
+  const text = sanitizeString(value, 32).toUpperCase()
+  return /^XC-\d{4}-\d{6}$/.test(text) ? text : ''
 }
 
 function sanitizeString(value, maxLength) {
@@ -142,4 +104,9 @@ function sanitizeString(value, maxLength) {
   }
 
   return value.trim().slice(0, maxLength)
+}
+
+function isCollectionNotFound(error = {}) {
+  const message = `${error.errCode || ''} ${error.errMsg || ''} ${error.message || ''}`
+  return message.includes('-502005') || message.includes('collection not exist')
 }

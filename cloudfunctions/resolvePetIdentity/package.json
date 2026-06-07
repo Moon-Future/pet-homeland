@@ -1,0 +1,9 @@
+{
+  "name": "resolvePetIdentity",
+  "version": "1.0.0",
+  "description": "Resolve pet digital identity by public code or secure token",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

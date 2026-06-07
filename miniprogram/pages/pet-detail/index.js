@@ -295,6 +295,10 @@ Page({
 
     return {
       id: item._id,
+      identityNo: item.identityNo || '',
+      identityStatusText: item.identityStatus === 'archived' ? '已归档' : '永久保留',
+      nfcStatusText: item.nfc && item.nfc.status === 'bound' ? '已绑定' : '未绑定',
+      phaseText: isInStars ? '数字纪念档案' : '数字生命档案',
       name: item.petName || '未命名小窝',
       status: isInStars ? '已去星星' : '陪伴中',
       dateText,
@@ -800,6 +804,26 @@ Page({
 
     const petSpaceId = this.data.pet && this.data.pet.id
     wx.navigateTo({ url: `/pages/album/index?petSpaceId=${petSpaceId || ''}` })
+  },
+
+  goIdentity() {
+    const rawPet = this.data.rawPet || {}
+    const pet = this.data.pet || {}
+    const token = rawPet.identityToken || ''
+    const identityNo = pet.identityNo || rawPet.identityNo || ''
+
+    if (token) {
+      wx.navigateTo({
+        url: `/pages/identity/index?token=${encodeURIComponent(token)}`,
+      })
+      return
+    }
+
+    if (identityNo) {
+      wx.navigateTo({
+        url: `/pages/identity/index?code=${encodeURIComponent(identityNo)}`,
+      })
+    }
   },
 
   goMemoryDetail(e) {

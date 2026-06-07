@@ -141,6 +141,20 @@ page {
   line-height: 1.35;
 }
 
+.pet-identity {
+  display: inline-flex;
+  max-width: 100%;
+  margin-top: 8rpx;
+  padding: 6rpx 10rpx;
+  border-radius: 8rpx;
+  color: #7a53e8;
+  background: rgba(139, 92, 246, .1);
+  font-size: 21rpx;
+  font-weight: 900;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
 .pet-story {
   display: block;
   margin-top: 8rpx;

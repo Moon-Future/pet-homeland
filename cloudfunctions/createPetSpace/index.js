@@ -31,9 +31,21 @@ exports.main = async (event = {}) => {
   }
 
   await ensureCollection('pet_spaces')
+  const identity = await generatePetIdentity()
 
   const data = {
     ownerOpenid: openid,
+    identityNo: identity.identityNo,
+    identityCode: identity.identityCode,
+    identityYear: identity.identityYear,
+    identityToken: identity.identityToken,
+    identityStatus: 'active',
+    identityCreatedAt: now,
+    nfc: {
+      status: 'unbound',
+      tagId: '',
+      boundAt: null,
+    },
     petName: pet.petName,
     petType: pet.petType,
     breed: pet.breed,
@@ -208,6 +220,45 @@ function sanitizeDate(value) {
 
 function allowValue(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback
+}
+
+async function generatePetIdentity() {
+  const identityYear = new Date().getFullYear()
+  const maxAttempts = 20
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const identityCode = generateSixDigitCode()
+    const identityNo = `XC-${identityYear}-${identityCode}`
+    const identityToken = generateIdentityToken()
+    const existing = await petSpaces.where({ identityNo }).limit(1).get()
+    const existingToken = await petSpaces.where({ identityToken }).limit(1).get()
+
+    if ((!existing.data || !existing.data.length) && (!existingToken.data || !existingToken.data.length)) {
+      return {
+        identityNo,
+        identityCode,
+        identityYear,
+        identityToken,
+      }
+    }
+  }
+
+  throw new Error('pet identity code allocation failed')
+}
+
+function generateSixDigitCode() {
+  return String(Math.floor(Math.random() * 1000000)).padStart(6, '0')
+}
+
+function generateIdentityToken() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+  let token = ''
+
+  for (let index = 0; index < 18; index += 1) {
+    token += alphabet.charAt(Math.floor(Math.random() * alphabet.length))
+  }
+
+  return token
 }
 
 function isCollectionNotFound(error) {

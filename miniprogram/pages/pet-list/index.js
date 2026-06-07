@@ -68,6 +68,7 @@ Page({
 
     return {
       id: item._id,
+      identityNo: item.identityNo || '',
       petName: item.petName || '未命名小窝',
       active,
       statusText: isInStars ? '已去星星' : '陪伴中',
