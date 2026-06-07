@@ -34,7 +34,15 @@
       </view>
 
       <view class="day-posts">
-        <view wx:for="{{item.items}}" wx:for-item="memory" wx:key="id" class="moment" data-id="{{memory.id}}" bindtap="goMemoryDetail">
+        <view
+          wx:for="{{item.items}}"
+          wx:for-item="memory"
+          wx:key="id"
+          class="moment {{memory.isSystem ? 'system-moment' : ''}}"
+          data-id="{{memory.id}}"
+          data-system="{{memory.isSystem}}"
+          bindtap="goMemoryDetail"
+        >
           <image class="moment-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
           <view class="moment-main">
             <view class="moment-head">
