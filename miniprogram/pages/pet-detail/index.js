@@ -51,9 +51,10 @@ Page({
 
   refreshPetDetail(options = {}) {
     const isLoggedIn = auth.isLoggedIn()
+    const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
     this.setData({ isLoggedIn })
 
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !viewingPetSpaceId) {
       this.setData({
         loadingPet: false,
         hasPet: false,
@@ -527,6 +528,19 @@ Page({
     })
   },
 
+  requireLoginToProfile(message = '请先到“我的”登录') {
+    if (auth.isLoggedIn()) {
+      return true
+    }
+
+    wx.showToast({
+      title: message,
+      icon: 'none',
+    })
+
+    return false
+  },
+
   goCreate() {
     wx.navigateTo({
       url: '/pages/pet-create/index',
@@ -534,7 +548,7 @@ Page({
   },
 
   goEditPet() {
-    if (!this.data.isOwner || !auth.requireLogin() || !this.data.pet || !this.data.pet.id) {
+    if (!this.data.isOwner || !this.requireLoginToProfile('请先到“我的”登录后再编辑') || !this.data.pet || !this.data.pet.id) {
       return
     }
 
@@ -545,7 +559,7 @@ Page({
 
   reportPet() {
     const pet = this.data.pet || {}
-    if (!pet.id || !auth.requireLogin()) {
+    if (!pet.id || !this.requireLoginToProfile('请先到“我的”登录后再举报')) {
       return
     }
 
@@ -581,7 +595,7 @@ Page({
 
   unpublishPet() {
     const pet = this.data.pet || {}
-    if (!pet.id || !this.data.isOwner || !auth.requireLogin()) {
+    if (!pet.id || !this.data.isOwner || !this.requireLoginToProfile('请先到“我的”登录后再操作')) {
       return
     }
 
@@ -624,7 +638,11 @@ Page({
   },
 
   async interact(e) {
-    if (this.data.interacting || !auth.requireLogin()) {
+    if (this.data.interacting) {
+      return
+    }
+
+    if (!this.requireLoginToProfile('请先到“我的”登录后再互动')) {
       return
     }
 
@@ -789,19 +807,11 @@ Page({
   },
 
   goTimeline() {
-    if (!auth.requireLogin()) {
-      return
-    }
-
     const petSpaceId = this.data.pet && this.data.pet.id
     wx.navigateTo({ url: `/pages/timeline/index?petSpaceId=${petSpaceId || ''}` })
   },
 
   goAlbum() {
-    if (!auth.requireLogin()) {
-      return
-    }
-
     const petSpaceId = this.data.pet && this.data.pet.id
     wx.navigateTo({ url: `/pages/album/index?petSpaceId=${petSpaceId || ''}` })
   },
@@ -846,6 +856,10 @@ Page({
   },
 
   goMyPetSpace() {
+    if (!this.requireLoginToProfile('请先到“我的”登录后查看自己的小窝')) {
+      return
+    }
+
     wx.removeStorageSync('viewPetSpaceId')
     wx.removeStorageSync('viewSource')
     this.refreshPetDetail()

@@ -33,10 +33,6 @@ Page({
   },
 
   onLoad() {
-    if (!auth.requireLogin({ redirectToProfile: true })) {
-      return
-    }
-
     this.loadDiscoverPets()
   },
 

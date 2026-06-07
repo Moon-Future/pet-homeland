@@ -1,5 +1,3 @@
-const auth = require('../../utils/auth')
-
 const defaultPetImage = '/assets/home/default-pet.png'
 const themeBackgrounds = {
   cloud: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png',
@@ -44,12 +42,6 @@ Page({
   },
 
   onLoad(options = {}) {
-    if (!auth.requireLogin({
-      redirectToProfile: true,
-    })) {
-      return
-    }
-
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
       dirtyVersion: this.getDirtyVersion(),

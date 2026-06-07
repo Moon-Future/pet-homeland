@@ -17,27 +17,22 @@ Page({
     loading: false,
     photos: [],
     dirtyVersion: 0,
+    isOwner: false,
   },
 
   onLoad(options = {}) {
-    if (!auth.requireLogin({
-      redirectToProfile: true,
-    })) {
-      return
-    }
-
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
       dirtyVersion: this.getDirtyVersion(),
     })
-    this.loadPhotos()
+    this.initializeAlbum()
   },
 
   onShow() {
     const dirtyVersion = this.getDirtyVersion()
     if (this.data.petSpaceId && dirtyVersion !== this.data.dirtyVersion) {
       this.setData({ dirtyVersion })
-      this.loadPhotos()
+      this.initializeAlbum()
     }
   },
 
@@ -49,6 +44,34 @@ Page({
 
     this.setData({ activeFilter: filter })
     this.loadPhotos()
+  },
+
+  async initializeAlbum() {
+    await this.loadPetAccess()
+    this.loadPhotos()
+  },
+
+  async loadPetAccess() {
+    if (!this.data.petSpaceId) {
+      this.setData({ isOwner: false })
+      return
+    }
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getPetSpaceDetail',
+        data: {
+          petSpaceId: this.data.petSpaceId,
+          source: wx.getStorageSync('viewSource') || 'album',
+        },
+      })
+
+      this.setData({
+        isOwner: Boolean(result && result.ok && result.isOwner),
+      })
+    } catch (error) {
+      this.setData({ isOwner: false })
+    }
   },
 
   async loadPhotos() {
@@ -98,7 +121,10 @@ Page({
   },
 
   addMemory() {
-    if (!this.data.petSpaceId) {
+    if (!this.data.petSpaceId || !this.data.isOwner) {
+      if (!auth.isLoggedIn()) {
+        wx.showToast({ title: '请先到“我的”登录后再记录', icon: 'none' })
+      }
       return
     }
 

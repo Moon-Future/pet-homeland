@@ -1,5 +1,5 @@
 <view class="page">
-  <block wx:if="{{isLoggedIn && hasPet}}">
+  <block wx:if="{{hasPet}}">
     <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="theme-shade"></view>
 
@@ -106,7 +106,7 @@
     </view>
   </block>
 
-  <view wx:elif="{{isLoggedIn && loadingPet && !hasPet}}" class="pet-skeleton">
+  <view wx:elif="{{loadingPet && !hasPet}}" class="pet-skeleton">
     <view class="skeleton-bg"></view>
     <view class="skeleton-hero">
       <view class="skeleton-photo"></view>

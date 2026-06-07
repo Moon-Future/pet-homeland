@@ -19,10 +19,6 @@ Page({
   },
 
   onLoad(options = {}) {
-    if (!auth.requireLogin({ redirectToProfile: true })) {
-      return
-    }
-
     this.setData({
       petSpaceId: options.petSpaceId || '',
       memoryId: options.memoryId || '',
