@@ -98,7 +98,7 @@ page {
     rgba(236, 231, 255, 0.72)
   );
   box-shadow: 0 18rpx 38rpx rgba(83, 70, 166, 0.28);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(2px);
 }
 
 .guide-card {
