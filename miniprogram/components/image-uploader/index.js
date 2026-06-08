@@ -1,6 +1,6 @@
 const storage = require('../../utils/storage')
 
-const defaultImage = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
+const defaultImage = storage.assetUrl('images/user-default-avatar.png')
 const cropRatiosByType = {
   avatar: '1:1',
   petCover: '16:9',

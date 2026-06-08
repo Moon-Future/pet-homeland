@@ -1,6 +1,3 @@
-// AUTO-GENERATED — DO NOT EDIT.
-// Edit cloudfunctions/_shared/<source>.js and run: node scripts/sync-shared.js
-
 // Shared qiniu storage helpers for cloud functions (full version with delete).
 // Sync source for all cloud function local copies.
 // Edit this file, then run: node scripts/sync-shared.js

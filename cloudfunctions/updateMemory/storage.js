@@ -1,16 +1,28 @@
-// Shared qiniu storage helpers for cloud functions.
-// Physically copied into each cloud function that needs delete/buildUrl
-// support (wx-server-sdk packages every cloud function independently).
+// AUTO-GENERATED — DO NOT EDIT.
+// Edit cloudfunctions/_shared/<source>.js and run: node scripts/sync-shared.js
+
+// Shared qiniu storage helpers for cloud functions (full version with delete).
+// Sync source for all cloud function local copies.
+// Edit this file, then run: node scripts/sync-shared.js
+
 const qiniu = require('qiniu')
 
 const BUCKET = 'cl8023'
-const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
+const CDN_HOST = process.env.QINIU_CDN_HOST || 'https://qiniu.cdn.cl8023.com'
+const KEY_PREFIX = 'project/star-pet'
 const ZONE = qiniu.zone.Zone_z2 // 华南-广东
 
 function buildUrl(refOrKey) {
   if (!refOrKey) return ''
   const key = typeof refOrKey === 'string' ? refOrKey : refOrKey.key
   return key ? `${CDN_HOST}/${key}` : ''
+}
+
+// Builds a CDN url for a static asset under {KEY_PREFIX}/assets/...
+function assetUrl(relativePath) {
+  if (!relativePath) return ''
+  const clean = String(relativePath).replace(/^\/+/, '')
+  return `${CDN_HOST}/${KEY_PREFIX}/assets/${clean}`
 }
 
 function buildBucketManager() {
@@ -44,7 +56,9 @@ async function deleteObjects(refs) {
 
 module.exports = {
   buildUrl,
+  assetUrl,
   deleteObjects,
   BUCKET,
   CDN_HOST,
+  KEY_PREFIX,
 }

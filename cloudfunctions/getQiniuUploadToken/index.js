@@ -10,7 +10,7 @@ const db = cloud.database()
 const _ = db.command
 
 const BUCKET = 'cl8023'
-const KEY_PREFIX = 'project/star-pet-village/uploads'
+const KEY_PREFIX = 'project/star-pet/uploads'
 
 const SUPPORTED_TYPES = new Set(['avatar', 'petCover', 'petAlbum', 'memory'])
 
@@ -35,7 +35,14 @@ exports.main = async (event = {}) => {
     return { ok: false, message: '用户尚未登录或缺少 uid' }
   }
 
-  const subPath = buildSubPath(type, event.petSpaceId)
+  const safePetSpaceId = sanitizePathPart(event.petSpaceId)
+
+  // Non-avatar uploads must have a valid petSpaceId — the pending/ fallback is removed.
+  if (type !== 'avatar' && !safePetSpaceId) {
+    return { ok: false, message: '缺少宠物小窝ID' }
+  }
+
+  const subPath = buildSubPath(type, safePetSpaceId)
   const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.jpg`
   const key = `${KEY_PREFIX}/users/${uid}/${subPath}/${filename}`
 
@@ -84,29 +91,21 @@ function sanitizeType(value) {
   return SUPPORTED_TYPES.has(value) ? value : ''
 }
 
-function buildSubPath(type, petSpaceId) {
-  const safePetSpaceId = sanitizePathPart(petSpaceId)
-
+function buildSubPath(type, safePetSpaceId) {
   if (type === 'avatar') {
     return 'avatars'
   }
 
   if (type === 'petCover') {
-    return safePetSpaceId
-      ? `pet-spaces/${safePetSpaceId}/covers`
-      : 'pet-spaces/pending/covers'
+    return `pet-spaces/${safePetSpaceId}/covers`
   }
 
   if (type === 'petAlbum') {
-    return safePetSpaceId
-      ? `pet-spaces/${safePetSpaceId}/albums`
-      : 'pet-spaces/pending/albums'
+    return `pet-spaces/${safePetSpaceId}/albums`
   }
 
   // memory
-  return safePetSpaceId
-    ? `pet-spaces/${safePetSpaceId}/memories`
-    : 'pet-spaces/pending/memories'
+  return `pet-spaces/${safePetSpaceId}/memories`
 }
 
 function sanitizePathPart(value) {

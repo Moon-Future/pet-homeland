@@ -13,6 +13,11 @@ exports.main = async (event = {}) => {
   const now = db.serverDate()
   const pet = sanitizePet(event.pet)
 
+  // Accept a pre-reserved _id from the client (returned by reservePetSpaceId).
+  // This allows images uploaded before the record exists to use the correct
+  // key prefix. If omitted, cloud DB auto-generates one (legacy / admin path).
+  const reservedId = sanitizePathPart(event._id)
+
   if (!openid) {
     return {
       ok: false,
@@ -82,7 +87,8 @@ exports.main = async (event = {}) => {
   }
 
   try {
-    const added = await petSpaces.add({ data })
+    const insertData = reservedId ? { _id: reservedId, ...data } : data
+    const added = await petSpaces.add({ data: insertData })
     await incrementUserPetCount(openid)
     const saved = await petSpaces.doc(added._id).get()
 
@@ -223,6 +229,13 @@ function sanitizeString(value, maxLength) {
   }
 
   return value.trim().slice(0, maxLength)
+}
+
+function sanitizePathPart(value) {
+  if (typeof value !== 'string') {
+    return ''
+  }
+  return value.trim().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80)
 }
 
 function sanitizeDate(value) {

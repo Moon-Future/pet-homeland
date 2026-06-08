@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -9,8 +10,7 @@ const db = cloud.database()
 const _ = db.command
 const users = db.collection('users')
 
-const DEFAULT_AVATAR = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
-const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
+const DEFAULT_AVATAR = storage.assetUrl('images/user-default-avatar.png')
 
 const UID_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const UID_LENGTH = 12
@@ -76,6 +76,9 @@ exports.main = async (event = {}) => {
     updateData.nickname = profile.nickname
   }
 
+  // Track the old avatar so we can delete it after the DB write succeeds.
+  const oldAvatarRef = current.avatarRef || null
+
   if (profile.avatarRef !== undefined) {
     // Use _.set to replace the whole field. Plain object assignment is treated
     // as a deep merge by wx-server-sdk, which fails when the current value is
@@ -92,6 +95,17 @@ exports.main = async (event = {}) => {
   await users.doc(current._id).update({
     data: updateData,
   })
+
+  // Delete the old avatar from storage only when this call actually updated
+  // avatarRef. Order matters: DB write first so the new ref is persisted; if
+  // the delete fails the old file is just orphaned (cleanupUserMedia can sweep it).
+  if (profile.avatarRef !== undefined) {
+    const newAvatarRef = profile.avatarRef || null
+    if (oldAvatarRef && (!newAvatarRef || oldAvatarRef.key !== newAvatarRef.key)) {
+      await storage.deleteObjects([oldAvatarRef]).catch(() => {})
+    }
+  }
+
   const saved = await users.doc(current._id).get()
 
   return {
@@ -104,8 +118,7 @@ exports.main = async (event = {}) => {
 // Attach a computed avatarUrl to the response: ref → CDN url, else default.
 // avatarUrl is not stored in DB; it is derived from avatarRef on each read.
 function withAvatarUrl(user = {}) {
-  const ref = user.avatarRef
-  const url = ref && ref.key ? `${CDN_HOST}/${ref.key}` : DEFAULT_AVATAR
+  const url = storage.buildUrl(user.avatarRef) || DEFAULT_AVATAR
   return { ...user, avatarUrl: url }
 }
 
@@ -124,15 +137,15 @@ function sanitizeRef(ref) {
     return undefined
   }
 
-  const storage = sanitizeString(ref.storage, 32)
+  const storageName = sanitizeString(ref.storage, 32)
   const bucket = sanitizeString(ref.bucket, 64)
   const key = sanitizeString(ref.key, 512)
 
-  if (!storage || !bucket || !key) {
+  if (!storageName || !bucket || !key) {
     return undefined
   }
 
-  return { storage, bucket, key }
+  return { storage: storageName, bucket, key }
 }
 
 function sanitizeString(value, maxLength) {

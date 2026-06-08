@@ -1,0 +1,9 @@
+{
+  "name": "reservePetSpaceId",
+  "version": "1.0.0",
+  "description": "预分配一个 pet_spaces _id 给客户端，用于上传图片时的路径占位",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

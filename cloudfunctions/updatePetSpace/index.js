@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -90,6 +91,14 @@ exports.main = async (event = {}) => {
     await db.collection('pet_spaces').doc(petSpaceId).update({
       data: updateData,
     })
+
+    // Delete superseded avatar/cover from storage after DB write succeeds.
+    // Dedup by key so the common case (avatarRef === coverRef) only deletes
+    // each file once.
+    const removedRefs = collectRemovedImageRefs(petSpace, pet.avatarRef, coverRef)
+    if (removedRefs.length) {
+      await storage.deleteObjects(removedRefs).catch(() => {})
+    }
 
     if (enteringDiscover) {
       await submitMemoriesForPublicReview(petSpaceId)
@@ -192,17 +201,33 @@ function sanitizePet(pet = {}) {
   }
 }
 
+// Returns deduped Refs from `petSpace` that are no longer referenced after
+// the update (i.e. old avatar/cover whose key doesn't match the new ones).
+function collectRemovedImageRefs(petSpace, newAvatarRef, newCoverRef) {
+  const nextKeys = new Set(
+    [newAvatarRef, newCoverRef].filter((ref) => ref && ref.key).map((ref) => ref.key),
+  )
+  const removed = new Map()
+  const candidates = [petSpace && petSpace.avatarRef, petSpace && petSpace.coverRef]
+  candidates.forEach((ref) => {
+    if (ref && ref.key && !nextKeys.has(ref.key) && !removed.has(ref.key)) {
+      removed.set(ref.key, ref)
+    }
+  })
+  return [...removed.values()]
+}
+
 function sanitizeRef(ref) {
   if (!ref || typeof ref !== 'object') {
     return null
   }
-  const storage = sanitizeString(ref.storage, 32)
+  const storageName = sanitizeString(ref.storage, 32)
   const bucket = sanitizeString(ref.bucket, 64)
   const key = sanitizeString(ref.key, 512)
-  if (!storage || !bucket || !key) {
+  if (!storageName || !bucket || !key) {
     return null
   }
-  return { storage, bucket, key }
+  return { storage: storageName, bucket, key }
 }
 
 function validatePet(pet) {

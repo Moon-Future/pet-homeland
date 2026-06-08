@@ -4,6 +4,7 @@
   "description": "更新当前用户的宠物小窝资料",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "latest",
+    "qiniu": "^7.13.0"
   }
 }

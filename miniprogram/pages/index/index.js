@@ -1,3 +1,4 @@
+const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
@@ -8,14 +9,14 @@ Page({
     isLoggedIn: false,
     loadingPets: false,
     hasPetSpaces: false,
-    homeBg: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/home-bg.png',
+    homeBg: storage.assetUrl('images/home-bg.png'),
     featuredPet: null,
     petSpaces: [],
     themePreviews: [
-      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png' },
-      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png' },
-      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png' },
-      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png' },
+      { id: 'cloud', name: '梦幻花谷', image: storage.themeImages.cloud },
+      { id: 'rainbow', name: '日落花海', image: storage.themeImages.rainbow },
+      { id: 'starry', name: '星空晨曦', image: storage.themeImages.starry },
+      { id: 'sakura', name: '樱花大道', image: storage.themeImages.sakura },
     ],
   },
 

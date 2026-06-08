@@ -1,3 +1,4 @@
+const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
@@ -38,10 +39,10 @@ Page({
       { id: 'female', label: '女孩' },
     ],
     themes: [
-      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png' },
-      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png' },
-      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png' },
-      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png' },
+      { id: 'cloud', name: '梦幻花谷', image: storage.themeImages.cloud },
+      { id: 'rainbow', name: '日落花海', image: storage.themeImages.rainbow },
+      { id: 'starry', name: '星空晨曦', image: storage.themeImages.starry },
+      { id: 'sakura', name: '樱花大道', image: storage.themeImages.sakura },
     ],
     visibilityOptions: [
       { id: 'private', label: '仅自己可见', note: '不会出现在星空广场' },
@@ -49,6 +50,7 @@ Page({
       { id: 'discover', label: '出现在星空广场', note: '可被随机遇见并轻互动' },
     ],
     selectedTheme: 'rainbow',
+    reservedPetSpaceId: '',
   },
 
   noop() {},
@@ -63,6 +65,23 @@ Page({
     this.setData({
       today: this.formatDate(new Date()),
     })
+
+    this.reservePetSpaceId()
+  },
+
+  async reservePetSpaceId() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'reservePetSpaceId',
+      })
+      if (result && result.ok) {
+        this.setData({ reservedPetSpaceId: result.petSpaceId })
+      }
+    } catch (error) {
+      // Non-critical: if this fails, the user can still fill in the form.
+      // The upload will fail later if petSpaceId is missing, which surfaces
+      // the problem clearly.
+    }
   },
 
   goStep(e) {
@@ -213,6 +232,15 @@ Page({
     this.setData({ saving: true })
 
     try {
+      // Defensive: if the initial reserve in onLoad hasn't resolved (e.g. slow
+      // network), retry synchronously here so the uploader has a petSpaceId.
+      if (!this.data.reservedPetSpaceId) {
+        await this.reservePetSpaceId()
+      }
+      if (!this.data.reservedPetSpaceId) {
+        throw new Error('网络异常，请稍后重试')
+      }
+
       const uploader = this.selectComponent('#petCoverUploader')
       const upload = uploader
         ? await uploader.uploadCroppedImage()
@@ -228,6 +256,7 @@ Page({
       const { result } = await wx.cloud.callFunction({
         name: 'createPetSpace',
         data: {
+          _id: this.data.reservedPetSpaceId || undefined,
           pet: {
             petName: form.petName,
             petType: form.petType,

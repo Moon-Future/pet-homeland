@@ -1,12 +1,8 @@
+const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
-const themeBackgrounds = {
-  cloud: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png',
-  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png',
-  starry: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png',
-  sakura: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png',
-}
+const themeBackgrounds = storage.themeImages
 const ownerCooldownMs = 10 * 60 * 1000
 const petDetailCacheKey = 'petDetailCache:v1'
 

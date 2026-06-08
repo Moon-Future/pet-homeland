@@ -6,7 +6,7 @@ cloud.init({
 })
 
 const textScene = 2
-const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
+const CDN_HOST = process.env.QINIU_CDN_HOST || 'https://qiniu.cdn.cl8023.com'
 
 exports.main = async (event = {}) => {
   const { OPENID } = cloud.getWXContext()

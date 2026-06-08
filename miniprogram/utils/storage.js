@@ -1,14 +1,39 @@
 // Storage provider entry point. Currently the project only ships the qiniu
 // provider; tencent-cos will be added later by extending the config and adding
 // a sibling implementation.
+//
+// CDN_HOST and KEY_PREFIX are also exported for static-asset usage via
+// assetUrl(path). Keep this file the single source for those constants so
+// switching CDN means editing one line.
+
+const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
+const KEY_PREFIX = 'project/star-pet'
 
 const config = {
   provider: 'qiniu',
   bucket: 'cl8023',
   region: 'z2',
   uploadUrl: 'https://upload-z2.qiniup.com',
-  cdnHost: 'https://qiniu.cdn.cl8023.com',
-  keyPrefix: 'project/star-pet-village/uploads',
+  cdnHost: CDN_HOST,
+  keyPrefix: `${KEY_PREFIX}/uploads`,
+}
+
+// Builds a CDN url for a static asset under {KEY_PREFIX}/assets/...
+// Usage: assetUrl('themes/cloud-garden.png') ->
+//   https://qiniu.cdn.cl8023.com/project/star-pet/assets/themes/cloud-garden.png
+function assetUrl(relativePath) {
+  if (!relativePath) return ''
+  const clean = String(relativePath).replace(/^\/+/, '')
+  return `${CDN_HOST}/${KEY_PREFIX}/assets/${clean}`
+}
+
+// Theme background images shared across home/identity/timeline/pet-detail/
+// pet-create/pet-edit. Keep keys aligned with pet.theme enum.
+const themeImages = {
+  cloud: assetUrl('themes/cloud-garden.png'),
+  rainbow: assetUrl('themes/sunset-flowers.png'),
+  starry: assetUrl('themes/starry-sky.png'),
+  sakura: assetUrl('themes/sakura-avenue.png'),
 }
 
 const SUPPORTED_TYPES = ['avatar', 'petCover', 'petAlbum', 'memory']
@@ -111,5 +136,9 @@ function parseQiniuError(res) {
 module.exports = {
   uploadImage,
   buildUrl,
+  assetUrl,
+  themeImages,
   config,
+  CDN_HOST,
+  KEY_PREFIX,
 }

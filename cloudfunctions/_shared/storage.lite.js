@@ -1,6 +1,3 @@
-// AUTO-GENERATED — DO NOT EDIT.
-// Edit cloudfunctions/_shared/<source>.js and run: node scripts/sync-shared.js
-
 // Shared storage helper — lightweight (no qiniu SDK dependency).
 // Sync source for read-side cloud functions.
 // Edit this file, then run: node scripts/sync-shared.js

@@ -1,5 +1,7 @@
-const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
+const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
+
+const defaultAvatar = storage.assetUrl('images/user-default-avatar.png')
 
 Page({
   data: {
