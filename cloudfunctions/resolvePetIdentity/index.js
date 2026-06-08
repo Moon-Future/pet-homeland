@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -24,7 +25,7 @@ exports.main = async (event = {}) => {
     }
 
     const safePetSpace = sanitizePetSpace(petSpace)
-    await attachPetImageUrls(safePetSpace)
+    attachPetImageUrls(safePetSpace)
 
     return {
       ok: true,
@@ -58,12 +59,10 @@ function sanitizePetSpace(item = {}) {
     birthDate: item.birthDate || '',
     arrivalDate: item.arrivalDate || '',
     deathDate: item.deathDate || '',
-    avatarUrl: item.avatarUrl || '',
-    avatarFileId: item.avatarFileId || '',
-    coverUrl: item.coverUrl || '',
-    coverFileId: item.coverFileId || '',
-    avatarTempUrl: '',
-    coverTempUrl: '',
+    avatarRef: item.avatarRef || null,
+    coverRef: item.coverRef || null,
+    avatarUrl: '',
+    coverUrl: '',
     theme: item.theme || 'rainbow',
     story: item.story || '',
     visibility: item.visibility || 'private',
@@ -72,25 +71,9 @@ function sanitizePetSpace(item = {}) {
   }
 }
 
-async function attachPetImageUrls(petSpace) {
-  const fileIds = [...new Set([petSpace.avatarFileId, petSpace.coverFileId].filter(Boolean))]
-
-  if (!fileIds.length) {
-    petSpace.avatarTempUrl = petSpace.avatarUrl || ''
-    petSpace.coverTempUrl = petSpace.coverUrl || petSpace.avatarTempUrl || ''
-    return
-  }
-
-  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
-  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
-    if (item.fileID && item.tempFileURL) {
-      map[item.fileID] = item.tempFileURL
-    }
-    return map
-  }, {})
-
-  petSpace.avatarTempUrl = urlMap[petSpace.avatarFileId] || petSpace.avatarUrl || ''
-  petSpace.coverTempUrl = urlMap[petSpace.coverFileId] || petSpace.coverUrl || petSpace.avatarTempUrl || ''
+function attachPetImageUrls(petSpace) {
+  petSpace.avatarUrl = storage.buildUrl(petSpace.avatarRef)
+  petSpace.coverUrl = storage.buildUrl(petSpace.coverRef) || petSpace.avatarUrl
 }
 
 function normalizeIdentityNo(value) {

@@ -74,7 +74,7 @@ Page({
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
       metricText: metrics.length ? metrics.join(' · ') : '日期待补充',
-      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       story: item.story || '还没有记录，去写下第一段回忆吧',
     }
   },

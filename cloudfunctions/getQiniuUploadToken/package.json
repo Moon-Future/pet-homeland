@@ -1,7 +1,7 @@
 {
-  "name": "updateMemory",
+  "name": "getQiniuUploadToken",
   "version": "1.0.0",
-  "description": "Update or delete a pet memory record",
+  "description": "Issue scoped upload tokens for qiniu cloud storage",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "latest",

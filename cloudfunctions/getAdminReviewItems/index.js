@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -58,7 +59,7 @@ async function getPendingPetSpaces(limit) {
       .filter((item) => !item.reviewStatus || item.reviewStatus === 'pending_review')
       .slice(0, limit)
       .map(normalizePetSpace)
-    await attachPetImageUrls(petSpaces)
+    attachPetImageUrls(petSpaces)
     return petSpaces
   } catch (error) {
     if (isCollectionNotFound(error)) {
@@ -132,7 +133,7 @@ async function getHiddenPetSpaces(limit) {
       .get()
 
     const petSpaces = (result.data || []).map((item) => normalizeHiddenPetSpace(item))
-    await attachPetImageUrls(petSpaces)
+    attachPetImageUrls(petSpaces)
     return petSpaces
   } catch (error) {
     if (isCollectionNotFound(error)) {
@@ -168,12 +169,10 @@ function normalizePetSpace(item = {}) {
     petName: item.petName || '未命名小窝',
     petType: item.petType || 'other',
     lifeStatus: item.lifeStatus || 'with_me',
-    avatarFileId: item.avatarFileId || '',
-    coverFileId: item.coverFileId || '',
-    avatarUrl: item.avatarUrl || '',
-    coverUrl: item.coverUrl || '',
-    avatarTempUrl: item.avatarTempUrl || '',
-    coverTempUrl: item.coverTempUrl || '',
+    avatarRef: item.avatarRef || null,
+    coverRef: item.coverRef || null,
+    avatarUrl: '',
+    coverUrl: '',
     story: item.story || '',
     ownerOpenid: item.ownerOpenid || '',
     reviewStatus: item.reviewStatus || 'pending_review',
@@ -194,24 +193,10 @@ function normalizeHiddenPetSpace(item = {}) {
   }
 }
 
-async function attachPetImageUrls(petSpaces) {
-  const fileIds = [...new Set(petSpaces.flatMap((item) => [item.avatarFileId, item.coverFileId]).filter(Boolean))]
-
-  if (!fileIds.length) {
-    return
-  }
-
-  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
-  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
-    if (item.fileID && item.tempFileURL) {
-      map[item.fileID] = item.tempFileURL
-    }
-    return map
-  }, {})
-
+function attachPetImageUrls(petSpaces) {
   petSpaces.forEach((item) => {
-    item.avatarTempUrl = urlMap[item.avatarFileId] || item.avatarUrl || ''
-    item.coverTempUrl = urlMap[item.coverFileId] || item.coverUrl || item.avatarTempUrl || ''
+    item.avatarUrl = storage.buildUrl(item.avatarRef)
+    item.coverUrl = storage.buildUrl(item.coverRef) || item.avatarUrl
   })
 }
 
@@ -222,7 +207,8 @@ function normalizeMemory(item = {}) {
     title: item.title || '今天的记录',
     content: item.content || '',
     memoryDate: item.memoryDate || '',
-    mediaFileIds: item.mediaFileIds || [],
+    mediaRefs: item.mediaRefs || [],
+    mediaUrls: (item.mediaRefs || []).map((ref) => storage.buildUrl(ref)),
     ownerOpenid: item.ownerOpenid || '',
     reviewStatus: item.reviewStatus || 'pending_review',
     updatedAt: item.updatedAt || '',

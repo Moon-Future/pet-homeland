@@ -158,7 +158,7 @@ Page({
       kind: 'pet_space',
       id: item._id,
       title: item.petName || '未命名小窝',
-      image: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || defaultPetImage,
+      image: item.coverUrl || item.avatarUrl || defaultPetImage,
       reviewStatus: item.reviewStatus || 'approved',
       reviewStatusText: reviewStatusLabels[item.reviewStatus || 'approved'] || '未知',
       fields: [
@@ -173,7 +173,7 @@ Page({
       ],
       contentTitle: '一句话介绍/故事',
       content: item.story || '未填写',
-      mediaUrls: [item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl].filter(Boolean),
+      mediaUrls: [item.coverUrl || item.avatarUrl].filter(Boolean),
       hiddenReason: item.hiddenReason || '',
     }
   },

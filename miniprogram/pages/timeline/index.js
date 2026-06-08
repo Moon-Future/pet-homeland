@@ -1,9 +1,9 @@
 const defaultPetImage = '/assets/home/default-pet.png'
 const themeBackgrounds = {
-  cloud: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png',
-  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png',
-  starry: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png',
-  sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
+  cloud: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png',
+  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png',
+  starry: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png',
+  sakura: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png',
 }
 const tabs = [
   { id: 'all', label: '全部' },
@@ -328,7 +328,7 @@ Page({
   normalizePet(item = {}) {
     return {
       name: item.petName || '宠物小窝',
-      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
+      avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       cover: themeBackgrounds[item.theme] || defaultPetImage,
       birthDate: item.birthDate || '',
       arrivalDate: item.arrivalDate || '',

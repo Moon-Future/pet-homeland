@@ -2,7 +2,6 @@
   <image-uploader
     id="petCoverUploader"
     value="{{form.coverUrl}}"
-    file-id="{{form.coverFileId}}"
     pet-space-id="{{petSpaceId}}"
     image-type="petCover"
     crop-ratio="1:1"

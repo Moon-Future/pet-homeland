@@ -33,6 +33,8 @@ exports.main = async (event = {}) => {
   await ensureCollection('pet_spaces')
   const identity = await generatePetIdentity()
 
+  const coverRef = pet.coverRef || pet.avatarRef
+
   const data = {
     ownerOpenid: openid,
     identityNo: identity.identityNo,
@@ -54,10 +56,8 @@ exports.main = async (event = {}) => {
     birthDate: pet.birthDate,
     arrivalDate: pet.arrivalDate,
     deathDate: pet.lifeStatus === 'in_stars' ? pet.deathDate : '',
-    avatarUrl: pet.avatarUrl,
-    avatarFileId: pet.avatarFileId,
-    coverUrl: pet.coverUrl || pet.avatarUrl,
-    coverFileId: pet.coverFileId || pet.avatarFileId,
+    avatarRef: pet.avatarRef,
+    coverRef,
     theme: pet.theme,
     story: pet.story,
     visibility: pet.visibility,
@@ -73,7 +73,7 @@ exports.main = async (event = {}) => {
       missCount: 0,
       memoryCount: 0,
       starCount: 0,
-      mediaCount: pet.coverFileId || pet.avatarFileId ? 1 : 0,
+      mediaCount: coverRef ? 1 : 0,
       flowerCount: 0,
     },
     status: 'active',
@@ -108,14 +108,25 @@ function sanitizePet(pet = {}) {
     birthDate: sanitizeDate(pet.birthDate),
     arrivalDate: sanitizeDate(pet.arrivalDate),
     deathDate: sanitizeDate(pet.deathDate),
-    avatarUrl: sanitizeString(pet.avatarUrl, 512),
-    avatarFileId: sanitizeString(pet.avatarFileId, 256),
-    coverUrl: sanitizeString(pet.coverUrl, 512),
-    coverFileId: sanitizeString(pet.coverFileId, 256),
+    avatarRef: sanitizeRef(pet.avatarRef),
+    coverRef: sanitizeRef(pet.coverRef),
     theme: allowValue(pet.theme, ['cloud', 'rainbow', 'starry', 'sakura'], 'rainbow'),
     story: sanitizeString(pet.story, 160),
     visibility: allowValue(pet.visibility, ['private', 'share', 'discover'], 'private'),
   }
+}
+
+function sanitizeRef(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return null
+  }
+  const storage = sanitizeString(ref.storage, 32)
+  const bucket = sanitizeString(ref.bucket, 64)
+  const key = sanitizeString(ref.key, 512)
+  if (!storage || !bucket || !key) {
+    return null
+  }
+  return { storage, bucket, key }
 }
 
 function validatePet(pet) {
@@ -123,7 +134,7 @@ function validatePet(pet) {
     return { ok: false, message: '请填写宝贝名字' }
   }
 
-  if (!pet.avatarFileId && !pet.coverFileId) {
+  if (!pet.avatarRef && !pet.coverRef) {
     return { ok: false, message: '请上传宠物照片' }
   }
 
@@ -166,8 +177,9 @@ async function checkPetSecurity(openid, pet) {
   // re-enabled in one place after deployment permissions are confirmed.
   return { ok: true, skipped: true }
 
+  // eslint-disable-next-line no-unreachable
   try {
-    const fileIds = [...new Set([pet.avatarFileId, pet.coverFileId].filter(Boolean))]
+    const refs = [pet.avatarRef, pet.coverRef].filter(Boolean)
     const { result } = await cloud.callFunction({
       name: 'checkContentSecurity',
       data: {
@@ -177,7 +189,7 @@ async function checkPetSecurity(openid, pet) {
           { field: 'breed', content: pet.breed, message: '品种内容未通过安全校验' },
           { field: 'story', content: pet.story, message: '小窝故事未通过安全校验' },
         ],
-        fileIds: fileIds.map((fileId) => ({ fileId, message: '宠物图片未通过安全校验' })),
+        refs: refs.map((ref) => ({ ref, message: '宠物图片未通过安全校验' })),
       },
     })
 

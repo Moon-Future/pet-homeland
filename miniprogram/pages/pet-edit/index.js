@@ -20,7 +20,7 @@ Page({
       story: '',
       visibility: 'private',
       coverUrl: defaultPetImage,
-      coverFileId: '',
+      coverRef: null,
       coverChanged: false,
     },
     petTypes: [
@@ -34,10 +34,10 @@ Page({
       { id: 'female', label: '女孩' },
     ],
     themes: [
-      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png' },
-      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png' },
-      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png' },
-      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png' },
+      { id: 'cloud', name: '梦幻花谷', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png' },
+      { id: 'rainbow', name: '日落花海', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png' },
+      { id: 'starry', name: '星空晨曦', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png' },
+      { id: 'sakura', name: '樱花大道', image: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png' },
     ],
     visibilityOptions: [
       { id: 'private', label: '仅自己可见', note: '不会出现在星空广场' },
@@ -97,6 +97,7 @@ Page({
   },
 
   fillForm(pet = {}) {
+    const ref = pet.avatarRef || pet.coverRef || null
     this.setData({
       selectedTheme: pet.theme || 'rainbow',
       form: {
@@ -110,8 +111,8 @@ Page({
         deathDate: pet.deathDate || '',
         story: pet.story || '',
         visibility: pet.visibility || 'private',
-        coverUrl: pet.avatarFileId || pet.coverFileId || pet.avatarUrl || pet.coverUrl || defaultPetImage,
-        coverFileId: pet.avatarFileId || pet.coverFileId || '',
+        coverUrl: pet.avatarUrl || pet.coverUrl || defaultPetImage,
+        coverRef: ref,
         coverChanged: false,
       },
     })
@@ -199,13 +200,11 @@ Page({
       const uploader = this.selectComponent('#petCoverUploader')
       const upload = uploader
         ? await uploader.uploadCroppedImage()
-        : {
-            avatarUrl: this.data.form.coverUrl,
-            avatarFileId: this.data.form.coverFileId,
-          }
-      const uploadedFileId = upload.avatarFileId || upload.coverFileId || upload.fileId || upload.fileID || ''
+        : { ref: this.data.form.coverRef, url: this.data.form.coverUrl, changed: false }
 
-      if (!uploadedFileId || !uploadedFileId.startsWith('cloud://')) {
+      const ref = upload.ref || this.data.form.coverRef
+
+      if (!ref || !ref.key) {
         throw new Error('宠物照片上传失败，请重新选择照片')
       }
 
@@ -225,10 +224,8 @@ Page({
             deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
             story: form.story,
             visibility: form.visibility,
-            avatarUrl: upload.avatarUrl || uploadedFileId,
-            avatarFileId: uploadedFileId,
-            coverUrl: upload.coverUrl || upload.avatarUrl || uploadedFileId,
-            coverFileId: uploadedFileId,
+            avatarRef: ref,
+            coverRef: ref,
             theme: this.data.selectedTheme,
           },
         },

@@ -5,6 +5,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const _ = db.command
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
@@ -38,6 +39,8 @@ exports.main = async (event = {}) => {
       return { ok: false, message: '无权编辑这个小窝' }
     }
 
+    const coverRef = pet.coverRef || pet.avatarRef
+
     const updateData = {
       status: 'active',
       petName: pet.petName,
@@ -48,10 +51,8 @@ exports.main = async (event = {}) => {
       birthDate: pet.birthDate,
       arrivalDate: pet.arrivalDate,
       deathDate: pet.lifeStatus === 'in_stars' ? pet.deathDate : '',
-      avatarUrl: pet.avatarUrl,
-      avatarFileId: pet.avatarFileId,
-      coverUrl: pet.coverUrl || pet.avatarUrl,
-      coverFileId: pet.coverFileId || pet.avatarFileId,
+      avatarRef: _.set(pet.avatarRef),
+      coverRef: _.set(coverRef),
       theme: pet.theme,
       story: pet.story,
       visibility: pet.visibility,
@@ -62,11 +63,16 @@ exports.main = async (event = {}) => {
     const enteringDiscover = !wasDiscover && pet.visibility === 'discover'
 
     if (pet.visibility === 'discover') {
+      const oldKey = (petSpace.avatarRef && petSpace.avatarRef.key) || ''
+      const newKey = (pet.avatarRef && pet.avatarRef.key) || ''
+      const oldCoverKey = (petSpace.coverRef && petSpace.coverRef.key) || ''
+      const newCoverKey = (coverRef && coverRef.key) || ''
+
       const changedPublicContent = petSpace.petName !== pet.petName
         || petSpace.breed !== pet.breed
         || petSpace.story !== pet.story
-        || petSpace.avatarFileId !== pet.avatarFileId
-        || petSpace.coverFileId !== (pet.coverFileId || pet.avatarFileId)
+        || oldKey !== newKey
+        || oldCoverKey !== newCoverKey
         || petSpace.visibility !== pet.visibility
 
       if (changedPublicContent || !petSpace.reviewStatus || petSpace.reviewStatus === 'rejected' || petSpace.reviewStatus === 'hidden') {
@@ -178,14 +184,25 @@ function sanitizePet(pet = {}) {
     birthDate: sanitizeDate(pet.birthDate),
     arrivalDate: sanitizeDate(pet.arrivalDate),
     deathDate: sanitizeDate(pet.deathDate),
-    avatarUrl: sanitizeString(pet.avatarUrl, 512),
-    avatarFileId: sanitizeString(pet.avatarFileId, 256),
-    coverUrl: sanitizeString(pet.coverUrl, 512),
-    coverFileId: sanitizeString(pet.coverFileId, 256),
+    avatarRef: sanitizeRef(pet.avatarRef),
+    coverRef: sanitizeRef(pet.coverRef),
     theme: allowValue(pet.theme, ['cloud', 'rainbow', 'starry', 'sakura'], 'rainbow'),
     story: sanitizeString(pet.story, 160),
     visibility: allowValue(pet.visibility, ['private', 'share', 'discover'], 'private'),
   }
+}
+
+function sanitizeRef(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return null
+  }
+  const storage = sanitizeString(ref.storage, 32)
+  const bucket = sanitizeString(ref.bucket, 64)
+  const key = sanitizeString(ref.key, 512)
+  if (!storage || !bucket || !key) {
+    return null
+  }
+  return { storage, bucket, key }
 }
 
 function validatePet(pet) {
@@ -193,7 +210,7 @@ function validatePet(pet) {
     return { ok: false, message: '请填写宝贝名字' }
   }
 
-  if (!pet.avatarFileId && !pet.coverFileId) {
+  if (!pet.avatarRef && !pet.coverRef) {
     return { ok: false, message: '请上传宠物照片' }
   }
 
@@ -222,8 +239,9 @@ async function checkPetSecurity(openid, pet) {
   // re-enabled in one place after deployment permissions are confirmed.
   return { ok: true, skipped: true }
 
+  // eslint-disable-next-line no-unreachable
   try {
-    const fileIds = [...new Set([pet.avatarFileId, pet.coverFileId].filter(Boolean))]
+    const refs = [pet.avatarRef, pet.coverRef].filter(Boolean)
     const { result } = await cloud.callFunction({
       name: 'checkContentSecurity',
       data: {
@@ -233,7 +251,7 @@ async function checkPetSecurity(openid, pet) {
           { field: 'breed', content: pet.breed, message: '品种内容未通过安全校验' },
           { field: 'story', content: pet.story, message: '小窝故事未通过安全校验' },
         ],
-        fileIds: fileIds.map((fileId) => ({ fileId, message: '宠物图片未通过安全校验' })),
+        refs: refs.map((ref) => ({ ref, message: '宠物图片未通过安全校验' })),
       },
     })
 

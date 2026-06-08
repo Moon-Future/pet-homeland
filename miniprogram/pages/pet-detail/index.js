@@ -2,10 +2,10 @@ const auth = require('../../utils/auth')
 
 const defaultPetImage = '/assets/home/default-pet.png'
 const themeBackgrounds = {
-  cloud: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/cloud-garden.png',
-  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sunset-flowers.png',
-  starry: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/starry-sky.png',
-  sakura: 'https://qiniu.cdn.cl8023.com/project/star-paws/themes/sakura-avenue.png',
+  cloud: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/cloud-garden.png',
+  rainbow: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sunset-flowers.png',
+  starry: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/starry-sky.png',
+  sakura: 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/themes/sakura-avenue.png',
 }
 const ownerCooldownMs = 10 * 60 * 1000
 const petDetailCacheKey = 'petDetailCache:v1'
@@ -305,8 +305,8 @@ Page({
       dateText,
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
-      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
-      cover: themeBackgrounds[item.theme] || item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || defaultPetImage,
+      avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
   },

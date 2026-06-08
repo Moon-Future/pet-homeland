@@ -1,16 +1,18 @@
 const cloud = require('wx-server-sdk')
+const https = require('https')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 })
 
 const textScene = 2
+const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
 
 exports.main = async (event = {}) => {
   const { OPENID } = cloud.getWXContext()
   const openid = OPENID || sanitizeString(event.openid, 128)
   const texts = Array.isArray(event.texts) ? event.texts : []
-  const fileIds = Array.isArray(event.fileIds) ? event.fileIds : []
+  const refs = Array.isArray(event.refs) ? event.refs : []
 
   try {
     for (const item of texts) {
@@ -30,18 +32,18 @@ exports.main = async (event = {}) => {
       }
     }
 
-    for (const item of fileIds) {
-      const fileId = sanitizeString(typeof item === 'string' ? item : item.fileId, 512)
-      if (!fileId || !fileId.startsWith('cloud://')) {
+    for (const item of refs) {
+      const ref = normalizeRef(typeof item === 'object' && item.ref ? item.ref : item)
+      if (!ref) {
         continue
       }
 
-      const result = await checkImage(fileId)
+      const result = await checkImage(ref)
       if (!result.ok) {
         return {
           ok: false,
           kind: 'image',
-          fileId,
+          key: ref.key,
           message: (typeof item === 'object' && item.message) || result.message || '图片内容未通过安全校验',
         }
       }
@@ -82,10 +84,9 @@ async function checkText(content, openid) {
   }
 }
 
-async function checkImage(fileId) {
+async function checkImage(ref) {
   try {
-    const file = await cloud.downloadFile({ fileID: fileId })
-    const buffer = file.fileContent
+    const buffer = await downloadObject(ref)
 
     if (!buffer || !buffer.length) {
       return { ok: false, message: '图片读取失败，请重新上传' }
@@ -93,7 +94,7 @@ async function checkImage(fileId) {
 
     const result = await cloud.openapi.security.imgSecCheck({
       media: {
-        contentType: getImageContentType(fileId),
+        contentType: getImageContentType(ref.key),
         value: buffer,
       },
     })
@@ -112,8 +113,43 @@ async function checkImage(fileId) {
   }
 }
 
-function getImageContentType(fileId) {
-  const lower = fileId.toLowerCase()
+function downloadObject(ref) {
+  return new Promise((resolve, reject) => {
+    const url = `${CDN_HOST}/${ref.key}`
+    https
+      .get(url, (res) => {
+        if (res.statusCode !== 200) {
+          res.resume()
+          reject(new Error(`download failed: ${res.statusCode}`))
+          return
+        }
+
+        const chunks = []
+        res.on('data', (chunk) => chunks.push(chunk))
+        res.on('end', () => resolve(Buffer.concat(chunks)))
+        res.on('error', reject)
+      })
+      .on('error', reject)
+  })
+}
+
+function normalizeRef(value) {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+  const key = sanitizeString(value.key, 512)
+  if (!key) {
+    return null
+  }
+  return {
+    storage: sanitizeString(value.storage, 32) || 'qiniu',
+    bucket: sanitizeString(value.bucket, 64) || 'cl8023',
+    key,
+  }
+}
+
+function getImageContentType(key) {
+  const lower = (key || '').toLowerCase()
   if (lower.endsWith('.png')) {
     return 'image/png'
   }

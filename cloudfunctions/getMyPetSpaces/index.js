@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -29,7 +30,7 @@ exports.main = async () => {
       .get()
 
     const petSpaces = result.data || []
-    await attachPetImageUrls(petSpaces)
+    attachPetImageUrls(petSpaces)
 
     return {
       ok: true,
@@ -51,24 +52,10 @@ exports.main = async () => {
   }
 }
 
-async function attachPetImageUrls(petSpaces) {
-  const fileIds = [...new Set(petSpaces.flatMap((item) => [item.avatarFileId, item.coverFileId]).filter(Boolean))]
-
-  if (!fileIds.length) {
-    return
-  }
-
-  const urlResult = await cloud.getTempFileURL({ fileList: fileIds }).catch(() => ({ fileList: [] }))
-  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
-    if (item.fileID && item.tempFileURL) {
-      map[item.fileID] = item.tempFileURL
-    }
-    return map
-  }, {})
-
+function attachPetImageUrls(petSpaces) {
   petSpaces.forEach((item) => {
-    item.avatarTempUrl = urlMap[item.avatarFileId] || item.avatarUrl || ''
-    item.coverTempUrl = urlMap[item.coverFileId] || item.coverUrl || item.avatarTempUrl || ''
+    item.avatarUrl = storage.buildUrl(item.avatarRef)
+    item.coverUrl = storage.buildUrl(item.coverRef) || item.avatarUrl
   })
 }
 

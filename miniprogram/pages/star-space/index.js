@@ -101,7 +101,7 @@ Page({
     return {
       id: item._id,
       name: item.petName || '未命名小窝',
-      avatar: item.avatarTempUrl || item.coverTempUrl || item.avatarUrl || item.coverUrl || defaultPetImage,
+      avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       lifeStatus: item.lifeStatus || 'with_me',
       isInStars,
       isOwner: Boolean(item.isOwner),

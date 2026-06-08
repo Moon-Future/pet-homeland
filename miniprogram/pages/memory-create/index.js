@@ -1,5 +1,5 @@
 const auth = require('../../utils/auth')
-const { getUserImageUploadDir } = require('../../utils/image-dirs')
+const storage = require('../../utils/storage')
 
 const maxImages = 3
 const memoryTypes = [
@@ -26,7 +26,7 @@ Page({
     },
     memoryTypes,
     images: [],
-    originalMediaFileIds: [],
+    originalMediaKeys: [],
     maxImages,
     quota: {
       limit: 30,
@@ -83,6 +83,9 @@ Page({
         throw new Error('记录不存在')
       }
 
+      const mediaRefs = memory.mediaRefs || []
+      const mediaUrls = memory.mediaUrls || []
+
       this.setData({
         petSpaceId: memory.petSpaceId || this.data.petSpaceId,
         form: {
@@ -91,13 +94,12 @@ Page({
           memoryDate: memory.memoryDate || this.data.today,
           type: memory.type || 'daily',
         },
-        images: (memory.mediaFileIds || []).map((fileId, index) => ({
-          tempFilePath: (memory.mediaUrls || [])[index] || fileId,
-          fileID: fileId,
+        images: mediaRefs.map((ref, index) => ({
+          tempFilePath: mediaUrls[index] || storage.buildUrl(ref),
+          ref,
           uploaded: true,
-          uploading: false,
         })),
-        originalMediaFileIds: memory.mediaFileIds || [],
+        originalMediaKeys: mediaRefs.map((ref) => ref.key).filter(Boolean),
       })
       this.loadImageQuota()
     } catch (error) {
@@ -143,7 +145,8 @@ Page({
 
     const images = this.data.images.concat({
       tempFilePath,
-      uploading: false,
+      ref: null,
+      uploaded: false,
     }).slice(0, maxImages)
 
     this.setData({ images })
@@ -192,7 +195,7 @@ Page({
 
     try {
       await this.checkImageQuota()
-      const mediaFileIds = await this.uploadImages()
+      const mediaRefs = await this.uploadImages()
       const payload = {
         petSpaceId: this.data.petSpaceId,
         memory: {
@@ -200,7 +203,7 @@ Page({
           content: this.data.form.content,
           memoryDate: this.data.form.memoryDate,
           type: this.data.form.type,
-          mediaFileIds,
+          mediaRefs,
         },
       }
       const { result } = await wx.cloud.callFunction(this.data.isEditing ? {
@@ -235,37 +238,32 @@ Page({
   },
 
   async uploadImages() {
-    const uploads = []
+    const refs = []
 
     for (let index = 0; index < this.data.images.length; index += 1) {
       const image = this.data.images[index]
 
-      if (image.fileID) {
-        uploads.push(image.fileID)
+      if (image.ref && image.ref.key) {
+        refs.push(image.ref)
         continue
       }
 
-      const user = auth.getUserProfile() || {}
-      const uploadDir = getUserImageUploadDir(user.openid, 'memory', {
+      const ref = await storage.uploadImage({
+        type: 'memory',
         petSpaceId: this.data.petSpaceId,
-      })
-      const cloudPath = `${uploadDir}/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
-      const upload = await wx.cloud.uploadFile({
-        cloudPath,
         filePath: image.tempFilePath,
       })
-
-      uploads.push(upload.fileID)
+      refs.push(ref)
     }
 
-    return uploads
+    return refs
   },
 
   async checkImageQuota() {
     const { result } = await wx.cloud.callFunction({
       name: 'getMediaQuota',
       data: {
-        excludeFileIds: this.data.isEditing ? this.data.originalMediaFileIds : [],
+        excludeKeys: this.data.isEditing ? this.data.originalMediaKeys : [],
         nextImageCount: this.data.images.length,
       },
     })
@@ -282,7 +280,7 @@ Page({
       const { result } = await wx.cloud.callFunction({
         name: 'getMediaQuota',
         data: {
-          excludeFileIds: this.data.isEditing ? this.data.originalMediaFileIds : [],
+          excludeKeys: this.data.isEditing ? this.data.originalMediaKeys : [],
           nextImageCount: this.data.images.length,
         },
       })
@@ -314,7 +312,7 @@ Page({
   },
 
   getNewLocalImageCount() {
-    return this.data.images.filter((image) => !image.fileID).length
+    return this.data.images.filter((image) => !image.ref || !image.ref.key).length
   },
 
   deleteMemory() {

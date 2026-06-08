@@ -1,4 +1,4 @@
-const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
+const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
 const auth = require('../../utils/auth')
 
 Page({
@@ -7,7 +7,7 @@ Page({
     form: {
       nickname: '',
       avatarUrl: defaultAvatar,
-      avatarFileId: '',
+      avatarRef: null,
       avatarTempPath: '',
       avatarChanged: false,
     },
@@ -59,7 +59,7 @@ Page({
       form: {
         nickname: user.nickname || '',
         avatarUrl: user.avatarUrl || defaultAvatar,
-        avatarFileId: user.avatarFileId || '',
+        avatarRef: user.avatarRef || null,
         avatarTempPath: '',
         avatarChanged: false,
       },
@@ -94,19 +94,16 @@ Page({
       const avatarUploader = this.selectComponent('#avatarUploader')
       const avatar = avatarUploader
         ? await avatarUploader.uploadCroppedImage()
-        : {
-            avatarUrl: this.data.form.avatarUrl,
-            avatarFileId: this.data.form.avatarFileId,
-          }
+        : { ref: this.data.form.avatarRef, url: this.data.form.avatarUrl, changed: false }
+
+      const payload = { nickname }
+      if (avatar.changed) {
+        payload.avatarRef = avatar.ref
+      }
+
       const { result } = await wx.cloud.callFunction({
         name: 'login',
-        data: {
-          profile: {
-            nickname,
-            avatarUrl: avatar.avatarUrl,
-            avatarFileId: avatar.avatarFileId,
-          },
-        },
+        data: { profile: payload },
       })
 
       if (!result || !result.ok) {
@@ -115,6 +112,7 @@ Page({
 
       getApp().globalData.userProfile = result.user
       wx.setStorageSync('userProfile', result.user)
+      this.fillForm(result.user)
       this.setData({ saving: false })
 
       wx.showToast({ title: '已保存', icon: 'success' })

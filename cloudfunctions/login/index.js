@@ -1,12 +1,19 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 })
 
 const db = cloud.database()
+const _ = db.command
 const users = db.collection('users')
-const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
+
+const DEFAULT_AVATAR = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
+const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
+
+const UID_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+const UID_LENGTH = 12
 
 exports.main = async (event = {}) => {
   const wxContext = cloud.getWXContext()
@@ -27,13 +34,14 @@ exports.main = async (event = {}) => {
   const current = existing.data && existing.data[0]
 
   if (!current) {
+    const uid = await generateUniqueUid()
     const user = {
       openid,
+      uid,
       unionid: wxContext.UNIONID || '',
       appid: wxContext.APPID || '',
       nickname: profile.nickname || '',
-      avatarUrl: profile.avatarUrl || defaultAvatar,
-      avatarFileId: profile.avatarFileId || '',
+      avatarRef: profile.avatarRef || null,
       vip: false,
       role: 'user',
       permissions: {},
@@ -55,7 +63,7 @@ exports.main = async (event = {}) => {
     return {
       ok: true,
       isNew: true,
-      user: saved.data,
+      user: withAvatarUrl(saved.data),
     }
   }
 
@@ -68,14 +76,17 @@ exports.main = async (event = {}) => {
     updateData.nickname = profile.nickname
   }
 
-  if (profile.avatarUrl) {
-    updateData.avatarUrl = profile.avatarUrl
-  } else if (!current.avatarUrl) {
-    updateData.avatarUrl = defaultAvatar
+  if (profile.avatarRef !== undefined) {
+    // Use _.set to replace the whole field. Plain object assignment is treated
+    // as a deep merge by wx-server-sdk, which fails when the current value is
+    // null because it tries to create sub-fields inside null.
+    updateData.avatarRef = _.set(profile.avatarRef)
   }
 
-  if (profile.avatarFileId) {
-    updateData.avatarFileId = profile.avatarFileId
+  // Backfill uid for users created before the qiniu migration. Should be a
+  // one-time write per user during the rollout window.
+  if (!current.uid) {
+    updateData.uid = await generateUniqueUid()
   }
 
   await users.doc(current._id).update({
@@ -86,16 +97,42 @@ exports.main = async (event = {}) => {
   return {
     ok: true,
     isNew: false,
-    user: saved.data,
+    user: withAvatarUrl(saved.data),
   }
+}
+
+// Attach a computed avatarUrl to the response: ref → CDN url, else default.
+// avatarUrl is not stored in DB; it is derived from avatarRef on each read.
+function withAvatarUrl(user = {}) {
+  const ref = user.avatarRef
+  const url = ref && ref.key ? `${CDN_HOST}/${ref.key}` : DEFAULT_AVATAR
+  return { ...user, avatarUrl: url }
 }
 
 function sanitizeProfile(profile = {}) {
   return {
     nickname: sanitizeString(profile.nickname, 32),
-    avatarUrl: sanitizeString(profile.avatarUrl, 512),
-    avatarFileId: sanitizeString(profile.avatarFileId, 256),
+    avatarRef: sanitizeRef(profile.avatarRef),
   }
+}
+
+function sanitizeRef(ref) {
+  if (ref === null) {
+    return null
+  }
+  if (!ref || typeof ref !== 'object') {
+    return undefined
+  }
+
+  const storage = sanitizeString(ref.storage, 32)
+  const bucket = sanitizeString(ref.bucket, 64)
+  const key = sanitizeString(ref.key, 512)
+
+  if (!storage || !bucket || !key) {
+    return undefined
+  }
+
+  return { storage, bucket, key }
 }
 
 function sanitizeString(value, maxLength) {
@@ -122,6 +159,26 @@ async function ensureUsersCollection() {
       }
     }
   }
+}
+
+async function generateUniqueUid() {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const uid = generateUid()
+    const existing = await users.where({ uid }).limit(1).get().catch(() => ({ data: [] }))
+    if (!existing.data || !existing.data.length) {
+      return uid
+    }
+  }
+  throw new Error('uid allocation failed')
+}
+
+function generateUid() {
+  const bytes = crypto.randomBytes(UID_LENGTH)
+  let uid = ''
+  for (let i = 0; i < UID_LENGTH; i += 1) {
+    uid += UID_ALPHABET[bytes[i] % UID_ALPHABET.length]
+  }
+  return uid
 }
 
 function isCollectionNotFound(error) {

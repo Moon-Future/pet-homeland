@@ -16,7 +16,6 @@
       <image-uploader
         id="petCoverUploader"
         value="{{form.coverUrl}}"
-        file-id="{{form.coverFileId}}"
         image-type="petCover"
         crop-ratio="1:1"
         tip="点击照片拍照或从相册选择"

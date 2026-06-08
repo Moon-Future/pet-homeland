@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -52,8 +53,8 @@ exports.main = async (event = {}) => {
           status: 'deleted',
         },
       }).catch(() => {})
-      await deleteCloudFiles(existing.mediaFileIds || [])
-      await adjustStats(existing.petSpaceId, openid, -1, -(existing.mediaFileIds || []).length)
+      await storage.deleteObjects(existing.mediaRefs || [])
+      await adjustStats(existing.petSpaceId, openid, -1, -(existing.mediaRefs || []).length)
       return { ok: true }
     }
 
@@ -68,17 +69,17 @@ exports.main = async (event = {}) => {
       return security
     }
 
-    const oldMedia = existing.mediaFileIds || []
-    const nextMedia = memory.mediaFileIds
-    const oldSet = new Set(oldMedia)
-    const nextSet = new Set(nextMedia)
-    const removed = oldMedia.filter((fileId) => !nextSet.has(fileId))
-    const added = nextMedia.filter((fileId) => !oldSet.has(fileId))
+    const oldRefs = existing.mediaRefs || []
+    const nextRefs = memory.mediaRefs
+    const oldKeys = new Set(oldRefs.map((ref) => ref.key))
+    const nextKeys = new Set(nextRefs.map((ref) => ref.key))
+    const removedRefs = oldRefs.filter((ref) => !nextKeys.has(ref.key))
+    const addedRefs = nextRefs.filter((ref) => !oldKeys.has(ref.key))
 
     const petSpace = await db.collection('pet_spaces').doc(existing.petSpaceId).get()
     const shouldReview = petSpace.data && petSpace.data.visibility === 'discover'
     const reviewStatus = shouldReview ? 'pending_review' : 'not_required'
-    const quota = await checkMemoryImageQuota(openid, oldMedia, nextMedia.length)
+    const quota = await checkMemoryImageQuota(openid, oldRefs, nextRefs.length)
     if (!quota.ok) {
       return quota
     }
@@ -90,7 +91,7 @@ exports.main = async (event = {}) => {
         content: memory.content,
         memoryDate: memory.memoryDate,
         type: memory.type,
-        mediaFileIds: nextMedia,
+        mediaRefs: _.set(nextRefs),
         sortOrder: new Date(memory.memoryDate).getTime() || existing.sortOrder || Date.now(),
         reviewStatus,
         reviewedAt: null,
@@ -100,35 +101,39 @@ exports.main = async (event = {}) => {
       },
     })
 
-    await Promise.all(removed.map((fileId) => db.collection('media').where({ memoryId, fileId }).update({
+    await Promise.all(removedRefs.map((ref) => db.collection('media').where({ memoryId, key: ref.key }).update({
       data: { status: 'deleted' },
     }).catch(() => {})))
-    await deleteCloudFiles(removed)
+    await storage.deleteObjects(removedRefs)
 
-    await db.collection('media').where({
-      memoryId,
-      fileId: _.in(nextMedia),
-    }).update({
-      data: {
-        status: shouldReview ? 'pending_review' : 'active',
-      },
-    }).catch(() => {})
+    if (nextRefs.length) {
+      await db.collection('media').where({
+        memoryId,
+        key: _.in(nextRefs.map((ref) => ref.key)),
+      }).update({
+        data: {
+          status: shouldReview ? 'pending_review' : 'active',
+        },
+      }).catch(() => {})
+    }
 
-    await Promise.all(added.map((fileId, index) => db.collection('media').add({
+    await Promise.all(addedRefs.map((ref, index) => db.collection('media').add({
       data: {
         petSpaceId: existing.petSpaceId,
         ownerOpenid: openid,
         memoryId,
-        fileId,
+        storage: ref.storage,
+        bucket: ref.bucket,
+        key: ref.key,
         type: 'image',
         category: 'memory',
-        sortOrder: oldMedia.length + index,
+        sortOrder: oldRefs.length + index,
         status: shouldReview ? 'pending_review' : 'active',
         createdAt: db.serverDate(),
       },
     })))
 
-    await adjustStats(existing.petSpaceId, openid, 0, added.length - removed.length)
+    await adjustStats(existing.petSpaceId, openid, 0, addedRefs.length - removedRefs.length)
     const saved = await db.collection('memories').doc(memoryId).get()
 
     return {
@@ -162,9 +167,10 @@ async function adjustStats(petSpaceId, openid, memoryDelta, mediaDelta) {
   }
 }
 
-async function checkMemoryImageQuota(openid, oldMedia, nextImageCount) {
+async function checkMemoryImageQuota(openid, oldRefs, nextImageCount) {
   const used = await getUsedMemoryImageCount(openid)
-  const ownedOldCount = oldMedia.length ? await getOwnedMemoryImageCount(openid, oldMedia) : 0
+  const oldKeys = (oldRefs || []).map((ref) => ref.key).filter(Boolean)
+  const ownedOldCount = oldKeys.length ? await getOwnedMemoryImageCount(openid, oldKeys) : 0
   const projectedUsed = Math.max(used - ownedOldCount, 0) + nextImageCount
 
   if (projectedUsed > memoryImageLimit) {
@@ -193,28 +199,18 @@ async function getUsedMemoryImageCount(openid) {
   return result.total || 0
 }
 
-async function getOwnedMemoryImageCount(openid, fileIds) {
+async function getOwnedMemoryImageCount(openid, keys) {
   const result = await db.collection('media')
     .where({
       ownerOpenid: openid,
       category: 'memory',
       type: 'image',
-      fileId: _.in(fileIds),
+      key: _.in(keys),
       status: _.neq('deleted'),
     })
     .count()
 
   return result.total || 0
-}
-
-async function deleteCloudFiles(fileIds) {
-  const fileList = [...new Set((fileIds || []).filter((fileId) => typeof fileId === 'string' && fileId.startsWith('cloud://')))]
-
-  if (!fileList.length) {
-    return
-  }
-
-  await cloud.deleteFile({ fileList }).catch(() => {})
 }
 
 async function ensureCollection(name) {
@@ -236,10 +232,10 @@ async function ensureCollection(name) {
 }
 
 function sanitizeMemory(memory = {}) {
-  const mediaFileIds = Array.isArray(memory.mediaFileIds)
-    ? memory.mediaFileIds
-      .filter((fileId) => typeof fileId === 'string' && fileId.trim())
-      .map((fileId) => fileId.trim().slice(0, 512))
+  const mediaRefs = Array.isArray(memory.mediaRefs)
+    ? memory.mediaRefs
+      .map((ref) => sanitizeRef(ref))
+      .filter(Boolean)
       .slice(0, maxImages)
     : []
 
@@ -248,16 +244,29 @@ function sanitizeMemory(memory = {}) {
     content: sanitizeString(memory.content, 500),
     memoryDate: sanitizeDate(memory.memoryDate) || getChinaDateKey(new Date()),
     type: allowValue(memory.type, allowedTypes, 'daily'),
-    mediaFileIds,
+    mediaRefs,
   }
 }
 
+function sanitizeRef(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return null
+  }
+  const storage = sanitizeString(ref.storage, 32)
+  const bucket = sanitizeString(ref.bucket, 64)
+  const key = sanitizeString(ref.key, 512)
+  if (!storage || !bucket || !key) {
+    return null
+  }
+  return { storage, bucket, key }
+}
+
 function validateMemory(memory) {
-  if (!memory.content && !memory.mediaFileIds.length) {
+  if (!memory.content && !memory.mediaRefs.length) {
     return { ok: false, message: '写点文字或上传照片吧' }
   }
 
-  if (memory.mediaFileIds.length > maxImages) {
+  if (memory.mediaRefs.length > maxImages) {
     return { ok: false, message: '最多上传3张照片' }
   }
 
@@ -270,6 +279,7 @@ async function checkMemorySecurity(openid, memory) {
   // re-enabled in one place after deployment permissions are confirmed.
   return { ok: true, skipped: true }
 
+  // eslint-disable-next-line no-unreachable
   try {
     const { result } = await cloud.callFunction({
       name: 'checkContentSecurity',
@@ -279,7 +289,7 @@ async function checkMemorySecurity(openid, memory) {
           { field: 'title', content: memory.title, message: '记录标题未通过安全校验' },
           { field: 'content', content: memory.content, message: '记录内容未通过安全校验' },
         ],
-        fileIds: memory.mediaFileIds.map((fileId) => ({ fileId, message: '记录图片未通过安全校验' })),
+        refs: memory.mediaRefs.map((ref) => ({ ref, message: '记录图片未通过安全校验' })),
       },
     })
 

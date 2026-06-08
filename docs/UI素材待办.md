@@ -5,7 +5,7 @@
 * `miniprogram/assets/home/hero-rainbow.svg`：首页彩虹桥主视觉草稿
 * `miniprogram/assets/home/default-pet.png`：默认宠物头像
 * `miniprogram/assets/icons/*.svg`：首页需要的基础图标
-* 首页已接入远程背景图：`https://qiniu.cdn.cl8023.com/project/star-paws/images/home-bg.png`
+* 首页已接入远程背景图：`https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/home-bg.png`
 * `miniprogram/assets/themes/*.svg`：创建宠物小窝页面使用的主题占位图
 * 已完成页面框架：首页、创建宠物小窝、我的小窝/纪念馆、时间轴、回忆相册、AI 回忆录、AI 写信、彩虹桥星空、个人中心
 

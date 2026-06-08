@@ -2,7 +2,6 @@
   <image-uploader
     id="avatarUploader"
     value="{{form.avatarUrl}}"
-    file-id="{{form.avatarFileId}}"
     image-type="avatar"
     crop-ratio="1:1"
     bindchange="onAvatarChange"

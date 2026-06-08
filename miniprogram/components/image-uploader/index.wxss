@@ -36,7 +36,7 @@
 .resize-handle { position: absolute; right: -22rpx; bottom: -22rpx; width: 48rpx; height: 48rpx; border: 4rpx solid #fff; border-radius: 50%; background: #8b5cf6; box-shadow: 0 8rpx 18rpx rgba(0,0,0,.22); box-sizing: border-box; }
 .resize-handle::after { content: ""; position: absolute; right: 12rpx; bottom: 12rpx; width: 14rpx; height: 14rpx; border-right: 4rpx solid rgba(255,255,255,.9); border-bottom: 4rpx solid rgba(255,255,255,.9); }
 .crop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; margin-top: 22rpx; }
-.crop-action { width: 100%; min-width: 0; height: 78rpx; margin: 0; border-radius: 39rpx; font-size: 27rpx; font-weight: 900; }
+.crop-action { width: 100% !important; min-width: 0; height: 78rpx; margin: 0; border-radius: 39rpx; font-size: 27rpx; font-weight: 900; }
 .crop-actions .secondary { color: #6d4ed7; background: rgba(139,92,246,.1); }
 .crop-actions .primary { color: #fff; background: #8b5cf6; box-shadow: 0 14rpx 28rpx rgba(139,92,246,.24); }
 .crop-canvas { position: fixed; left: -9999px; top: -9999px; pointer-events: none; }

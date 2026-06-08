@@ -1,7 +1,6 @@
-const { getImageUploadDir, getUserImageUploadDir } = require('../../utils/image-dirs')
-const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
-const defaultImage = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
+const defaultImage = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
 const cropRatiosByType = {
   avatar: '1:1',
   petCover: '16:9',
@@ -26,19 +25,11 @@ Component({
         }
       },
     },
-    fileId: {
-      type: String,
-      value: '',
-    },
     imageType: {
       type: String,
       value: 'avatar',
     },
     cropRatio: {
-      type: String,
-      value: '',
-    },
-    uploadDir: {
       type: String,
       value: '',
     },
@@ -403,63 +394,25 @@ Component({
     async uploadCroppedImage() {
       if (!this.data.changed || !this.data.croppedTempPath) {
         return {
-          avatarUrl: this.properties.value || defaultImage,
-          avatarFileId: this.properties.fileId || '',
+          ref: null,
+          url: this.properties.value || defaultImage,
+          changed: false,
         }
       }
 
-      const oldFileId = this.properties.fileId || ''
-      const upload = await this.uploadWithOverwrite(oldFileId)
-
-      await this.deleteOldFile(oldFileId, upload.fileID)
-
-      this.setData({
-        changed: false,
+      const ref = await storage.uploadImage({
+        type: this.properties.imageType,
+        petSpaceId: this.properties.petSpaceId,
+        filePath: this.data.croppedTempPath,
       })
 
+      this.setData({ changed: false })
+
       return {
-        avatarUrl: upload.fileID || upload.fileId,
-        avatarFileId: upload.fileID || upload.fileId,
-        fileId: upload.fileID || upload.fileId,
-        fileID: upload.fileID || upload.fileId,
+        ref,
+        url: storage.buildUrl(ref),
+        changed: true,
       }
-    },
-
-    async uploadWithOverwrite(oldFileId) {
-      const cloudPath = this.getCloudPath()
-      const filePath = this.data.croppedTempPath
-
-      try {
-        return await wx.cloud.uploadFile({
-          cloudPath,
-          filePath,
-        })
-      } catch (error) {
-        if (!this.isFileExistsError(error) || !oldFileId) {
-          throw error
-        }
-
-        await this.deleteOldFile(oldFileId, '')
-        return wx.cloud.uploadFile({
-          cloudPath,
-          filePath,
-        })
-      }
-    },
-
-    getCloudPath() {
-      const user = auth.getUserProfile()
-      if (!user || !user.openid) {
-        throw new Error('missing user openid for image upload')
-      }
-
-      const uploadDir = this.properties.uploadDir
-        || getUserImageUploadDir(user.openid, this.properties.imageType, {
-          petSpaceId: this.properties.petSpaceId,
-        })
-        || getImageUploadDir(this.properties.imageType)
-
-      return `${uploadDir}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
     },
 
     resetPicker() {
@@ -473,25 +426,6 @@ Component({
         resizeStart: null,
         cropVisible: false,
       })
-    },
-
-    async deleteOldFile(oldFileId, newFileId) {
-      if (!oldFileId || oldFileId === newFileId || !oldFileId.startsWith('cloud://')) {
-        return
-      }
-
-      try {
-        await wx.cloud.deleteFile({
-          fileList: [oldFileId],
-        })
-      } catch (error) {
-        // Deleting stale files is best-effort; saving the new avatar should not fail because of it.
-      }
-    },
-
-    isFileExistsError(error = {}) {
-      const message = `${error.errCode || ''} ${error.errMsg || ''} ${error.message || ''}`
-      return message.includes('already exist') || message.includes('file exists')
     },
 
     getCropRatioText() {

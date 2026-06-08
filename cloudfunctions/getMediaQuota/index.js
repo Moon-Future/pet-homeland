@@ -11,7 +11,7 @@ const memoryImageLimit = 30
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
-  const excludeFileIds = sanitizeFileIds(event.excludeFileIds)
+  const excludeKeys = sanitizeKeys(event.excludeKeys)
   const nextImageCount = Math.max(Number(event.nextImageCount) || 0, 0)
 
   if (!openid) {
@@ -22,7 +22,7 @@ exports.main = async (event = {}) => {
     await ensureCollection('media')
 
     const used = await getUsedMemoryImageCount(openid)
-    const excluded = excludeFileIds.length ? await getOwnedMemoryImageCount(openid, excludeFileIds) : 0
+    const excluded = excludeKeys.length ? await getOwnedMemoryImageCount(openid, excludeKeys) : 0
     const projectedUsed = Math.max(used - excluded, 0) + nextImageCount
     const remaining = Math.max(memoryImageLimit - Math.max(used - excluded, 0), 0)
 
@@ -72,13 +72,13 @@ async function getUsedMemoryImageCount(openid) {
   return result.total || 0
 }
 
-async function getOwnedMemoryImageCount(openid, fileIds) {
+async function getOwnedMemoryImageCount(openid, keys) {
   const result = await db.collection('media')
     .where({
       ownerOpenid: openid,
       category: 'memory',
       type: 'image',
-      fileId: _.in(fileIds),
+      key: _.in(keys),
       status: _.neq('deleted'),
     })
     .count()
@@ -96,14 +96,14 @@ async function ensureCollection(name) {
   }
 }
 
-function sanitizeFileIds(value) {
+function sanitizeKeys(value) {
   if (!Array.isArray(value)) {
     return []
   }
 
   return [...new Set(value
-    .filter((fileId) => typeof fileId === 'string' && fileId.trim())
-    .map((fileId) => fileId.trim().slice(0, 512)))]
+    .filter((key) => typeof key === 'string' && key.trim())
+    .map((key) => key.trim().slice(0, 512)))]
     .slice(0, 100)
 }
 

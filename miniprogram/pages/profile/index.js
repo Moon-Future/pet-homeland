@@ -1,4 +1,4 @@
-const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-paws/images/user-default-avatar.png'
+const defaultAvatar = 'https://qiniu.cdn.cl8023.com/project/star-pet-village/assets/images/user-default-avatar.png'
 const auth = require('../../utils/auth')
 
 Page({

@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const storage = require('./storage')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -68,7 +69,7 @@ exports.main = async (event = {}) => {
       }
     }
 
-    await attachMediaUrls(memories)
+    attachMediaUrls(memories)
 
     return {
       ok: true,
@@ -127,28 +128,10 @@ async function getAdmin(openid) {
   return (result.data || [])[0] || null
 }
 
-async function attachMediaUrls(memories) {
-  const fileIds = [...new Set(memories.flatMap((item) => item.mediaFileIds || []))]
-
-  if (!fileIds.length) {
-    memories.forEach((item) => {
-      item.mediaUrls = []
-    })
-    return
-  }
-
-  const urlResult = await cloud.getTempFileURL({
-    fileList: fileIds,
-  })
-  const urlMap = (urlResult.fileList || []).reduce((map, item) => {
-    if (item.fileID && item.tempFileURL) {
-      map[item.fileID] = item.tempFileURL
-    }
-    return map
-  }, {})
-
+function attachMediaUrls(memories) {
   memories.forEach((item) => {
-    item.mediaUrls = (item.mediaFileIds || []).map((fileId) => urlMap[fileId] || fileId)
+    const refs = item.mediaRefs || []
+    item.mediaUrls = refs.map((ref) => storage.buildUrl(ref))
   })
 }
 

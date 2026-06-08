@@ -93,7 +93,7 @@ Page({
   },
 
   buildOverview(petSpaces, selectedPet, memories) {
-    const mediaCount = memories.reduce((total, item) => total + (item.mediaFileIds || []).length, 0)
+    const mediaCount = memories.reduce((total, item) => total + (item.mediaRefs || []).length, 0)
     const typeMap = {
       daily: { label: '日常', value: 0 },
       growth: { label: '成长', value: 0 },
@@ -133,7 +133,7 @@ Page({
     return {
       id: item._id,
       name: item.petName || '未命名小窝',
-      avatar: item.avatarFileId || item.coverFileId || item.avatarUrl || item.coverUrl || defaultPetImage,
+      avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       companionDays: this.getDaysSince(item.arrivalDate),
     }
   },

@@ -78,7 +78,7 @@ Page({
       ...item,
       title: item.petName || '未命名小窝',
       desc: item.story || '没有填写公开简介',
-      cover: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      cover: item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
       meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 举报 ${item.reportCount || 0}`,
     }
   },
@@ -87,7 +87,7 @@ Page({
     return {
       ...item,
       title: item.title || '今天的记录',
-      desc: item.content || (item.mediaFileIds && item.mediaFileIds.length ? '包含图片记录' : '没有正文'),
+      desc: item.content || (item.mediaRefs && item.mediaRefs.length ? '包含图片记录' : '没有正文'),
       meta: item.memoryDate || '日期待补充',
     }
   },
@@ -106,7 +106,7 @@ Page({
       ...item,
       title: item.petName || '未命名小窝',
       desc: item.story || '这个小窝已被隐藏',
-      cover: item.coverTempUrl || item.avatarTempUrl || item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      cover: item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
       meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 小窝`,
     }
   },

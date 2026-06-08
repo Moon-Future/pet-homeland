@@ -1,9 +1,10 @@
 {
   "name": "cleanupUserMedia",
   "version": "1.0.0",
-  "description": "Admin cleanup for a user's cloud files",
+  "description": "Admin cleanup for a user's qiniu storage objects",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "latest",
+    "qiniu": "^7.13.0"
   }
 }

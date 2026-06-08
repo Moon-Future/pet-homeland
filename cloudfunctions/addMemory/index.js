@@ -50,7 +50,7 @@ exports.main = async (event = {}) => {
       return { ok: false, message: '只有小窝主人可以记录' }
     }
 
-    const quota = await checkMemoryImageQuota(openid, memory.mediaFileIds.length)
+    const quota = await checkMemoryImageQuota(openid, memory.mediaRefs.length)
     if (!quota.ok) {
       return quota
     }
@@ -65,7 +65,7 @@ exports.main = async (event = {}) => {
         content: memory.content,
         memoryDate: memory.memoryDate,
         type: memory.type,
-        mediaFileIds: memory.mediaFileIds,
+        mediaRefs: memory.mediaRefs,
         sortOrder: new Date(memory.memoryDate).getTime() || Date.now(),
         status: 'active',
         reviewStatus,
@@ -77,12 +77,14 @@ exports.main = async (event = {}) => {
       },
     })
 
-    await Promise.all(memory.mediaFileIds.map((fileId, index) => db.collection('media').add({
+    await Promise.all(memory.mediaRefs.map((ref, index) => db.collection('media').add({
       data: {
         petSpaceId,
         ownerOpenid: openid,
         memoryId: added._id,
-        fileId,
+        storage: ref.storage,
+        bucket: ref.bucket,
+        key: ref.key,
         type: 'image',
         category: 'memory',
         sortOrder: index,
@@ -94,11 +96,11 @@ exports.main = async (event = {}) => {
     await db.collection('pet_spaces').doc(petSpaceId).update({
       data: {
         'stats.memoryCount': _.inc(1),
-        'stats.mediaCount': _.inc(memory.mediaFileIds.length),
+        'stats.mediaCount': _.inc(memory.mediaRefs.length),
         updatedAt: db.serverDate(),
       },
     })
-    await incrementUserStats(openid, memory.mediaFileIds.length)
+    await incrementUserStats(openid, memory.mediaRefs.length)
 
     const saved = await db.collection('memories').doc(added._id).get()
 
@@ -162,10 +164,10 @@ async function getUsedMemoryImageCount(openid) {
 }
 
 function sanitizeMemory(memory = {}) {
-  const mediaFileIds = Array.isArray(memory.mediaFileIds)
-    ? memory.mediaFileIds
-      .filter((fileId) => typeof fileId === 'string' && fileId.trim())
-      .map((fileId) => fileId.trim().slice(0, 512))
+  const mediaRefs = Array.isArray(memory.mediaRefs)
+    ? memory.mediaRefs
+      .map((ref) => sanitizeRef(ref))
+      .filter(Boolean)
       .slice(0, maxImages)
     : []
 
@@ -174,16 +176,29 @@ function sanitizeMemory(memory = {}) {
     content: sanitizeString(memory.content, 500),
     memoryDate: sanitizeDate(memory.memoryDate) || getChinaDateKey(new Date()),
     type: allowValue(memory.type, allowedTypes, 'daily'),
-    mediaFileIds,
+    mediaRefs,
   }
 }
 
+function sanitizeRef(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return null
+  }
+  const storage = sanitizeString(ref.storage, 32)
+  const bucket = sanitizeString(ref.bucket, 64)
+  const key = sanitizeString(ref.key, 512)
+  if (!storage || !bucket || !key) {
+    return null
+  }
+  return { storage, bucket, key }
+}
+
 function validateMemory(memory) {
-  if (!memory.content && !memory.mediaFileIds.length) {
+  if (!memory.content && !memory.mediaRefs.length) {
     return { ok: false, message: '写点文字或上传照片吧' }
   }
 
-  if (memory.mediaFileIds.length > maxImages) {
+  if (memory.mediaRefs.length > maxImages) {
     return { ok: false, message: '最多上传3张照片' }
   }
 
@@ -196,6 +211,7 @@ async function checkMemorySecurity(openid, memory) {
   // re-enabled in one place after deployment permissions are confirmed.
   return { ok: true, skipped: true }
 
+  // eslint-disable-next-line no-unreachable
   try {
     const { result } = await cloud.callFunction({
       name: 'checkContentSecurity',
@@ -205,7 +221,7 @@ async function checkMemorySecurity(openid, memory) {
           { field: 'title', content: memory.title, message: '记录标题未通过安全校验' },
           { field: 'content', content: memory.content, message: '记录内容未通过安全校验' },
         ],
-        fileIds: memory.mediaFileIds.map((fileId) => ({ fileId, message: '记录图片未通过安全校验' })),
+        refs: memory.mediaRefs.map((ref) => ({ ref, message: '记录图片未通过安全校验' })),
       },
     })
 
