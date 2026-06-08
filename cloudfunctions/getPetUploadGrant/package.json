@@ -1,0 +1,9 @@
+{
+  "name": "getPetUploadGrant",
+  "version": "1.0.0",
+  "description": "Issue short-lived upload grants for an owned pet space",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

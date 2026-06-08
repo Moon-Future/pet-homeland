@@ -3,6 +3,11 @@ function getUserProfile() {
   return (app.globalData && app.globalData.userProfile) || wx.getStorageSync('userProfile')
 }
 
+function getSessionGrant() {
+  const user = getUserProfile()
+  return (user && user.sessionGrant) || ''
+}
+
 function isLoggedIn() {
   const user = getUserProfile()
   return Boolean(user && user.openid)
@@ -41,6 +46,7 @@ function clearLogin() {
 module.exports = {
   clearLogin,
   getUserProfile,
+  getSessionGrant,
   isLoggedIn,
   requireLogin,
 }

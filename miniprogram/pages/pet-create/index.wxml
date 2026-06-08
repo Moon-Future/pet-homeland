@@ -19,6 +19,7 @@
         image-type="petCover"
         crop-ratio="1:1"
         pet-space-id="{{reservedPetSpaceId}}"
+        pet-upload-grant="{{petUploadGrant}}"
         tip="点击照片拍照或从相册选择"
         bindchange="onPetPhotoChange"
       />

@@ -1,0 +1,10 @@
+{
+  "name": "cleanupRefs",
+  "version": "1.0.0",
+  "description": "Delete just-uploaded orphan refs for the current user",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "qiniu": "^7.13.0"
+  }
+}

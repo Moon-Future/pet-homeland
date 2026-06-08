@@ -35,6 +35,8 @@ Page({
       displayRemaining: 30,
       loading: false,
     },
+    petUploadGrant: '',
+    pendingUploadedRefs: [],
   },
 
   noop() {},
@@ -62,6 +64,12 @@ Page({
     } else {
       this.loadImageQuota()
     }
+
+    this.loadPetUploadGrant()
+  },
+
+  onUnload() {
+    this.cleanupPendingUploads().catch(() => {})
   },
 
   async loadMemory(memoryId) {
@@ -102,11 +110,34 @@ Page({
         originalMediaKeys: mediaRefs.map((ref) => ref.key).filter(Boolean),
       })
       this.loadImageQuota()
+      this.loadPetUploadGrant()
     } catch (error) {
       wx.showToast({
         title: error.message || '读取记录失败',
         icon: 'none',
       })
+    }
+  },
+
+  async loadPetUploadGrant() {
+    if (!wx.cloud || !this.data.petSpaceId) {
+      return
+    }
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getPetUploadGrant',
+        data: {
+          petSpaceId: this.data.petSpaceId,
+          sessionGrant: auth.getSessionGrant(),
+        },
+      })
+
+      if (result && result.ok) {
+        this.setData({ petUploadGrant: result.petUploadGrant || '' })
+      }
+    } catch (error) {
+      // Upload will fail later if authorization could not be refreshed.
     }
   },
 
@@ -221,6 +252,7 @@ Page({
         throw new Error((result && result.message) || '保存失败')
       }
 
+      this.setData({ pendingUploadedRefs: [] })
       wx.showToast({ title: this.data.isEditing ? '已保存' : '已记录', icon: 'success' })
       this.markMemoryListDirty()
 
@@ -228,6 +260,7 @@ Page({
         wx.navigateBack()
       }, 500)
     } catch (error) {
+      await this.cleanupPendingUploads().catch(() => {})
       wx.showToast({
         title: error.message || '保存失败，请稍后重试',
         icon: 'none',
@@ -248,12 +281,15 @@ Page({
         continue
       }
 
-      const ref = await storage.uploadImage({
+      const upload = await storage.uploadImage({
         type: 'memory',
         petSpaceId: this.data.petSpaceId,
+        petUploadGrant: this.data.petUploadGrant,
         filePath: image.tempFilePath,
+        ext: 'jpg',
       })
-      refs.push(ref)
+      refs.push(upload.ref)
+      this.addPendingRef(upload.ref)
     }
 
     return refs
@@ -370,5 +406,25 @@ Page({
 
   markMemoryListDirty() {
     wx.setStorageSync('memoryListDirty', Date.now())
+  },
+
+  addPendingRef(ref) {
+    if (!ref || !ref.key) {
+      return
+    }
+    const refs = this.data.pendingUploadedRefs || []
+    if (refs.some((item) => item && item.key === ref.key)) {
+      return
+    }
+    this.setData({ pendingUploadedRefs: refs.concat(ref) })
+  },
+
+  async cleanupPendingUploads() {
+    const refs = this.data.pendingUploadedRefs || []
+    if (!refs.length) {
+      return
+    }
+    await storage.cleanupRefs(refs)
+    this.setData({ pendingUploadedRefs: [] })
   },
 })

@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
+const grant = require('./grant')
 const storage = require('./storage')
 
 cloud.init({
@@ -14,6 +15,7 @@ const DEFAULT_AVATAR = storage.assetUrl('images/user-default-avatar.png')
 
 const UID_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const UID_LENGTH = 12
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000
 
 exports.main = async (event = {}) => {
   const wxContext = cloud.getWXContext()
@@ -64,6 +66,7 @@ exports.main = async (event = {}) => {
       ok: true,
       isNew: true,
       user: withAvatarUrl(saved.data),
+      sessionGrant: createSessionGrant(openid, saved.data.uid),
     }
   }
 
@@ -112,6 +115,7 @@ exports.main = async (event = {}) => {
     ok: true,
     isNew: false,
     user: withAvatarUrl(saved.data),
+    sessionGrant: createSessionGrant(openid, saved.data.uid),
   }
 }
 
@@ -120,6 +124,15 @@ exports.main = async (event = {}) => {
 function withAvatarUrl(user = {}) {
   const url = storage.buildUrl(user.avatarRef) || DEFAULT_AVATAR
   return { ...user, avatarUrl: url }
+}
+
+function createSessionGrant(openid, uid) {
+  return grant.signGrant({
+    v: 1,
+    openid,
+    uid,
+    exp: Date.now() + SESSION_TTL_MS,
+  })
 }
 
 function sanitizeProfile(profile = {}) {

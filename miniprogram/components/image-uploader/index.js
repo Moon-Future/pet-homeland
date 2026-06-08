@@ -37,6 +37,10 @@ Component({
       type: String,
       value: '',
     },
+    petUploadGrant: {
+      type: String,
+      value: '',
+    },
     tip: {
       type: String,
       value: '点击头像选择微信头像',
@@ -400,17 +404,19 @@ Component({
         }
       }
 
-      const ref = await storage.uploadImage({
+      const upload = await storage.uploadImage({
         type: this.properties.imageType,
         petSpaceId: this.properties.petSpaceId,
+        petUploadGrant: this.properties.petUploadGrant,
         filePath: this.data.croppedTempPath,
+        ext: 'jpg',
       })
 
       this.setData({ changed: false })
 
       return {
-        ref,
-        url: storage.buildUrl(ref),
+        ref: upload.ref,
+        url: upload.url,
         changed: true,
       }
     },

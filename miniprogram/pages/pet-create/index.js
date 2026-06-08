@@ -51,6 +51,8 @@ Page({
     ],
     selectedTheme: 'rainbow',
     reservedPetSpaceId: '',
+    petUploadGrant: '',
+    pendingUploadedRefs: [],
   },
 
   noop() {},
@@ -69,13 +71,23 @@ Page({
     this.reservePetSpaceId()
   },
 
+  onUnload() {
+    this.cleanupPendingUploads().catch(() => {})
+  },
+
   async reservePetSpaceId() {
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'reservePetSpaceId',
+        data: {
+          sessionGrant: auth.getSessionGrant(),
+        },
       })
       if (result && result.ok) {
-        this.setData({ reservedPetSpaceId: result.petSpaceId })
+        this.setData({
+          reservedPetSpaceId: result.petSpaceId,
+          petUploadGrant: result.petUploadGrant || '',
+        })
       }
     } catch (error) {
       // Non-critical: if this fails, the user can still fill in the form.
@@ -251,6 +263,7 @@ Page({
       if (!ref || !ref.key) {
         throw new Error('宠物照片上传失败，请重新选择照片')
       }
+      this.addPendingRef(ref)
 
       const form = this.data.form
       const { result } = await wx.cloud.callFunction({
@@ -280,6 +293,7 @@ Page({
       }
 
       wx.setStorageSync('selectedPetSpaceId', result.petSpace._id)
+      this.setData({ pendingUploadedRefs: [] })
       this.setData({ saving: false })
       wx.showToast({ title: '创建成功', icon: 'success' })
 
@@ -289,6 +303,7 @@ Page({
         })
       }, 500)
     } catch (error) {
+      await this.cleanupPendingUploads().catch(() => {})
       this.setData({ saving: false })
       wx.showToast({
         title: error.message || '创建失败，请稍后重试',
@@ -302,5 +317,25 @@ Page({
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
+  },
+
+  addPendingRef(ref) {
+    if (!ref || !ref.key) {
+      return
+    }
+    const refs = this.data.pendingUploadedRefs || []
+    if (refs.some((item) => item && item.key === ref.key)) {
+      return
+    }
+    this.setData({ pendingUploadedRefs: refs.concat(ref) })
+  },
+
+  async cleanupPendingUploads() {
+    const refs = this.data.pendingUploadedRefs || []
+    if (!refs.length) {
+      return
+    }
+    await storage.cleanupRefs(refs)
+    this.setData({ pendingUploadedRefs: [] })
   },
 })

@@ -1,18 +1,18 @@
 const cloud = require('wx-server-sdk')
 const qiniu = require('qiniu')
 const crypto = require('crypto')
+const grant = require('./grant')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 })
 
-const db = cloud.database()
-const _ = db.command
-
 const BUCKET = 'cl8023'
 const KEY_PREFIX = 'project/star-pet/uploads'
 
 const SUPPORTED_TYPES = new Set(['avatar', 'petCover', 'petAlbum', 'memory'])
+const MAX_BYTES = 8 * 1024 * 1024
+const ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp'])
 
 exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
@@ -30,25 +30,40 @@ exports.main = async (event = {}) => {
     return { ok: false, message: '不支持的图片类型' }
   }
 
-  const uid = await resolveUid(openid)
-  if (!uid) {
-    return { ok: false, message: '用户尚未登录或缺少 uid' }
+  let session = null
+  try {
+    session = grant.verifyGrant(event.sessionGrant)
+  } catch (error) {
+    return { ok: false, message: error.message || '登录态已失效' }
   }
 
-  const safePetSpaceId = sanitizePathPart(event.petSpaceId)
-
-  // Non-avatar uploads must have a valid petSpaceId — the pending/ fallback is removed.
-  if (type !== 'avatar' && !safePetSpaceId) {
-    return { ok: false, message: '缺少宠物小窝ID' }
+  if (session.openid !== openid || !session.uid) {
+    return { ok: false, message: '登录态不匹配' }
   }
 
-  const subPath = buildSubPath(type, safePetSpaceId)
-  const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.jpg`
-  const key = `${KEY_PREFIX}/users/${uid}/${subPath}/${filename}`
+  const grantPayload = resolvePetUploadGrant(type, session.uid, event.petUploadGrant)
+  if (!grantPayload.ok) {
+    return grantPayload
+  }
+
+  const ext = sanitizeExt(event.ext)
+  const subPath = buildSubPath(type, grantPayload.petSpaceId)
+  const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`
+  const key = `${KEY_PREFIX}/users/${session.uid}/${subPath}/${filename}`
 
   try {
     const uploadToken = signUploadToken(key)
-    return { ok: true, uploadToken, key }
+    return {
+      ok: true,
+      uploadToken,
+      key,
+      ref: {
+        storage: 'qiniu',
+        bucket: BUCKET,
+        key,
+      },
+      url: `${process.env.QINIU_CDN_HOST || 'https://qiniu.cdn.cl8023.com'}/${key}`,
+    }
   } catch (error) {
     return {
       ok: false,
@@ -65,23 +80,10 @@ function signUploadToken(key) {
   const putPolicy = new qiniu.rs.PutPolicy({
     scope: `${BUCKET}:${key}`,
     expires: 3600,
-    fsizeLimit: 10 * 1024 * 1024,
+    fsizeLimit: MAX_BYTES,
     mimeLimit: 'image/*',
   })
   return putPolicy.uploadToken(mac)
-}
-
-async function resolveUid(openid) {
-  try {
-    const result = await db.collection('users')
-      .where({ openid, status: _.neq('deleted') })
-      .limit(1)
-      .get()
-    const user = (result.data || [])[0]
-    return (user && user.uid) || ''
-  } catch (error) {
-    return ''
-  }
 }
 
 function sanitizeType(value) {
@@ -108,9 +110,46 @@ function buildSubPath(type, safePetSpaceId) {
   return `pet-spaces/${safePetSpaceId}/memories`
 }
 
+function resolvePetUploadGrant(type, uid, token) {
+  if (type === 'avatar') {
+    return { ok: true, petSpaceId: '' }
+  }
+
+  let payload = null
+  try {
+    payload = grant.verifyGrant(token)
+  } catch (error) {
+    return { ok: false, message: error.message || '上传授权已失效' }
+  }
+
+  if (payload.uid !== uid) {
+    return { ok: false, message: '上传授权不匹配' }
+  }
+
+  const scope = Array.isArray(payload.scope) ? payload.scope : []
+  if (!scope.includes(type)) {
+    return { ok: false, message: '上传类型未授权' }
+  }
+
+  const petSpaceId = sanitizePathPart(payload.petSpaceId)
+  if (!petSpaceId) {
+    return { ok: false, message: '上传授权无效' }
+  }
+
+  return { ok: true, petSpaceId }
+}
+
 function sanitizePathPart(value) {
   if (typeof value !== 'string') {
     return ''
   }
   return value.trim().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80)
+}
+
+function sanitizeExt(value) {
+  if (typeof value !== 'string') {
+    return 'jpg'
+  }
+  const ext = value.trim().toLowerCase()
+  return ALLOWED_EXTS.has(ext) ? ext : 'jpg'
 }

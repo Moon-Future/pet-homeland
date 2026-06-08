@@ -45,6 +45,7 @@
           value="/assets/icons/camera.svg"
           image-type="memory"
           pet-space-id="{{petSpaceId}}"
+          pet-upload-grant="{{petUploadGrant}}"
           crop-ratio="free"
           tip="上传照片"
           bindchange="onMemoryImageChange"

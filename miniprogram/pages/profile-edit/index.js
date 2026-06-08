@@ -6,6 +6,7 @@ const defaultAvatar = storage.assetUrl('images/user-default-avatar.png')
 Page({
   data: {
     saving: false,
+    pendingUploadedRefs: [],
     form: {
       nickname: '',
       avatarUrl: defaultAvatar,
@@ -28,6 +29,10 @@ Page({
     this.refreshUserProfile()
   },
 
+  onUnload() {
+    this.cleanupPendingUploads().catch(() => {})
+  },
+
   async refreshUserProfile() {
     if (!wx.cloud) {
       wx.showToast({ title: '请先开通云开发', icon: 'none' })
@@ -44,7 +49,10 @@ Page({
         throw new Error((result && result.message) || '登录失败')
       }
 
-      const user = result.user || {}
+      const user = {
+        ...(result.user || {}),
+        sessionGrant: result.sessionGrant || '',
+      }
       getApp().globalData.userProfile = user
       wx.setStorageSync('userProfile', user)
       this.fillForm(user)
@@ -100,6 +108,7 @@ Page({
 
       const payload = { nickname }
       if (avatar.changed) {
+        this.addPendingRef(avatar.ref)
         payload.avatarRef = avatar.ref
       }
 
@@ -112,9 +121,14 @@ Page({
         throw new Error((result && result.message) || '保存失败')
       }
 
-      getApp().globalData.userProfile = result.user
-      wx.setStorageSync('userProfile', result.user)
-      this.fillForm(result.user)
+      const user = {
+        ...(result.user || {}),
+        sessionGrant: result.sessionGrant || '',
+      }
+      getApp().globalData.userProfile = user
+      wx.setStorageSync('userProfile', user)
+      this.fillForm(user)
+      this.setData({ pendingUploadedRefs: [] })
       this.setData({ saving: false })
 
       wx.showToast({ title: '已保存', icon: 'success' })
@@ -131,11 +145,32 @@ Page({
         })
       }, 500)
     } catch (error) {
+      await this.cleanupPendingUploads().catch(() => {})
       this.setData({ saving: false })
       wx.showToast({
         title: error.message || '保存失败，请稍后重试',
         icon: 'none',
       })
     }
+  },
+
+  addPendingRef(ref) {
+    if (!ref || !ref.key) {
+      return
+    }
+    const refs = this.data.pendingUploadedRefs || []
+    if (refs.some((item) => item && item.key === ref.key)) {
+      return
+    }
+    this.setData({ pendingUploadedRefs: refs.concat(ref) })
+  },
+
+  async cleanupPendingUploads() {
+    const refs = this.data.pendingUploadedRefs || []
+    if (!refs.length) {
+      return
+    }
+    await storage.cleanupRefs(refs)
+    this.setData({ pendingUploadedRefs: [] })
   },
 })

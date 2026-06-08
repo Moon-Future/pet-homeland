@@ -37,17 +37,62 @@ async function deleteObjects(refs) {
     .map((item) => (typeof item === 'string' ? { storage: 'qiniu', bucket: BUCKET, key: item } : item))
     .filter((ref) => ref && ref.storage === 'qiniu' && ref.key)
 
-  if (!valid.length) return
+  if (!valid.length) {
+    return {
+      successCount: 0,
+      failCount: 0,
+      failedKeys: [],
+    }
+  }
 
   const bm = buildBucketManager()
+  const failedKeys = []
+  let successCount = 0
 
   for (let i = 0; i < valid.length; i += 500) {
     const slice = valid.slice(i, i + 500)
     const ops = slice.map((ref) => qiniu.rs.deleteOp(ref.bucket || BUCKET, ref.key))
 
+    // Qiniu batch returns per-item status codes; treat 200/612 as success.
+    // 612 means "file not found", which is acceptable for idempotent cleanup.
     await new Promise((resolve) => {
-      bm.batch(ops, () => resolve())
+      bm.batch(ops, (error, body) => {
+        if (error) {
+          console.error('[storage.deleteObjects] batch request failed', {
+            message: error.message || error.errMsg || String(error),
+            keys: slice.map((ref) => ref.key),
+          })
+          slice.forEach((ref) => failedKeys.push(ref.key))
+          resolve()
+          return
+        }
+
+        const items = Array.isArray(body) ? body : []
+        slice.forEach((ref, index) => {
+          const item = items[index] || {}
+          const code = Number(item.code || 0)
+          if (code === 200 || code === 612) {
+            successCount += 1
+            return
+          }
+
+          failedKeys.push(ref.key)
+          console.error('[storage.deleteObjects] object delete failed', {
+            key: ref.key,
+            code,
+            data: item.data || '',
+          })
+        })
+
+        resolve()
+      })
     })
+  }
+
+  return {
+    successCount,
+    failCount: failedKeys.length,
+    failedKeys,
   }
 }
 

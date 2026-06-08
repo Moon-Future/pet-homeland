@@ -6,6 +6,8 @@
 // assetUrl(path). Keep this file the single source for those constants so
 // switching CDN means editing one line.
 
+const auth = require('./auth')
+
 const CDN_HOST = 'https://qiniu.cdn.cl8023.com'
 const KEY_PREFIX = 'project/star-pet'
 
@@ -39,9 +41,8 @@ const themeImages = {
 const SUPPORTED_TYPES = ['avatar', 'petCover', 'petAlbum', 'memory']
 
 // Uploads a cropped local file path to the configured storage provider and
-// returns a Ref ({ storage, bucket, key }). Url is intentionally not part of
-// the Ref because it can always be reconstructed via buildUrl().
-async function uploadImage({ type, petSpaceId, filePath } = {}) {
+// returns { ref, url } for immediate UI updates and later persistence.
+async function uploadImage({ type, petSpaceId, petUploadGrant, filePath, ext = 'jpg' } = {}) {
   if (!SUPPORTED_TYPES.includes(type)) {
     throw new Error(`unsupported image type: ${type}`)
   }
@@ -50,7 +51,7 @@ async function uploadImage({ type, petSpaceId, filePath } = {}) {
   }
 
   if (config.provider === 'qiniu') {
-    return uploadToQiniu({ type, petSpaceId, filePath })
+    return uploadToQiniu({ type, petSpaceId, petUploadGrant, filePath, ext })
   }
 
   throw new Error(`unsupported storage provider: ${config.provider}`)
@@ -68,12 +69,20 @@ function buildUrl(refOrKey) {
 
 // Asks the cloud function for a scoped upload token, then PUTs the cropped
 // temp file straight to qiniu via wx.uploadFile.
-async function uploadToQiniu({ type, petSpaceId, filePath }) {
+async function uploadToQiniu({ type, petSpaceId, petUploadGrant, filePath, ext }) {
+  const sessionGrant = auth.getSessionGrant()
+  if (!sessionGrant) {
+    throw new Error('登录态已失效，请重新登录')
+  }
+
   const { result } = await wx.cloud.callFunction({
     name: 'getQiniuUploadToken',
     data: {
       type,
       petSpaceId: petSpaceId || '',
+      petUploadGrant: petUploadGrant || '',
+      sessionGrant,
+      ext,
     },
   })
 
@@ -81,8 +90,8 @@ async function uploadToQiniu({ type, petSpaceId, filePath }) {
     throw new Error((result && result.message) || '获取上传凭证失败')
   }
 
-  const { uploadToken, key } = result
-  if (!uploadToken || !key) {
+  const { uploadToken, key, ref, url } = result
+  if (!uploadToken || !key || !ref) {
     throw new Error('上传凭证不完整')
   }
 
@@ -97,10 +106,30 @@ async function uploadToQiniu({ type, petSpaceId, filePath }) {
   })
 
   return {
-    storage: config.provider,
-    bucket: config.bucket,
-    key,
+    ref,
+    url: url || buildUrl(ref),
   }
+}
+
+async function cleanupRefs(refs = []) {
+  const sessionGrant = auth.getSessionGrant()
+  if (!sessionGrant || !Array.isArray(refs) || !refs.length) {
+    return { ok: true, deleted: { successCount: 0, failCount: 0, failedKeys: [] } }
+  }
+
+  const { result } = await wx.cloud.callFunction({
+    name: 'cleanupRefs',
+    data: {
+      sessionGrant,
+      refs,
+    },
+  })
+
+  if (!result || !result.ok) {
+    throw new Error((result && result.message) || '清理上传文件失败')
+  }
+
+  return result
 }
 
 function wxUploadFile(options) {
@@ -135,6 +164,7 @@ function parseQiniuError(res) {
 
 module.exports = {
   uploadImage,
+  cleanupRefs,
   buildUrl,
   assetUrl,
   themeImages,

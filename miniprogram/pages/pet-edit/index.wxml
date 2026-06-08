@@ -3,6 +3,7 @@
     id="petCoverUploader"
     value="{{form.coverUrl}}"
     pet-space-id="{{petSpaceId}}"
+    pet-upload-grant="{{petUploadGrant}}"
     image-type="petCover"
     crop-ratio="1:1"
     tip="点击照片拍照或从相册选择"

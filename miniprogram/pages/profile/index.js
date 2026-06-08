@@ -87,7 +87,10 @@ Page({
         throw new Error((result && result.message) || '登录失败')
       }
 
-      const user = this.normalizeUser(result.user)
+      const user = this.normalizeUser({
+        ...(result.user || {}),
+        sessionGrant: result.sessionGrant || '',
+      })
       const hasProfile = Boolean(user.nickname)
       getApp().globalData.userProfile = user
       wx.setStorageSync('userProfile', user)

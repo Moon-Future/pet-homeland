@@ -26,8 +26,9 @@ const MANIFEST = {
   // Write-side: needs deleteObjects (qiniu SDK dependency)
   updateMemory:    { 'storage.js':      'storage.js' },
   cleanupUserMedia:{ 'storage.js':      'storage.js' },
-  login:           { 'storage.js':      'storage.js' },
+  login:           { 'storage.js':      'storage.js', 'grant.js': 'grant.js' },
   updatePetSpace:  { 'storage.js':      'storage.js' },
+  cleanupRefs:     { 'storage.js':      'storage.js', 'grant.js': 'grant.js' },
 
   // Read-side: only needs buildUrl (no qiniu SDK)
   resolvePetIdentity:   { 'storage.lite.js': 'storage.js' },
@@ -36,6 +37,11 @@ const MANIFEST = {
   getMemories:          { 'storage.lite.js': 'storage.js' },
   getDiscoverPetSpaces: { 'storage.lite.js': 'storage.js' },
   getPetSpaceDetail:    { 'storage.lite.js': 'storage.js' },
+
+  // Grant helpers: copied into functions that issue/verify upload grants.
+  reservePetSpaceId:    { 'grant.js':        'grant.js' },
+  getPetUploadGrant:    { 'grant.js':        'grant.js' },
+  getQiniuUploadToken:  { 'grant.js':        'grant.js' },
 }
 
 const HEADER = '// AUTO-GENERATED — DO NOT EDIT.\n'
