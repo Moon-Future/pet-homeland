@@ -30,3 +30,19 @@ button {
 button::after {
   border: 0;
 }
+
+.tap-feedback,
+.tap-feedback-strong {
+  transition: transform .16s ease, opacity .16s ease, box-shadow .16s ease, filter .16s ease;
+  transform-origin: center;
+}
+
+.tap-feedback-hover {
+  transform: scale(.98);
+  opacity: .92;
+}
+
+.tap-feedback-strong-hover {
+  transform: scale(.965);
+  filter: brightness(.98);
+}

@@ -11,4 +11,10 @@ Component({
   data: {
     assets: template.assets,
   },
+
+  methods: {
+    previewAvatar() {
+      this.triggerEvent('previewavatar')
+    },
+  },
 })

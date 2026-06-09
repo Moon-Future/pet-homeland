@@ -1,4 +1,5 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
 const tabs = [
   { id: 'petSpaces', label: '小窝' },
@@ -78,7 +79,7 @@ Page({
       ...item,
       title: item.petName || '未命名小窝',
       desc: item.story || '没有填写公开简介',
-      cover: item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      cover: item.coverUrl || item.avatarUrl || storage.defaultPetImage,
       meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 举报 ${item.reportCount || 0}`,
     }
   },
@@ -106,7 +107,7 @@ Page({
       ...item,
       title: item.petName || '未命名小窝',
       desc: item.story || '这个小窝已被隐藏',
-      cover: item.coverUrl || item.avatarUrl || '/assets/home/default-pet.png',
+      cover: item.coverUrl || item.avatarUrl || storage.defaultPetImage,
       meta: `${item.lifeStatus === 'in_stars' ? '已去星星' : '陪伴中'} · 小窝`,
     }
   },

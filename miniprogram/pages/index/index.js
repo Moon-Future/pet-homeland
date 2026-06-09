@@ -1,7 +1,7 @@
 const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 const homeCacheKey = 'homePetSpacesCache:v1'
 
 Page({
@@ -10,6 +10,7 @@ Page({
     loadingPets: false,
     hasPetSpaces: false,
     homeBg: storage.assetUrl('images/home-bg.png'),
+    defaultPetImage,
     featuredPet: null,
     petSpaces: [],
     themePreviews: [
@@ -274,6 +275,18 @@ Page({
     wx.removeStorageSync('viewPetSpaceId')
     wx.switchTab({
       url: '/pages/pet-detail/index',
+    })
+  },
+
+  previewPetAvatar(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url) {
+      return
+    }
+
+    wx.previewImage({
+      current: url,
+      urls: [url],
     })
   },
 

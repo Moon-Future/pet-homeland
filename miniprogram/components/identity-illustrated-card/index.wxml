@@ -5,7 +5,7 @@
   </view>
   <view class="illustrated-info-box">
     <view class="illustrated-avatar-shell">
-      <image class="illustrated-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+      <image class="illustrated-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
     </view>
 
     <view class="illustrated-panel">

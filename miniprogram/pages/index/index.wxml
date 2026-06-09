@@ -55,14 +55,14 @@
             data-id="{{item.id}}"
             catchtap="onSelectPet"
           >
-            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
             <text>{{item.petName}}</text>
           </view>
         </view>
       </scroll-view>
 
       <view class="card-body">
-        <image class="pet-avatar" src="{{featuredPet.avatar}}" mode="aspectFill"></image>
+        <image class="pet-avatar" src="{{featuredPet.avatar}}" mode="aspectFill" data-url="{{featuredPet.avatar}}" catchtap="previewPetAvatar"></image>
 
         <view class="pet-info">
           <view class="pet-name-row">
@@ -77,7 +77,7 @@
     </view>
 
     <view wx:elif="{{isLoggedIn && !loadingPets && !hasPetSpaces}}" class="empty-card">
-      <image class="empty-image" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+      <image class="empty-image" src="{{defaultPetImage}}" mode="aspectFill"></image>
       <text class="empty-title">还没有宠物小窝</text>
       <text class="empty-desc">创建后，这里会展示你的真实宠物资料。</text>
       <view class="empty-action" bindtap="onCreateMemorial">

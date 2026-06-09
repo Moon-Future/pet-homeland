@@ -54,7 +54,7 @@
   </view>
 
   <view wx:if="{{selectedPet}}" class="selected-card" bindtap="enterSelectedPet">
-    <image src="{{selectedPet.avatar}}" mode="aspectFill"></image>
+    <image src="{{selectedPet.avatar}}" mode="aspectFill" catchtap="previewSelectedPetAvatar"></image>
     <view class="pet-copy">
       <view class="name-row">
         <text class="pet-name">{{selectedPet.name}}</text>

@@ -1,7 +1,7 @@
 const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 
 Page({
   data: {

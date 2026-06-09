@@ -22,7 +22,7 @@
     <view class="activation-shell">
       <view class="activation-card stage-{{activationStep}}">
         <view class="activation-halo"></view>
-        <image class="activation-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+        <image class="activation-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
         <text class="activation-name">{{pet.petName}}</text>
         <text class="activation-code">{{pet.identityNo}}</text>
         <view class="activation-stamp">已认证</view>
@@ -40,7 +40,7 @@
 
     <view class="workshop">
       <view class="preview-shell">
-        <identity-illustrated-card pet="{{pet}}"></identity-illustrated-card>
+        <identity-illustrated-card pet="{{pet}}" bind:previewavatar="previewAvatar"></identity-illustrated-card>
       </view>
 
       <view class="action-grid">

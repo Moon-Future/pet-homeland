@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 const filters = [
   { id: 'all', label: '全部星星' },
   { id: 'recent', label: '最近更新' },
@@ -188,6 +189,18 @@ Page({
     }
 
     this.enterPetSpace(this.data.selectedPet)
+  },
+
+  previewSelectedPetAvatar() {
+    const pet = this.data.selectedPet || {}
+    if (!pet.avatar) {
+      return
+    }
+
+    wx.previewImage({
+      current: pet.avatar,
+      urls: [pet.avatar],
+    })
   },
 
   enterPetSpace(pet) {

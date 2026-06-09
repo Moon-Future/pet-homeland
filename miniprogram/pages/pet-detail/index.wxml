@@ -15,7 +15,7 @@
     </view>
 
     <view class="hero">
-      <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill"></image>
+      <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
       <view class="hero-main">
         <text class="name">{{pet.name}}</text>
         <text class="status-badge">{{pet.status}}</text>
@@ -35,7 +35,7 @@
             <text class="feature-desc">{{primaryAction.desc}}</text>
           </view>
         </view>
-        <view class="feature-button" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
+        <view class="feature-button tap-feedback-strong" hover-class="tap-feedback-strong-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
       </view>
 
       <view wx:if="{{quickActions.length}}" class="section-card">
@@ -44,7 +44,7 @@
           <text class="section-tip">留下一点陪伴痕迹</text>
         </view>
         <view class="actions">
-          <view wx:for="{{quickActions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
+          <view wx:for="{{quickActions}}" wx:key="type" class="action tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
             <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
             <text class="action-label">{{item.label}}</text>
             <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
@@ -65,10 +65,13 @@
         </view>
       </view>
 
-      <view wx:if="{{pet.identityClaimed}}" class="identity-card" bindtap="goIdentity">
-        <view class="identity-main">
-          <text class="identity-label">数字身份编号</text>
-          <text class="identity-no">{{pet.identityNo}}</text>
+      <view wx:if="{{pet.identityClaimed}}" class="identity-card tap-feedback" hover-class="tap-feedback-hover" bindtap="goIdentity">
+        <view class="identity-head">
+          <view class="identity-main">
+            <text class="identity-label">数字身份编号</text>
+            <text class="identity-no">{{pet.identityNo}}</text>
+          </view>
+          <image class="identity-arrow" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
         <view class="identity-meta">
           <view>
@@ -104,7 +107,7 @@
           <text class="edit" bindtap="goTimeline">更多 ›</text>
         </view>
         <view wx:if="{{recentMemories.length}}" class="recent-list">
-          <view wx:for="{{recentMemories}}" wx:key="id" class="recent-item" data-id="{{item.id}}" bindtap="goMemoryDetail">
+          <view wx:for="{{recentMemories}}" wx:key="id" class="recent-item tap-feedback" hover-class="tap-feedback-hover" data-id="{{item.id}}" bindtap="goMemoryDetail">
             <view class="recent-copy">
               <text class="recent-title">{{item.title}}</text>
               <text class="recent-desc">{{item.content}}</text>
@@ -115,7 +118,7 @@
         </view>
         <view wx:else class="story-empty">
           <text class="story">{{pet.story}}</text>
-          <view wx:if="{{primaryAction}}" class="story-empty-action" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
+          <view wx:if="{{primaryAction}}" class="story-empty-action tap-feedback" hover-class="tap-feedback-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
         </view>
       </view>
 
@@ -124,9 +127,9 @@
           <text class="section-title">更多入口</text>
         </view>
         <view class="entry-grid">
-          <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
-          <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
-          <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
+          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
+          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
+          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
         </view>
       </view>
 
@@ -141,9 +144,9 @@
         </view>
 
         <view class="support-actions">
-          <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="support-button primary" bindtap="goMyPetSpace">回我的小窝</view>
-          <view wx:if="{{rawPet.visibility === 'discover' && !isOwner}}" class="support-button plain" bindtap="reportPet">举报</view>
-          <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="support-button plain wide" bindtap="unpublishPet">下架公开展示</view>
+          <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="support-button primary tap-feedback" hover-class="tap-feedback-hover" bindtap="goMyPetSpace">回我的小窝</view>
+          <view wx:if="{{rawPet.visibility === 'discover' && !isOwner}}" class="support-button plain tap-feedback" hover-class="tap-feedback-hover" bindtap="reportPet">举报</view>
+          <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="support-button plain wide tap-feedback" hover-class="tap-feedback-hover" bindtap="unpublishPet">下架公开展示</view>
         </view>
       </view>
     </view>
@@ -176,14 +179,14 @@
   </view>
 
   <view wx:elif="{{isLoggedIn && !loadingPet && !hasPet}}" class="login-empty">
-    <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <image class="empty-pet" src="{{defaultPetImage}}" mode="aspectFill"></image>
     <text class="empty-title">还没有宠物小窝</text>
     <text class="empty-desc">创建后，这里会展示真实宠物资料。</text>
     <button class="login-button" bindtap="goCreate">创建宠物小窝</button>
   </view>
 
   <view wx:else class="login-empty">
-    <image class="empty-pet" src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <image class="empty-pet" src="{{defaultPetImage}}" mode="aspectFill"></image>
     <text class="empty-title">登录后查看宠物小窝</text>
     <text class="empty-desc">保存照片、故事和陪伴时光。</text>
     <button class="login-button" bindtap="goLogin">去登录</button>

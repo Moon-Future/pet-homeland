@@ -180,6 +180,18 @@ Page({
     })
   },
 
+  previewAvatar() {
+    const avatarUrl = this.data.user && this.data.user.avatarUrl
+    if (!avatarUrl) {
+      return
+    }
+
+    wx.previewImage({
+      current: avatarUrl,
+      urls: [avatarUrl],
+    })
+  },
+
   logout() {
     wx.showModal({
       title: '退出登录',
@@ -236,7 +248,7 @@ Page({
     return {
       title: '星宠乡：记录陪伴，也安放心念',
       path: '/pages/index/index',
-      imageUrl: '/assets/home/default-pet.png',
+      imageUrl: storage.defaultPetImage,
     }
   },
 })

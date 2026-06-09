@@ -1,4 +1,5 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
 const typeLabels = {
   daily: '日常',
@@ -16,6 +17,7 @@ Page({
     memory: null,
     isOwner: false,
     dirtyVersion: 0,
+    defaultPetImage: storage.defaultPetImage,
   },
 
   onLoad(options = {}) {

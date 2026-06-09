@@ -1,6 +1,8 @@
 const auth = require('../../utils/auth')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const storage = require('../../utils/storage')
+
+const defaultPetImage = storage.defaultPetImage
 const typeLabels = {
   daily: '日常',
   growth: '成长',

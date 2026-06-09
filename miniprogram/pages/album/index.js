@@ -1,4 +1,5 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
 const filters = [
   { id: 'all', label: '全部' },
@@ -18,6 +19,7 @@ Page({
     photos: [],
     dirtyVersion: 0,
     isOwner: false,
+    defaultPetImage: storage.defaultPetImage,
   },
 
   onLoad(options = {}) {

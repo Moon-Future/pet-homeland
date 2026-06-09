@@ -36,6 +36,10 @@ exports.main = async (event = {}) => {
     }
 
     const safePetSpace = sanitizePetSpace(petSpace)
+    safePetSpace.stats = {
+      ...(safePetSpace.stats || {}),
+      ...(await getVisibleStats(petSpace._id, isOwner, isAdmin)),
+    }
     attachPetImageUrls(safePetSpace)
 
     return {
@@ -50,6 +54,51 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '读取宠物小窝失败',
     }
   }
+}
+
+async function getVisibleStats(petSpaceId, isOwner, isAdmin) {
+  const canSeeAll = isOwner || isAdmin
+  const where = {
+    petSpaceId,
+    status: canSeeAll ? _.neq('deleted') : 'active',
+    ...(canSeeAll ? {} : { reviewStatus: 'approved' }),
+  }
+  let skip = 0
+  let memoryCount = 0
+  let mediaCount = 0
+  let hasMore = true
+
+  while (hasMore) {
+    const result = await db.collection('memories')
+      .where(where)
+      .orderBy('sortOrder', 'desc')
+      .skip(skip)
+      .limit(100)
+      .get()
+      .catch(handleMissingCollectionQuery)
+
+    const list = result.data || []
+    list.forEach((item) => {
+      memoryCount += 1
+      mediaCount += Array.isArray(item.mediaRefs) ? item.mediaRefs.length : 0
+    })
+
+    hasMore = list.length === 100
+    skip += list.length
+  }
+
+  return {
+    memoryCount,
+    mediaCount,
+  }
+}
+
+function handleMissingCollectionQuery(error) {
+  if (isCollectionNotFound(error)) {
+    return { data: [] }
+  }
+
+  throw error
 }
 
 function sanitizePetSpace(item = {}) {
@@ -130,4 +179,9 @@ function sanitizeString(value, maxLength) {
   }
 
   return value.trim().slice(0, maxLength)
+}
+
+function isCollectionNotFound(error = {}) {
+  const message = `${error.errCode || ''} ${error.errMsg || ''} ${error.message || ''}`
+  return message.includes('-502005') || message.includes('collection not exist')
 }

@@ -1,4 +1,6 @@
-const defaultPetImage = '/assets/home/default-pet.png'
+const storage = require('../../../../utils/storage')
+
+const defaultPetImage = storage.defaultPetImage
 const template = require('./config')
 
 function roundRect(ctx, x, y, width, height, radius) {

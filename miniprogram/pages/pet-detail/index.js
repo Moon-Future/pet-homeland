@@ -1,7 +1,7 @@
 const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
 const ownerCooldownMs = 10 * 60 * 1000
 const petDetailCacheKey = 'petDetailCache:v1'
@@ -35,6 +35,7 @@ Page({
     reviewNotice: null,
     skeletonActions: [1, 2, 3],
     skeletonStats: [1, 2, 3, 4],
+    defaultPetImage,
   },
 
   onLoad(options = {}) {
@@ -277,11 +278,13 @@ Page({
         data: {
           petSpaceId,
           limit: 3,
+          includeSummary: true,
         },
       })
 
       if (result && result.ok) {
         const memories = result.memories || []
+        const summary = result.summary || {}
         const recentMemories = memories.map((item) => ({
           id: item._id,
           title: item.title || '今天的记录',
@@ -291,8 +294,8 @@ Page({
         }))
 
         return {
-          memoryCount: null,
-          mediaCount: null,
+          memoryCount: typeof summary.memoryCount === 'number' ? summary.memoryCount : null,
+          mediaCount: typeof summary.mediaCount === 'number' ? summary.mediaCount : null,
           recentMemories,
         }
       }
@@ -305,6 +308,18 @@ Page({
       mediaCount: null,
       recentMemories: [],
     }
+  },
+
+  previewAvatar() {
+    const pet = this.data.pet || {}
+    if (!pet.avatar) {
+      return
+    }
+
+    wx.previewImage({
+      current: pet.avatar,
+      urls: [pet.avatar],
+    })
   },
 
   normalizePet(item = {}) {
@@ -804,9 +819,14 @@ Page({
         throw new Error((result && result.message) || '互动失败')
       }
 
+      const nextStats = {
+        ...result.stats,
+        memoryCount: (this.data.rawPet && this.data.rawPet.stats && this.data.rawPet.stats.memoryCount) || 0,
+        mediaCount: (this.data.rawPet && this.data.rawPet.stats && this.data.rawPet.stats.mediaCount) || 0,
+      }
       const rawPet = {
         ...this.data.rawPet,
-        stats: result.stats,
+        stats: nextStats,
       }
       const todayCounts = {
         ...this.getActionCountsMap(),
@@ -821,7 +841,7 @@ Page({
         interacting: false,
         rawPet,
         actions: this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts),
-        stats: this.normalizeStats(result.stats, rawPet.lifeStatus),
+        stats: this.normalizeStats(nextStats, rawPet.lifeStatus),
         visitorSummary: this.data.isOwner ? this.data.visitorSummary : this.normalizeVisitorSummary({}),
       })
 

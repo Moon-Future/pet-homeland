@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 
 Page({
   data: {
@@ -8,6 +9,7 @@ Page({
     hasPetSpaces: false,
     selectedId: '',
     petSpaces: [],
+    defaultPetImage,
   },
 
   onLoad() {
@@ -180,6 +182,18 @@ Page({
   createPet() {
     wx.navigateTo({
       url: '/pages/pet-create/index',
+    })
+  },
+
+  previewPetAvatar(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url) {
+      return
+    }
+
+    wx.previewImage({
+      current: url,
+      urls: [url],
     })
   },
 })

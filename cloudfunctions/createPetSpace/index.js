@@ -80,7 +80,7 @@ exports.main = async (event = {}) => {
       missCount: 0,
       memoryCount: 0,
       starCount: 0,
-      mediaCount: coverRef ? 1 : 0,
+      mediaCount: 0,
       flowerCount: 0,
     },
     status: 'active',

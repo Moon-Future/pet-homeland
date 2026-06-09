@@ -5,7 +5,7 @@
 
   <block wx:else>
     <view wx:if="{{isLoggedIn}}" class="profile-head">
-      <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+      <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" bindtap="previewAvatar"></image>
       <view class="user-copy">
         <view class="name-row">
           <text class="name">{{hasProfile ? user.nickname : '微信用户'}}</text>
@@ -39,7 +39,7 @@
     <view class="panel">
       <text class="panel-title">我的服务</text>
       <view class="grid">
-        <view wx:for="{{services}}" wx:key="label" class="tool {{isLoggedIn ? '' : 'locked'}}" data-url="{{item.url}}" bindtap="go">
+        <view wx:for="{{services}}" wx:key="label" class="tool tap-feedback {{isLoggedIn ? '' : 'locked'}}" hover-class="tap-feedback-hover" data-url="{{item.url}}" bindtap="go">
           <image src="{{item.icon}}"></image>
           <text>{{item.label}}</text>
         </view>
@@ -52,7 +52,8 @@
         <block wx:for="{{more}}" wx:key="label">
           <button
             wx:if="{{item.type === 'share'}}"
-            class="tool share-tool {{isLoggedIn ? '' : 'locked'}}"
+            class="tool share-tool tap-feedback {{isLoggedIn ? '' : 'locked'}}"
+            hover-class="tap-feedback-hover"
             open-type="share"
             data-type="{{item.type}}"
             bindtap="go"
@@ -62,7 +63,8 @@
           </button>
           <view
             wx:else
-            class="tool {{isLoggedIn ? '' : 'locked'}}"
+            class="tool tap-feedback {{isLoggedIn ? '' : 'locked'}}"
+            hover-class="tap-feedback-hover"
             data-url="{{item.url}}"
             data-type="{{item.type || ''}}"
             bindtap="go"

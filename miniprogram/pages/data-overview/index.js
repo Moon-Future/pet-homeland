@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth')
+const storage = require('../../utils/storage')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 
 Page({
   data: {
@@ -46,14 +47,14 @@ Page({
       const petSpaces = (result.petSpaces || []).map((item) => this.normalizePet(item))
       const selectedPetId = this.data.selectedPetId || wx.getStorageSync('selectedPetSpaceId') || (petSpaces[0] && petSpaces[0].id) || ''
       const selectedPet = petSpaces.find((item) => item.id === selectedPetId) || petSpaces[0] || null
-      const memoryData = selectedPet ? await this.loadMemories(selectedPet.id) : { memories: [] }
+      const memoryData = selectedPet ? await this.loadMemories(selectedPet.id) : { memories: [], summary: null }
 
       this.setData({
         loading: false,
         petSpaces,
         selectedPetId: selectedPet ? selectedPet.id : '',
         selectedPet,
-        ...this.buildOverview(petSpaces, selectedPet, memoryData.memories),
+        ...this.buildOverview(petSpaces, selectedPet, memoryData),
       })
     } catch (error) {
       this.setData({ loading: false })
@@ -70,6 +71,7 @@ Page({
       data: {
         petSpaceId,
         limit: 100,
+        includeSummary: true,
       },
     })
 
@@ -79,6 +81,7 @@ Page({
 
     return {
       memories: result.memories || [],
+      summary: result.summary || null,
     }
   },
 
@@ -92,8 +95,7 @@ Page({
     this.loadOverview()
   },
 
-  buildOverview(petSpaces, selectedPet, memories) {
-    const mediaCount = memories.reduce((total, item) => total + (item.mediaRefs || []).length, 0)
+  buildOverview(petSpaces, selectedPet, memoryData) {
     const typeMap = {
       daily: { label: '日常', value: 0 },
       growth: { label: '成长', value: 0 },
@@ -101,13 +103,20 @@ Page({
       travel: { label: '旅行', value: 0 },
       birthday: { label: '生日', value: 0 },
     }
+    const summary = memoryData.summary || {}
+    const typeCounts = summary.typeCounts || {}
+    const memories = memoryData.memories || []
 
-    memories.forEach((item) => {
-      const key = typeMap[item.type] ? item.type : 'daily'
-      typeMap[key].value += 1
+    Object.keys(typeMap).forEach((key) => {
+      typeMap[key].value = Number(typeCounts[key] || 0)
     })
 
-    const memoryCount = memories.length
+    const memoryCount = typeof summary.memoryCount === 'number'
+      ? summary.memoryCount
+      : ((selectedPet && selectedPet.stats && selectedPet.stats.memoryCount) || memories.length || 0)
+    const mediaCount = typeof summary.mediaCount === 'number'
+      ? summary.mediaCount
+      : ((selectedPet && selectedPet.stats && selectedPet.stats.mediaCount) || 0)
 
     return {
       summary: [
@@ -134,8 +143,21 @@ Page({
       id: item._id,
       name: item.petName || '未命名小窝',
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
+      stats: item.stats || {},
       companionDays: this.getDaysSince(item.arrivalDate),
     }
+  },
+
+  previewPetAvatar(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url) {
+      return
+    }
+
+    wx.previewImage({
+      current: url,
+      urls: [url],
+    })
   },
 
   getDaysSince(dateText) {

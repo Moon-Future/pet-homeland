@@ -1,6 +1,6 @@
 const storage = require('../../utils/storage')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
 const tabs = [
   { id: 'all', label: '全部' },
@@ -31,6 +31,7 @@ Page({
       avatar: defaultPetImage,
       cover: defaultPetImage,
     },
+    defaultPetImage,
     initialLoading: true,
     loading: false,
     groups: [],
@@ -415,6 +416,18 @@ Page({
     wx.previewImage({
       current: url,
       urls: memory.mediaUrls,
+    })
+  },
+
+  previewPetAvatar() {
+    const pet = this.data.pet || {}
+    if (!pet.avatar) {
+      return
+    }
+
+    wx.previewImage({
+      current: pet.avatar,
+      urls: [pet.avatar],
     })
   },
 

@@ -37,6 +37,7 @@ const themeImages = {
   starry: assetUrl('themes/starry-sky.png'),
   sakura: assetUrl('themes/sakura-avenue.png'),
 }
+const defaultPetImage = assetUrl('images/default-pet.jpg')
 
 const SUPPORTED_TYPES = ['avatar', 'petCover', 'petAlbum', 'memory']
 
@@ -168,6 +169,7 @@ module.exports = {
   buildUrl,
   assetUrl,
   themeImages,
+  defaultPetImage,
   config,
   CDN_HOST,
   KEY_PREFIX,

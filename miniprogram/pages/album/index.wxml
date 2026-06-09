@@ -24,7 +24,7 @@
   </view>
 
   <view wx:else class="empty">
-    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <image src="{{defaultPetImage}}" mode="aspectFill"></image>
     <text class="empty-title">相册还是空的</text>
     <text class="empty-desc">给日常记录加上照片，它们会自动来到这里。</text>
   </view>

@@ -2,7 +2,7 @@ const storage = require('../../utils/storage')
 const illustratedTemplate = require('./templates/illustrated/config')
 const illustratedPoster = require('./templates/illustrated/poster')
 
-const defaultPetImage = '/assets/home/default-pet.png'
+const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
 const TEMPLATES = {
   illustrated: {
@@ -222,6 +222,18 @@ Page({
     wx.setStorageSync('viewSource', 'identity')
     wx.switchTab({
       url: '/pages/pet-detail/index',
+    })
+  },
+
+  previewAvatar() {
+    const pet = this.data.pet || {}
+    if (!pet.avatar) {
+      return
+    }
+
+    wx.previewImage({
+      current: pet.avatar,
+      urls: [pet.avatar],
     })
   },
 

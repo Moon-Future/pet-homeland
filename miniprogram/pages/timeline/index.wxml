@@ -42,7 +42,7 @@
     </view>
     <view class="pet-profile">
       <text class="pet-name">{{pet.name}}</text>
-      <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+      <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewPetAvatar"></image>
     </view>
   </view>
 
@@ -77,7 +77,7 @@
           data-system="{{memory.isSystem}}"
           bindtap="goMemoryDetail"
         >
-          <image class="moment-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+          <image class="moment-avatar" src="{{pet.avatar}}" mode="aspectFill" catchtap="previewPetAvatar"></image>
           <view class="moment-main">
             <view class="moment-head">
               <text class="moment-name">{{pet.name}}</text>
@@ -111,7 +111,7 @@
   </view>
 
   <view wx:else class="empty">
-    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <image src="{{defaultPetImage}}" mode="aspectFill"></image>
     <text class="empty-title">还没有朋友圈动态</text>
     <text class="empty-desc">记录一次日常，{{pet.name}}的朋友圈就会更新。</text>
   </view>

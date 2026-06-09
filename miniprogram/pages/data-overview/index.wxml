@@ -10,7 +10,7 @@
     <scroll-view wx:if="{{petSpaces.length}}" class="pet-tabs" scroll-x>
       <view class="pet-list">
         <view wx:for="{{petSpaces}}" wx:key="id" class="pet-chip {{item.id === selectedPetId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPet">
-          <image src="{{item.avatar}}" mode="aspectFill"></image>
+          <image src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
           <text>{{item.name}}</text>
         </view>
       </view>
@@ -37,7 +37,7 @@
     <view class="panel">
       <text class="panel-title">最近回忆</text>
       <view wx:if="{{recentMemories.length}}" class="memory-list">
-        <view wx:for="{{recentMemories}}" wx:key="id" class="memory-row" data-id="{{item.id}}" bindtap="goMemory">
+        <view wx:for="{{recentMemories}}" wx:key="id" class="memory-row tap-feedback" hover-class="tap-feedback-hover" data-id="{{item.id}}" bindtap="goMemory">
           <text class="memory-title">{{item.title}}</text>
           <text class="memory-date">{{item.date}}</text>
           <text class="memory-content">{{item.content}}</text>

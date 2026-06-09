@@ -14,6 +14,7 @@ exports.main = async (event = {}) => {
   const memoryId = sanitizeString(event.memoryId, 64)
   const type = sanitizeString(event.type, 24)
   const source = sanitizeString(event.source, 32)
+  const includeSummary = Boolean(event.includeSummary)
   const limit = Math.min(Math.max(Number(event.limit) || 50, 1), 100)
 
   if (!openid) {
@@ -31,6 +32,8 @@ exports.main = async (event = {}) => {
     let ownerView = false
     const adminView = source === 'admin_review' ? Boolean(await getAdmin(openid)) : false
     let query = db.collection('memories').where({ status: 'active' })
+    let baseMemoryWhere = null
+    let summary = null
 
     if (memoryId) {
       query = db.collection('memories').where({
@@ -45,10 +48,14 @@ exports.main = async (event = {}) => {
 
       ownerView = petSpace && petSpace.ownerOpenid === openid
 
-      query = db.collection('memories').where({
+      baseMemoryWhere = {
         petSpaceId,
         status: ownerView || adminView ? _.neq('deleted') : 'active',
         ...(ownerView || adminView ? {} : { reviewStatus: 'approved' }),
+      }
+
+      query = db.collection('memories').where({
+        ...baseMemoryWhere,
         ...(type && type !== 'all' ? { type } : {}),
       })
     }
@@ -71,10 +78,20 @@ exports.main = async (event = {}) => {
 
     attachMediaUrls(memories)
 
+    if (includeSummary && petSpaceId && !memoryId) {
+      summary = await buildMemorySummary({
+        petSpaceId,
+        ownerView,
+        adminView,
+        baseMemoryWhere,
+      })
+    }
+
     return {
       ok: true,
       isAdmin: adminView,
       memories,
+      summary,
     }
   } catch (error) {
     if (isCollectionNotFound(error)) {
@@ -86,6 +103,50 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '读取回忆失败',
       memories: [],
     }
+  }
+}
+
+async function buildMemorySummary({ petSpaceId, ownerView, adminView, baseMemoryWhere }) {
+  const visibleMemoryWhere = baseMemoryWhere || {
+    petSpaceId,
+    status: ownerView || adminView ? _.neq('deleted') : 'active',
+    ...(ownerView || adminView ? {} : { reviewStatus: 'approved' }),
+  }
+  const supportedTypes = ['daily', 'growth', 'health', 'travel', 'birthday']
+  const typeCounts = supportedTypes.reduce((map, memoryType) => {
+    map[memoryType] = 0
+    return map
+  }, {})
+  let skip = 0
+  let memoryCount = 0
+  let mediaCount = 0
+  let hasMore = true
+
+  while (hasMore) {
+    const result = await db.collection('memories')
+      .where(visibleMemoryWhere)
+      .orderBy('sortOrder', 'desc')
+      .skip(skip)
+      .limit(100)
+      .get()
+      .catch(handleMissingCollectionQuery)
+
+    const list = result.data || []
+    list.forEach((item) => {
+      memoryCount += 1
+      mediaCount += Array.isArray(item.mediaRefs) ? item.mediaRefs.length : 0
+      const type = supportedTypes.includes(item.type) ? item.type : 'daily'
+      typeCounts[type] += 1
+    })
+
+    hasMore = list.length === 100
+    skip += list.length
+  }
+
+  return {
+    memoryCount,
+    mediaCount,
+    typeCounts,
   }
 }
 
@@ -133,6 +194,14 @@ function attachMediaUrls(memories) {
     const refs = item.mediaRefs || []
     item.mediaUrls = refs.map((ref) => storage.buildUrl(ref))
   })
+}
+
+function handleMissingCollectionQuery(error) {
+  if (isCollectionNotFound(error)) {
+    return { data: [] }
+  }
+
+  throw error
 }
 
 async function ensureCollection(name) {

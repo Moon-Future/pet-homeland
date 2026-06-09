@@ -30,6 +30,7 @@ exports.main = async () => {
       .get()
 
     const petSpaces = result.data || []
+    await attachExactStats(petSpaces)
     attachPetImageUrls(petSpaces)
 
     return {
@@ -50,6 +51,73 @@ exports.main = async () => {
       petSpaces: [],
     }
   }
+}
+
+async function attachExactStats(petSpaces) {
+  await Promise.all((petSpaces || []).map(async (item) => {
+    const stats = await getMemoryStats({
+      petSpaceId: item._id,
+      includeTypes: false,
+    })
+    item.stats = {
+      ...(item.stats || {}),
+      memoryCount: stats.memoryCount,
+      mediaCount: stats.mediaCount,
+    }
+  }))
+}
+
+async function getMemoryStats({ petSpaceId, includeTypes }) {
+  const where = {
+    petSpaceId,
+    status: _.neq('deleted'),
+  }
+  const supportedTypes = ['daily', 'growth', 'health', 'travel', 'birthday']
+  const typeCounts = supportedTypes.reduce((map, key) => {
+    map[key] = 0
+    return map
+  }, {})
+  let skip = 0
+  let memoryCount = 0
+  let mediaCount = 0
+  let hasMore = true
+
+  while (hasMore) {
+    const result = await db.collection('memories')
+      .where(where)
+      .orderBy('sortOrder', 'desc')
+      .skip(skip)
+      .limit(100)
+      .get()
+      .catch(handleMissingCollectionQuery)
+
+    const list = result.data || []
+    list.forEach((item) => {
+      memoryCount += 1
+      mediaCount += Array.isArray(item.mediaRefs) ? item.mediaRefs.length : 0
+      if (includeTypes) {
+        const type = supportedTypes.includes(item.type) ? item.type : 'daily'
+        typeCounts[type] += 1
+      }
+    })
+
+    hasMore = list.length === 100
+    skip += list.length
+  }
+
+  return {
+    memoryCount,
+    mediaCount,
+    typeCounts,
+  }
+}
+
+function handleMissingCollectionQuery(error) {
+  if (isCollectionNotFound(error)) {
+    return { data: [] }
+  }
+
+  throw error
 }
 
 function attachPetImageUrls(petSpaces) {

@@ -22,7 +22,7 @@
       data-id="{{item.id}}"
       bindtap="selectPet"
     >
-      <image class="pet-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <image class="pet-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
       <view class="pet-info">
         <view class="name-row">
           <text class="pet-name">{{item.petName}}</text>
@@ -40,7 +40,7 @@
   </view>
 
   <view wx:else class="empty">
-    <image src="/assets/home/default-pet.png" mode="aspectFill"></image>
+    <image src="{{defaultPetImage}}" mode="aspectFill"></image>
     <text class="empty-title">还没有宠物小窝</text>
     <text class="empty-desc">创建后，这里会统一管理所有宠物。</text>
     <button class="empty-button" bindtap="createPet">创建宠物小窝</button>
