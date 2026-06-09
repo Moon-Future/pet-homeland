@@ -1,6 +1,7 @@
 <view class="page">
   <view wx:if="{{loading}}" class="state">
-    <text>正在读取数字身份...</text>
+    <text class="state-title">正在激活身份卡</text>
+    <text class="state-desc">请稍候，系统正在整理这份专属档案。</text>
   </view>
 
   <view wx:elif="{{error}}" class="state">
@@ -13,50 +14,177 @@
     <image class="cover" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="shade"></view>
 
-    <view class="hero">
-      <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
-      <text class="name">{{pet.petName}}</text>
-      <text class="phase">{{pet.phaseText}}</text>
+    <view class="top-copy">
+      <text class="eyebrow">Identity Activation</text>
+      <text class="headline">{{pet.heroStatement}}</text>
     </view>
 
-    <view class="panel">
-      <view class="identity-card">
-        <text class="card-label">数字身份编号</text>
-        <text class="identity-no">{{pet.identityNo}}</text>
-        <view class="card-row">
-          <text>身份状态</text>
-          <text>{{pet.identityStatusText}}</text>
-        </view>
-        <view class="card-row">
-          <text>NFC 铭牌</text>
-          <text>{{pet.nfcStatusText}}</text>
+    <view class="activation-shell">
+      <view class="activation-card stage-{{activationStep}}">
+        <view class="activation-halo"></view>
+        <image class="activation-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+        <text class="activation-name">{{pet.petName}}</text>
+        <text class="activation-code">{{pet.identityNo}}</text>
+        <view class="activation-stamp">已认证</view>
+        <view class="activation-tags">
+          <text wx:for="{{pet.tags}}" wx:key="*this">{{item}}</text>
         </view>
       </view>
-
-      <view class="profile-card">
-        <view class="profile-row">
-          <text>档案类型</text>
-          <text>{{pet.phaseText}}</text>
-        </view>
-        <view class="profile-row" wx:if="{{pet.birthDate}}">
-          <text>出生日期</text>
-          <text>{{pet.birthDate}}</text>
-        </view>
-        <view class="profile-row" wx:if="{{pet.arrivalDate}}">
-          <text>来到身边</text>
-          <text>{{pet.arrivalDate}}</text>
-        </view>
-        <view class="profile-row" wx:if="{{pet.deathDate}}">
-          <text>离开日期</text>
-          <text>{{pet.deathDate}}</text>
-        </view>
-        <text wx:if="{{pet.story}}" class="story">{{pet.story}}</text>
-      </view>
-
-      <view class="actions">
-        <button class="primary" bindtap="openPetSpace">进入档案</button>
-        <button class="plain" bindtap="copyIdentityNo">复制编号</button>
+      <view class="activation-copy">
+        <text wx:if="{{activationStep < 2}}">正在生成编号...</text>
+        <text wx:elif="{{activationStep < 3}}">身份编号已锁定</text>
+        <text wx:elif="{{activationStep < 4}}">居民印章已盖章</text>
+        <text wx:else>{{pet.petName}} 已正式成为星宠乡居民</text>
       </view>
     </view>
+
+    <view class="workshop">
+      <view class="workshop-head">
+        <view class="workshop-copy">
+          <text class="workshop-title">把这张身份卡带走</text>
+          <text class="workshop-desc">{{pet.shareCaption}}</text>
+        </view>
+        <view class="number-chip">
+          <text>NO.</text>
+          <text>{{pet.identityNo}}</text>
+        </view>
+      </view>
+
+      <view class="template-tabs">
+        <view
+          wx:for="{{templateOptions}}"
+          wx:key="id"
+          class="template-tab {{activeTemplate === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="setTemplate"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="preview-shell">
+        <view wx:if="{{activeTemplate === 'resident'}}" class="share-card resident-card">
+          <view class="card-paws">
+            <text>🐾</text>
+            <text>✦</text>
+          </view>
+          <view class="card-orbit orbit-left"></view>
+          <view class="card-orbit orbit-right"></view>
+          <view class="card-header resident-header">
+            <view>
+              <text class="card-title">星宠乡居民证</text>
+              <text class="card-subtitle">STAR PET RESIDENT CARD</text>
+            </view>
+            <view class="card-seal">已登记</view>
+          </view>
+          <view class="resident-main">
+            <image class="resident-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+            <view class="resident-facts">
+              <view wx:for="{{pet.facts}}" wx:key="label" class="fact-row">
+                <text class="fact-label">{{item.label}}</text>
+                <text class="fact-value {{item.label === '居民编号' ? 'accent' : ''}}">{{item.value}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="tag-strip">
+            <view wx:for="{{pet.tags}}" wx:key="*this" class="tag-chip warm">{{item}}</view>
+          </view>
+          <view class="card-footer">
+            <view class="mini-qr-shell">
+              <image class="mini-qr" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/qrcode.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="card-footer-copy">
+              <text class="card-footer-title">{{pet.posterHint}}</text>
+              <text class="card-footer-desc">打开小程序查看它的完整档案与日常记录</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:elif="{{activeTemplate === 'growth'}}" class="share-card growth-card">
+          <view class="card-paws soft-paws">
+            <text>☁</text>
+            <text>✦</text>
+          </view>
+          <view class="card-orbit orbit-top"></view>
+          <view class="growth-top">
+            <view class="growth-copy">
+              <text class="card-title">成长档案</text>
+              <text class="growth-name">{{pet.petName}}</text>
+              <text class="growth-line">{{pet.subline}}</text>
+            </view>
+            <image class="growth-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+          </view>
+          <view class="growth-story">
+            <text>{{pet.story || pet.shareCaption}}</text>
+          </view>
+          <view class="growth-meta">
+            <view class="meta-item">
+              <text>编号</text>
+              <text>{{pet.identityNo}}</text>
+            </view>
+            <view class="meta-item">
+              <text>档案</text>
+              <text>{{pet.phaseText}}</text>
+            </view>
+            <view class="meta-item" wx:if="{{pet.residentDate}}">
+              <text>{{pet.lifeStatus === 'in_stars' ? '开始纪念' : '入住时间'}}</text>
+              <text>{{pet.residentDate}}</text>
+            </view>
+          </view>
+          <view class="tag-strip">
+            <view wx:for="{{pet.tags}}" wx:key="*this" class="tag-chip soft">{{item}}</view>
+          </view>
+          <view class="card-footer growth-footer">
+            <view class="mini-qr-shell">
+              <image class="mini-qr" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/qrcode.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="card-footer-copy">
+              <text class="card-footer-title">{{pet.posterHint}}</text>
+              <text class="card-footer-desc">点开小程序，把它的陪伴继续好好存放</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:else class="share-card badge-card">
+          <view class="card-paws badge-paws">
+            <text>★</text>
+            <text>🐾</text>
+          </view>
+          <view class="card-orbit orbit-bottom"></view>
+          <view class="badge-top">
+            <text class="card-title">身份徽章墙</text>
+            <text class="badge-no">{{pet.identityNo}}</text>
+          </view>
+          <image class="badge-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+          <text class="badge-name">{{pet.petName}}</text>
+          <text class="badge-phase">{{pet.phaseText}}</text>
+          <view class="badge-grid">
+            <view wx:for="{{pet.tags}}" wx:key="*this" class="badge-chip">{{item}}</view>
+          </view>
+          <view class="badge-note">
+            <text>{{pet.shareCaption}}</text>
+          </view>
+          <view class="card-footer badge-footer">
+            <view class="mini-qr-shell">
+              <image class="mini-qr" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/qrcode.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="card-footer-copy">
+              <text class="card-footer-title">{{pet.posterHint}}</text>
+              <text class="card-footer-desc">扫码进入小程序，看看它解锁的身份标签</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="action-grid">
+        <button class="primary action-button" loading="{{posterBusy}}" bindtap="savePoster">保存分享图</button>
+        <button class="plain action-button" loading="{{posterBusy}}" bindtap="previewPoster">预览朋友圈版</button>
+      </view>
+
+      <view class="action-grid secondary">
+        <button class="ghost action-button" bindtap="openPetSpace">进入完整档案</button>
+        <button class="ghost action-button" bindtap="copyIdentityNo">复制身份编号</button>
+      </view>
+    </view>
+
+    <canvas canvas-id="posterCanvas" class="poster-canvas" style="width: 1080px; height: 1440px;" width="1080" height="1440"></canvas>
   </view>
 </view>

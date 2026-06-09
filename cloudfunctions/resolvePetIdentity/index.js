@@ -24,6 +24,17 @@ exports.main = async (event = {}) => {
       return { ok: false, message: 'pet identity not found' }
     }
 
+    if (!petSpace.identityActivatedAt) {
+      const activatedAt = new Date()
+      await db.collection('pet_spaces').doc(petSpace._id).update({
+        data: {
+          identityActivatedAt: activatedAt,
+          updatedAt: db.serverDate(),
+        },
+      })
+      petSpace.identityActivatedAt = activatedAt
+    }
+
     const safePetSpace = sanitizePetSpace(petSpace)
     attachPetImageUrls(safePetSpace)
 
@@ -52,6 +63,7 @@ function sanitizePetSpace(item = {}) {
     identityCreatedAt: item.identityCreatedAt || '',
     identityClaimed: true,
     identityClaimedAt: item.identityClaimedAt || '',
+    identityActivatedAt: item.identityActivatedAt || '',
     nfc: item.nfc || { status: 'unbound', tagId: '', boundAt: null },
     petName: item.petName || '',
     petType: item.petType || 'other',

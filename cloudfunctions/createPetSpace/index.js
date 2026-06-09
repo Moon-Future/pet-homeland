@@ -49,6 +49,7 @@ exports.main = async (event = {}) => {
     identityStatus: 'active',
     identityCreatedAt: now,
     identityClaimedAt: null,
+    identityActivatedAt: null,
     nfc: {
       status: 'unbound',
       tagId: '',

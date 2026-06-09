@@ -64,6 +64,7 @@ function sanitizePetSpace(item = {}) {
     identityCreatedAt: item.identityCreatedAt || '',
     identityClaimed: identityClaimed,
     identityClaimedAt: item.identityClaimedAt || '',
+    identityActivatedAt: item.identityActivatedAt || '',
     nfc: item.nfc || { status: 'unbound', tagId: '', boundAt: null },
     petName: item.petName || '未命名小窝',
     petType: item.petType || 'other',
