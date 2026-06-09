@@ -36,17 +36,29 @@ function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines, align 
   }
 }
 
-function getImagePath(src, fallback = defaultPetImage) {
+function getImageAsset(src, fallback = defaultPetImage) {
   return new Promise((resolve) => {
     if (!src) {
-      resolve(fallback)
+      resolve({
+        path: fallback,
+        width: 0,
+        height: 0,
+      })
       return
     }
 
     wx.getImageInfo({
       src,
-      success: (res) => resolve(res.path),
-      fail: () => resolve(fallback),
+      success: (res) => resolve({
+        path: res.path,
+        width: res.width || 0,
+        height: res.height || 0,
+      }),
+      fail: () => resolve({
+        path: fallback,
+        width: 0,
+        height: 0,
+      }),
     })
   })
 }
@@ -69,10 +81,10 @@ function exportCanvas(page, canvasId, width, height) {
 
 async function drawPoster({ page, canvasId, pet }) {
   const { assets, layout } = template
-  const backgroundPath = await getImagePath(assets.backgroundUrl, '')
-  const elementPath = await getImagePath(assets.elementUrl, '')
-  const avatarPath = await getImagePath(pet.avatar)
-  const qrPath = await getImagePath(assets.qrCodeUrl, '')
+  const backgroundAsset = await getImageAsset(assets.backgroundUrl, '')
+  const elementAsset = await getImageAsset(assets.elementUrl, '')
+  const avatarAsset = await getImageAsset(pet.avatar)
+  const qrAsset = await getImageAsset(assets.qrCodeUrl, '')
   const width = layout.posterWidthPx
   const height = layout.posterHeightPx
   const scale = width / layout.designWidthRpx
@@ -82,16 +94,16 @@ async function drawPoster({ page, canvasId, pet }) {
   ctx.setFillStyle('#fff8ef')
   ctx.fillRect(0, 0, width, height)
 
-  if (backgroundPath) {
-    ctx.drawImage(backgroundPath, 0, 0, width, height)
+  if (backgroundAsset.path) {
+    ctx.drawImage(backgroundAsset.path, 0, 0, width, height)
   }
 
-  if (elementPath) {
+  if (elementAsset.path) {
     const elementWidth = width * elementLayer.widthRatio
     const elementHeight = height * elementLayer.heightRatio
     const elementX = (width - elementWidth) / 2
     const elementY = elementLayer.alignBottom ? (height - elementHeight) : 0
-    ctx.drawImage(elementPath, elementX, elementY, elementWidth, elementHeight)
+    ctx.drawImage(elementAsset.path, elementX, elementY, elementWidth, elementHeight)
   }
 
   const avatarShellX = Math.round(avatar.x * scale)
@@ -120,21 +132,36 @@ async function drawPoster({ page, canvasId, pet }) {
   ctx.setStrokeStyle('rgba(233, 196, 150, 0.9)')
   ctx.setLineWidth(2)
   ctx.stroke()
+  const avatarDrawX = avatarShellX + avatarInnerPad
+  const avatarDrawY = avatarShellY + avatarInnerPad
+  const avatarDrawW = avatarShellW - avatarInnerPad * 2
+  const avatarDrawH = avatarShellH - avatarInnerPad * 2
+  const avatarSourceWidth = avatarAsset.width || avatarDrawW
+  const avatarSourceHeight = avatarAsset.height || avatarDrawH
+  const avatarScale = Math.max(
+    avatarDrawW / avatarSourceWidth,
+    avatarDrawH / avatarSourceHeight
+  )
+  const avatarPaintW = Math.round(avatarSourceWidth * avatarScale)
+  const avatarPaintH = Math.round(avatarSourceHeight * avatarScale)
+  const avatarPaintX = avatarDrawX + Math.round((avatarDrawW - avatarPaintW) / 2)
+  const avatarPaintY = avatarDrawY + Math.round((avatarDrawH - avatarPaintH) / 2)
+
   roundRect(
     ctx,
-    avatarShellX + avatarInnerPad,
-    avatarShellY + avatarInnerPad,
-    avatarShellW - avatarInnerPad * 2,
-    avatarShellH - avatarInnerPad * 2,
+    avatarDrawX,
+    avatarDrawY,
+    avatarDrawW,
+    avatarDrawH,
     Math.round(avatar.innerRadius * scale)
   )
   ctx.clip()
   ctx.drawImage(
-    avatarPath,
-    avatarShellX + avatarInnerPad,
-    avatarShellY + avatarInnerPad,
-    avatarShellW - avatarInnerPad * 2,
-    avatarShellH - avatarInnerPad * 2
+    avatarAsset.path,
+    avatarPaintX,
+    avatarPaintY,
+    avatarPaintW,
+    avatarPaintH
   )
   ctx.restore()
 
@@ -202,12 +229,12 @@ async function drawPoster({ page, canvasId, pet }) {
   const qrSize = Math.round(qr.size * scale)
   const qrX = width - Math.round(qr.right * scale) - qrSize
   const qrY = height - Math.round(qr.bottom * scale) - qrSize
-  if (qrPath) {
+  if (qrAsset.path) {
     ctx.save()
     ctx.beginPath()
     ctx.arc(qrX + qrSize / 2, qrY + qrSize / 2, qrSize / 2, 0, Math.PI * 2)
     ctx.clip()
-    ctx.drawImage(qrPath, qrX, qrY, qrSize, qrSize)
+    ctx.drawImage(qrAsset.path, qrX, qrY, qrSize, qrSize)
     ctx.restore()
   }
 
