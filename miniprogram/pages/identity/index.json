@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "数字身份"
+  "navigationBarTitleText": "数字身份",
+  "usingComponents": {
+    "identity-illustrated-card": "/components/identity-illustrated-card/index"
+  }
 }

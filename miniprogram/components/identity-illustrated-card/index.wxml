@@ -1,0 +1,47 @@
+<view class="share-card illustrated-card">
+  <image class="illustrated-bg" src="{{assets.backgroundUrl}}" mode="widthFix"></image>
+  <view class="illustrated-elements">
+    <image class="illustrated-ele-item" src="{{assets.elementUrl}}" mode="widthFix"></image>
+  </view>
+  <view class="illustrated-info-box">
+    <view class="illustrated-avatar-shell">
+      <image class="illustrated-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    </view>
+
+    <view class="illustrated-panel">
+      <view class="illustrated-info">
+        <view class="illustrated-row">
+          <text>姓名</text>
+          <text class="highlight">{{pet.petName}}</text>
+        </view>
+        <view class="illustrated-row">
+          <text>ID</text>
+          <text class="highlight">{{pet.identityNo}}</text>
+        </view>
+        <view class="illustrated-row">
+          <text>品种</text>
+          <text>{{pet.breed}}</text>
+        </view>
+        <view wx:if="{{pet.birthDate}}" class="illustrated-row">
+          <text>生日</text>
+          <text>{{pet.birthDate}}</text>
+        </view>
+        <view wx:if="{{pet.arrivalDate}}" class="illustrated-row">
+          <text>到家日</text>
+          <text>{{pet.arrivalDate}}</text>
+        </view>
+        <view wx:if="{{pet.lifeStatus === 'in_stars' && pet.deathDate}}" class="illustrated-row">
+          <text>去星星日</text>
+          <text>{{pet.deathDate}}</text>
+        </view>
+        <view class="illustrated-row illustrated-row-desc">
+          <text>小档案</text>
+          <text>{{pet.oneLineDescription}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="illustrated-qr-shell">
+      <image class="illustrated-qr" src="{{assets.qrCodeUrl}}" mode="aspectFill"></image>
+    </view>
+  </view>
+</view>
