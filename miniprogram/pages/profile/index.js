@@ -1,7 +1,7 @@
 const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
-const defaultAvatar = storage.assetUrl('images/user-default-avatar.png')
+const defaultAvatar = storage.assetUrl('images/user-default-avatar.jpg')
 
 Page({
   data: {

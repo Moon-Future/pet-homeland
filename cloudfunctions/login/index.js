@@ -11,7 +11,7 @@ const db = cloud.database()
 const _ = db.command
 const users = db.collection('users')
 
-const DEFAULT_AVATAR = storage.assetUrl('images/user-default-avatar.png')
+const DEFAULT_AVATAR = storage.assetUrl('images/user-default-avatar.jpg')
 
 const UID_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const UID_LENGTH = 12

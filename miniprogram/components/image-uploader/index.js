@@ -1,6 +1,6 @@
 const storage = require('../../utils/storage')
 
-const defaultImage = storage.assetUrl('images/user-default-avatar.png')
+const defaultImage = storage.assetUrl('images/user-default-avatar.jpg')
 const cropRatiosByType = {
   avatar: '1:1',
   petCover: '16:9',
