@@ -16,24 +16,52 @@
 
     <view class="hero">
       <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill"></image>
-      <text class="name">{{pet.name}} ✨</text>
+      <view class="hero-main">
+        <text class="name">{{pet.name}}</text>
+        <text class="status-badge">{{pet.status}}</text>
+      </view>
       <text class="date">{{pet.dateText}}</text>
       <text class="pill">{{pet.dayText}}</text>
     </view>
 
     <view class="sheet">
-      <view class="actions">
-        <view wx:for="{{actions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
-          <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
-          <text>{{item.label}}</text>
-          <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
+      <view wx:if="{{primaryAction}}" class="feature-card">
+        <view class="feature-copy">
+          <view class="feature-icon">
+            <image src="{{primaryAction.icon}}" mode="aspectFit"></image>
+          </view>
+          <view class="feature-text">
+            <text class="feature-title">{{primaryAction.label}}</text>
+            <text class="feature-desc">{{primaryAction.desc}}</text>
+          </view>
+        </view>
+        <view class="feature-button" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
+      </view>
+
+      <view wx:if="{{quickActions.length}}" class="section-card">
+        <view class="section-head">
+          <text class="section-title">轻互动</text>
+          <text class="section-tip">留下一点陪伴痕迹</text>
+        </view>
+        <view class="actions">
+          <view wx:for="{{quickActions}}" wx:key="type" class="action" data-type="{{item.type}}" bindtap="interact">
+            <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
+            <text class="action-label">{{item.label}}</text>
+            <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
+          </view>
         </view>
       </view>
 
-      <view class="stats">
-        <view wx:for="{{stats}}" wx:key="label" class="stat">
-          <text class="stat-value">{{item.value}}</text>
-          <text class="stat-label">{{item.label}}</text>
+      <view class="section-card overview-card">
+        <view class="section-head">
+          <text class="section-title">小窝概览</text>
+        </view>
+        <text wx:if="{{isOwner}}" class="overview-visitor">{{visitorOverviewText}}</text>
+        <view class="stats {{statsGridClass}}">
+          <view wx:for="{{stats}}" wx:key="label" class="stat">
+            <text class="stat-value">{{item.value}}</text>
+            <text class="stat-label">{{item.label}}</text>
+          </view>
         </view>
       </view>
 
@@ -70,14 +98,9 @@
         <button class="identity-claim-button" loading="{{identityClaiming}}" bindtap="claimIdentity">点击领取爱宠身份证</button>
       </view>
 
-      <view wx:if="{{isOwner}}" class="visitor-summary">
-        <text>今天有 {{visitorSummary.visitorCountToday}} 位朋友来过</text>
-        <text>{{visitorSummary.visitorInteractionCountToday}} 次轻互动被留下</text>
-      </view>
-
       <view class="story-card">
         <view class="story-head">
-          <text>{{pet.name}}的小日常</text>
+          <text>{{storySectionTitle}}</text>
           <text class="edit" bindtap="goTimeline">更多 ›</text>
         </view>
         <view wx:if="{{recentMemories.length}}" class="recent-list">
@@ -90,13 +113,21 @@
             <image wx:if="{{item.img}}" class="recent-img" src="{{item.img}}" mode="aspectFill"></image>
           </view>
         </view>
-        <text wx:else class="story">{{pet.story}}</text>
+        <view wx:else class="story-empty">
+          <text class="story">{{pet.story}}</text>
+          <view wx:if="{{primaryAction}}" class="story-empty-action" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
+        </view>
       </view>
 
-      <view class="entry-grid">
-        <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
-        <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
-        <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
+      <view class="section-card entry-section">
+        <view class="section-head compact">
+          <text class="section-title">更多入口</text>
+        </view>
+        <view class="entry-grid">
+          <view class="entry" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
+          <view class="entry" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
+          <view class="entry" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
+        </view>
       </view>
 
       <view wx:if="{{(viewingPetSpaceId && !isOwner) || reviewNotice}}" class="support-panel">

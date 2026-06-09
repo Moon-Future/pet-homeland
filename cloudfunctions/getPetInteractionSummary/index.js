@@ -35,6 +35,7 @@ exports.main = async (event = {}) => {
     const todayCounts = {}
     let visitorCountToday = 0
     let visitorInteractionCountToday = 0
+    let visitorCountAllTime = 0
 
     try {
       const query = await db.collection('interactions')
@@ -61,6 +62,7 @@ exports.main = async (event = {}) => {
         })
 
         visitorCountToday = Object.keys(visitorOpenids).length
+        visitorCountAllTime = await countAllTimeVisitors(petSpaceId)
       }
     } catch (error) {
       if (!isCollectionNotFound(error)) {
@@ -75,6 +77,7 @@ exports.main = async (event = {}) => {
       todayCounts,
       visitorCountToday,
       visitorInteractionCountToday,
+      visitorCountAllTime,
     }
   } catch (error) {
     return {
@@ -82,6 +85,35 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '读取互动次数失败',
     }
   }
+}
+
+async function countAllTimeVisitors(petSpaceId) {
+  const visitorOpenids = {}
+  const batchSize = 100
+  let offset = 0
+
+  while (true) {
+    const result = await db.collection('interactions')
+      .where({ petSpaceId, isOwner: false })
+      .skip(offset)
+      .limit(batchSize)
+      .get()
+
+    const list = result.data || []
+    list.forEach((item) => {
+      if (item.openid) {
+        visitorOpenids[item.openid] = true
+      }
+    })
+
+    if (list.length < batchSize) {
+      break
+    }
+
+    offset += batchSize
+  }
+
+  return Object.keys(visitorOpenids).length
 }
 
 function getChinaDateKey(date) {

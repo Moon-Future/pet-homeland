@@ -37,10 +37,10 @@
       </view>
     </view>
 
-    <view wx:elif="{{isLoggedIn && hasPetSpaces}}" class="recent-card">
+    <view wx:elif="{{isLoggedIn && hasPetSpaces}}" class="recent-card" bindtap="enterCurrentPet">
       <view class="card-head">
         <text class="card-title">{{featuredPet.recentTitle}}</text>
-        <view class="view-all" bindtap="onViewAll">
+        <view class="view-all" catchtap="onViewAll">
           <text>全部宠物</text>
           <image class="arrow-icon" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
@@ -53,7 +53,7 @@
             wx:key="id"
             class="pet-filter {{item.active ? 'active' : ''}}"
             data-id="{{item.id}}"
-            bindtap="onSelectPet"
+            catchtap="onSelectPet"
           >
             <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
             <text>{{item.petName}}</text>
@@ -61,7 +61,7 @@
         </view>
       </scroll-view>
 
-      <view class="card-body" bindtap="enterCurrentPet">
+      <view class="card-body">
         <image class="pet-avatar" src="{{featuredPet.avatar}}" mode="aspectFill"></image>
 
         <view class="pet-info">

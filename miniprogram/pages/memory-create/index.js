@@ -18,6 +18,8 @@ Page({
     saving: false,
     deleting: false,
     today: '',
+    entryMode: 'daily',
+    pageTitle: '记录今天',
     form: {
       title: '',
       content: '',
@@ -47,16 +49,20 @@ Page({
     }
 
     const today = this.formatDate(new Date())
+    const entryMode = options.entryMode === 'memorial' ? 'memorial' : 'daily'
+    const pageTitle = options.memoryId ? '编辑日常' : (entryMode === 'memorial' ? '记录回忆' : '记录今天')
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
       memoryId: options.memoryId || '',
       isEditing: Boolean(options.memoryId),
       today,
+      entryMode,
+      pageTitle,
       'form.memoryDate': today,
     })
 
     wx.setNavigationBarTitle({
-      title: options.memoryId ? '编辑日常' : '记录今天',
+      title: pageTitle,
     })
 
     if (options.memoryId) {
