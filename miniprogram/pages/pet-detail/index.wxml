@@ -9,19 +9,38 @@
           <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
         </button>
         <button wx:if="{{isOwner}}" class="edit-button" bindtap="goEditPet">
+          <text class="edit-label">设置</text>
           <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
         </button>
       </view>
     </view>
 
     <view class="hero">
-      <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
-      <view class="hero-main">
-        <text class="name">{{pet.name}}</text>
-        <text class="status-badge">{{pet.status}}</text>
+      <view class="hero-top">
+        <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
+        <view class="hero-copy">
+          <view class="hero-main">
+            <text class="name">{{pet.name}}</text>
+            <text class="status-badge">{{pet.status}}</text>
+          </view>
+          <text class="date">{{pet.dateText}}</text>
+          <text class="pill">{{pet.dayText}}</text>
+        </view>
       </view>
-      <text class="date">{{pet.dateText}}</text>
-      <text class="pill">{{pet.dayText}}</text>
+      <view wx:if="{{pet.identityClaimed}}" class="hero-identity tap-feedback" hover-class="tap-feedback-hover" bindtap="goIdentity">
+        <view class="hero-identity-copy">
+          <text class="hero-identity-label">数字身份编号</text>
+          <text class="hero-identity-no">{{pet.identityNo}}</text>
+        </view>
+        <image class="hero-identity-arrow" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
+      </view>
+      <view wx:elif="{{isOwner}}" class="hero-identity hero-identity-claim">
+        <view class="hero-identity-copy">
+          <text class="hero-identity-label">爱宠身份档案</text>
+          <text class="hero-identity-desc">每只爱宠都可领取唯一身份编号，领取后会永久展示在档案中。</text>
+        </view>
+        <button class="hero-identity-button" loading="{{identityClaiming}}" bindtap="claimIdentity">点击领取爱宠身份证</button>
+      </view>
     </view>
 
     <view class="sheet">
@@ -57,48 +76,14 @@
           <text class="section-title">小窝概览</text>
         </view>
         <text wx:if="{{isOwner}}" class="overview-visitor">{{visitorOverviewText}}</text>
-        <view class="stats {{statsGridClass}}">
-          <view wx:for="{{stats}}" wx:key="label" class="stat">
-            <text class="stat-value">{{item.value}}</text>
-            <text class="stat-label">{{item.label}}</text>
+        <scroll-view class="stats-scroll" scroll-x enable-flex>
+          <view class="stats stats-inline">
+            <view wx:for="{{stats}}" wx:key="label" class="stat stat-inline">
+              <text class="stat-value">{{item.value}}</text>
+              <text class="stat-label">{{item.label}}</text>
+            </view>
           </view>
-        </view>
-      </view>
-
-      <view wx:if="{{pet.identityClaimed}}" class="identity-card tap-feedback" hover-class="tap-feedback-hover" bindtap="goIdentity">
-        <view class="identity-head">
-          <view class="identity-main">
-            <text class="identity-label">数字身份编号</text>
-            <text class="identity-no">{{pet.identityNo}}</text>
-          </view>
-          <image class="identity-arrow" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
-        </view>
-        <view class="identity-meta">
-          <view>
-            <text>档案</text>
-            <text>{{pet.phaseText}}</text>
-          </view>
-          <view>
-            <text>身份</text>
-            <text>{{pet.identityStatusText}}</text>
-          </view>
-          <view>
-            <text>领取</text>
-            <text>{{pet.identityClaimedDate || '刚刚激活'}}</text>
-          </view>
-          <!-- <view>
-            <text>NFC</text>
-            <text>{{pet.nfcStatusText}}</text>
-          </view> -->
-        </view>
-      </view>
-
-      <view wx:elif="{{isOwner}}" class="identity-claim-card">
-        <view class="identity-claim-copy">
-          <text class="identity-claim-title">爱宠身份档案</text>
-          <text class="identity-claim-desc">每只爱宠都可领取唯一身份编号，领取后会永久展示在档案中。</text>
-        </view>
-        <button class="identity-claim-button" loading="{{identityClaiming}}" bindtap="claimIdentity">点击领取爱宠身份证</button>
+        </scroll-view>
       </view>
 
       <view class="story-card">
