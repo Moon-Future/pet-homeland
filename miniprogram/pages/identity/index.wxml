@@ -21,7 +21,6 @@
 
     <view class="activation-shell">
       <view class="activation-card stage-{{activationStep}}">
-        <view class="activation-halo"></view>
         <image class="activation-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
         <text class="activation-name">{{pet.petName}}</text>
         <text class="activation-code">{{pet.identityNo}}</text>

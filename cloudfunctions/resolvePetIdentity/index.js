@@ -19,12 +19,14 @@ exports.main = async (event = {}) => {
     const where = token ? { identityToken: token } : { identityNo }
     const result = await db.collection('pet_spaces').where(where).limit(1).get()
     const petSpace = (result.data || [])[0]
+    let justActivated = false
 
     if (!petSpace || petSpace.status === 'deleted' || !petSpace.identityClaimedAt) {
       return { ok: false, message: 'pet identity not found' }
     }
 
     if (!petSpace.identityActivatedAt) {
+      justActivated = true
       const activatedAt = new Date()
       await db.collection('pet_spaces').doc(petSpace._id).update({
         data: {
@@ -40,6 +42,7 @@ exports.main = async (event = {}) => {
 
     return {
       ok: true,
+      justActivated,
       petSpace: safePetSpace,
     }
   } catch (error) {

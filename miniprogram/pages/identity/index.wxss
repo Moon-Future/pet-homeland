@@ -100,7 +100,7 @@ button::after {
   display: block;
   margin-top: 18rpx;
   max-width: 620rpx;
-  font-size: 48rpx;
+  font-size: 40rpx;
   font-weight: 900;
   line-height: 1.18;
 }
@@ -119,20 +119,6 @@ button::after {
   background: linear-gradient(145deg, rgba(255, 251, 245, .92), rgba(255, 241, 228, .76));
   box-shadow: 0 20rpx 44rpx rgba(117, 73, 49, .18);
   box-sizing: border-box;
-}
-
-.activation-halo {
-  position: absolute;
-  left: 50%;
-  top: 92rpx;
-  width: 220rpx;
-  height: 220rpx;
-  margin-left: -110rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 189, 143, .45), rgba(255, 189, 143, 0));
-  opacity: 0;
-  transform: scale(.7);
-  transition: all .45s ease;
 }
 
 .activation-avatar {
@@ -213,14 +199,6 @@ button::after {
   background: rgba(255, 255, 255, .82);
   font-size: 22rpx;
   font-weight: 900;
-}
-
-.activation-card.stage-1 .activation-halo,
-.activation-card.stage-2 .activation-halo,
-.activation-card.stage-3 .activation-halo,
-.activation-card.stage-4 .activation-halo {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .activation-card.stage-1 .activation-avatar,

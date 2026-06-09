@@ -1023,12 +1023,25 @@ Page({
       })
       this.savePetDetailCache()
       wx.hideLoading()
-      wx.showModal({
-        title: '领取成功',
-        content: `爱宠身份证已激活\n专属编号：${petView.identityNo}`,
-        showCancel: false,
-        confirmText: '我知道了',
+      wx.showToast({
+        title: '正在进入数字身份',
+        icon: 'none',
       })
+      setTimeout(() => {
+        const token = rawPet.identityToken || ''
+        if (token) {
+          wx.navigateTo({
+            url: `/pages/identity/index?token=${encodeURIComponent(token)}&playActivation=1`,
+          })
+          return
+        }
+
+        if (petView.identityNo) {
+          wx.navigateTo({
+            url: `/pages/identity/index?code=${encodeURIComponent(petView.identityNo)}&playActivation=1`,
+          })
+        }
+      }, 250)
     } catch (error) {
       this.setData({ identityClaiming: false })
       wx.hideLoading()

@@ -44,6 +44,7 @@ Page({
 
     const token = options.token || ''
     const identityNo = options.code || options.identityNo || ''
+    const forcePlayActivation = options.playActivation === '1'
 
     if (!token && !identityNo) {
       this.setData({ loading: false, error: '缺少宠物身份编号' })
@@ -72,13 +73,14 @@ Page({
       }
 
       const pet = this.normalizePet(result.petSpace)
+      const shouldPlayActivation = forcePlayActivation || Boolean(result.justActivated)
       this.setData({
         loading: false,
         pet,
-        activationStep: pet.identityActivatedAt ? 4 : 0,
+        activationStep: shouldPlayActivation ? 0 : (pet.identityActivatedAt ? 4 : 0),
         visitorOverviewText: `${pet.petName} 的身份编号 ${pet.identityNo} 已正式生效。`,
       })
-      if (pet.identityActivatedAt) {
+      if (!shouldPlayActivation && pet.identityActivatedAt) {
         return
       }
 

@@ -28,8 +28,8 @@
 
 .illustrated-ele-item {
   position: absolute;
-  top: 20rpx;
-  left: 24rpx;
+  top: 2rpx;
+  left: 2rpx;
   z-index: 100;
 }
 
@@ -81,7 +81,7 @@
   align-items: flex-start;
   gap: 16rpx;
   color: #916747;
-  font-size: 18rpx;
+  font-size: 20rpx;
   font-weight: 800;
 }
 
@@ -93,7 +93,7 @@
 
 .illustrated-row .highlight {
   color: #df835b;
-  font-size: 21rpx;
+  font-size: 20rpx;
 }
 
 .illustrated-row-desc text:last-child {

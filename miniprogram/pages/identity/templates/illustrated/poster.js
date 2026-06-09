@@ -193,7 +193,7 @@ async function drawPoster({ page, canvasId, pet }) {
     ctx.setFontSize(Math.round(info.labelFont * scale))
     ctx.fillText(label, infoLabelX, rowY)
 
-    ctx.setFillStyle(label === 'ID' ? '#df835b' : '#5f3c25')
+    ctx.setFillStyle('#5f3c25')
     ctx.setFontSize(Math.round(info.valueFont * scale))
     drawWrappedText(
       ctx,
