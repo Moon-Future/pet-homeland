@@ -37,7 +37,7 @@
         </view>
       </view>
 
-      <view wx:if="{{pet.identityNo}}" class="identity-card" bindtap="goIdentity">
+      <view wx:if="{{pet.identityClaimed}}" class="identity-card" bindtap="goIdentity">
         <view class="identity-main">
           <text class="identity-label">数字身份编号</text>
           <text class="identity-no">{{pet.identityNo}}</text>
@@ -52,10 +52,22 @@
             <text>{{pet.identityStatusText}}</text>
           </view>
           <view>
+            <text>领取</text>
+            <text>{{pet.identityClaimedDate || '刚刚激活'}}</text>
+          </view>
+          <!-- <view>
             <text>NFC</text>
             <text>{{pet.nfcStatusText}}</text>
-          </view>
+          </view> -->
         </view>
+      </view>
+
+      <view wx:elif="{{isOwner}}" class="identity-claim-card">
+        <view class="identity-claim-copy">
+          <text class="identity-claim-title">爱宠身份档案</text>
+          <text class="identity-claim-desc">每只爱宠都可领取唯一身份编号，领取后会永久展示在档案中。</text>
+        </view>
+        <button class="identity-claim-button" loading="{{identityClaiming}}" bindtap="claimIdentity">点击领取爱宠身份证</button>
       </view>
 
       <view wx:if="{{isOwner}}" class="visitor-summary">

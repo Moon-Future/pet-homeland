@@ -53,13 +53,17 @@ exports.main = async (event = {}) => {
 }
 
 function sanitizePetSpace(item = {}) {
+  const identityClaimed = Boolean(item.identityClaimedAt)
+
   return {
     _id: item._id,
-    identityNo: item.identityNo || '',
+    identityNo: identityClaimed ? (item.identityNo || '') : '',
     identityCode: item.identityCode || '',
     identityYear: item.identityYear || '',
     identityStatus: item.identityStatus || 'active',
     identityCreatedAt: item.identityCreatedAt || '',
+    identityClaimed: identityClaimed,
+    identityClaimedAt: item.identityClaimedAt || '',
     nfc: item.nfc || { status: 'unbound', tagId: '', boundAt: null },
     petName: item.petName || '未命名小窝',
     petType: item.petType || 'other',

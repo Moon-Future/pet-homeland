@@ -14,6 +14,7 @@ Page({
     pet: null,
     rawPet: null,
     interacting: false,
+    identityClaiming: false,
     isOwner: false,
     canSharePet: false,
     viewingPetSpaceId: '',
@@ -289,10 +290,13 @@ Page({
     const isInStars = lifeStatus === 'in_stars'
     const dateText = this.getDateText(item)
     const metrics = this.getPetMetrics(item)
+    const identityClaimed = Boolean(item.identityClaimed || item.identityClaimedAt)
 
     return {
       id: item._id,
       identityNo: item.identityNo || '',
+      identityClaimed,
+      identityClaimedDate: this.normalizeCloudDate(item.identityClaimedAt),
       identityStatusText: item.identityStatus === 'archived' ? '已归档' : '永久保留',
       nfcStatusText: item.nfc && item.nfc.status === 'bound' ? '已绑定' : '未绑定',
       phaseText: isInStars ? '数字纪念档案' : '数字生命档案',
@@ -305,6 +309,33 @@ Page({
       cover: themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
     }
+  },
+
+  normalizeCloudDate(value) {
+    if (!value) {
+      return ''
+    }
+
+    if (typeof value === 'string') {
+      return /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : ''
+    }
+
+    if (value instanceof Date) {
+      return this.formatDateValue(value)
+    }
+
+    if (typeof value === 'object' && value.$date) {
+      return this.normalizeCloudDate(value.$date)
+    }
+
+    return ''
+  },
+
+  formatDateValue(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   },
 
   async loadInteractionSummary(petSpaceId) {
@@ -815,6 +846,9 @@ Page({
   goIdentity() {
     const rawPet = this.data.rawPet || {}
     const pet = this.data.pet || {}
+    if (!pet.identityClaimed) {
+      return
+    }
     const token = rawPet.identityToken || ''
     const identityNo = pet.identityNo || rawPet.identityNo || ''
 
@@ -828,6 +862,58 @@ Page({
     if (identityNo) {
       wx.navigateTo({
         url: `/pages/identity/index?code=${encodeURIComponent(identityNo)}`,
+      })
+    }
+  },
+
+  async claimIdentity() {
+    const pet = this.data.pet || {}
+    if (!this.data.isOwner || this.data.identityClaiming || !pet.id) {
+      return
+    }
+
+    this.setData({ identityClaiming: true })
+    wx.showLoading({ title: '正在生成编号...', mask: true })
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'claimPetIdentity',
+        data: { petSpaceId: pet.id },
+      })
+
+      if (!result || !result.ok || !result.petSpace) {
+        throw new Error((result && result.message) || '领取爱宠身份证失败')
+      }
+
+      const claimedFields = result.petSpace
+      const rawPet = {
+        ...this.data.rawPet,
+        identityNo: claimedFields.identityNo || this.data.rawPet.identityNo || '',
+        identityToken: claimedFields.identityToken || this.data.rawPet.identityToken || '',
+        identityClaimed: true,
+        identityClaimedAt: claimedFields.identityClaimedAt || new Date().toISOString(),
+      }
+      const petView = this.normalizePet(rawPet)
+
+      this.setData({
+        identityClaiming: false,
+        rawPet,
+        pet: petView,
+      })
+      this.savePetDetailCache()
+      wx.hideLoading()
+      wx.showModal({
+        title: '领取成功',
+        content: `爱宠身份证已激活\n专属编号：${petView.identityNo}`,
+        showCancel: false,
+        confirmText: '我知道了',
+      })
+    } catch (error) {
+      this.setData({ identityClaiming: false })
+      wx.hideLoading()
+      wx.showToast({
+        title: error.message || '领取爱宠身份证失败',
+        icon: 'none',
       })
     }
   },

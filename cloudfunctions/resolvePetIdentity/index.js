@@ -20,7 +20,7 @@ exports.main = async (event = {}) => {
     const result = await db.collection('pet_spaces').where(where).limit(1).get()
     const petSpace = (result.data || [])[0]
 
-    if (!petSpace || petSpace.status === 'deleted') {
+    if (!petSpace || petSpace.status === 'deleted' || !petSpace.identityClaimedAt) {
       return { ok: false, message: 'pet identity not found' }
     }
 
@@ -50,6 +50,8 @@ function sanitizePetSpace(item = {}) {
     identityYear: item.identityYear || '',
     identityStatus: item.identityStatus || 'active',
     identityCreatedAt: item.identityCreatedAt || '',
+    identityClaimed: true,
+    identityClaimedAt: item.identityClaimedAt || '',
     nfc: item.nfc || { status: 'unbound', tagId: '', boundAt: null },
     petName: item.petName || '',
     petType: item.petType || 'other',

@@ -1,0 +1,9 @@
+{
+  "name": "claimPetIdentity",
+  "version": "1.0.0",
+  "description": "领取宠物数字身份展示状态",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

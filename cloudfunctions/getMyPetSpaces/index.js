@@ -54,6 +54,10 @@ exports.main = async () => {
 
 function attachPetImageUrls(petSpaces) {
   petSpaces.forEach((item) => {
+    item.identityClaimed = Boolean(item.identityClaimedAt)
+    if (!item.identityClaimed) {
+      item.identityNo = ''
+    }
     item.avatarUrl = storage.buildUrl(item.avatarRef)
     item.coverUrl = storage.buildUrl(item.coverRef) || item.avatarUrl
   })

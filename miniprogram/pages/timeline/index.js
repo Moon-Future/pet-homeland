@@ -257,10 +257,10 @@ Page({
       }))
     }
 
-    if (pet.identityCreatedDate) {
+    if (pet.identityClaimedDate) {
       events.push(this.createSystemEvent({
         id: 'system-identity',
-        date: pet.identityCreatedDate,
+        date: pet.identityClaimedDate,
         title: `${name} 获得数字身份`,
         desc: pet.identityNo ? `身份编号 ${pet.identityNo}` : '这份档案将被长期保留。',
         type: 'identity',
@@ -331,7 +331,7 @@ Page({
       arrivalDate: item.arrivalDate || '',
       deathDate: item.deathDate || '',
       identityNo: item.identityNo || '',
-      identityCreatedDate: this.normalizeCloudDate(item.identityCreatedAt),
+      identityClaimedDate: this.normalizeCloudDate(item.identityClaimedAt),
     }
   },
 

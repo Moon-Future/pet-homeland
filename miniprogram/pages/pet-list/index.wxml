@@ -30,6 +30,7 @@
         </view>
         <text class="pet-metrics">{{item.metricText}}</text>
         <text wx:if="{{item.identityNo}}" class="pet-identity">{{item.identityNo}}</text>
+        <text wx:elif="{{item.identityClaimed === false}}" class="pet-identity">待领取爱宠身份证</text>
         <text class="pet-story">{{item.story}}</text>
       </view>
       <button class="enter-button" data-id="{{item.id}}" catchtap="enterPet">
