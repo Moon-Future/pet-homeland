@@ -42,6 +42,10 @@ button::after {
   opacity: .92;
 }
 
+.tap-feedback-hover .action-icon {
+  background: rgba(236,203,166,.52);
+}
+
 .tap-feedback-strong-hover {
   transform: scale(.965);
   filter: brightness(.98);

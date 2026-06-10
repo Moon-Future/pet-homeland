@@ -81,7 +81,7 @@ button::after {
 }
 
 .top-copy {
-  padding: 72rpx 34rpx 0;
+  padding: 20rpx 34rpx 0;
   color: #fffdf7;
   text-shadow: 0 8rpx 20rpx rgba(56, 35, 25, .26);
 }

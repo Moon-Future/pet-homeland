@@ -59,22 +59,22 @@
 
       <view wx:if="{{quickActions.length}}" class="section-card">
         <view class="section-head">
-          <text class="section-title">轻互动</text>
+          <!-- <text class="section-title">轻互动</text> -->
           <text class="section-tip">留下一点陪伴痕迹</text>
         </view>
         <view class="actions">
           <view wx:for="{{quickActions}}" wx:key="type" class="action tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
             <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
             <text class="action-label">{{item.label}}</text>
-            <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text>
+            <!-- <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text> -->
           </view>
         </view>
       </view>
 
       <view class="section-card overview-card">
-        <view class="section-head">
+        <!-- <view class="section-head">
           <text class="section-title">小窝概览</text>
-        </view>
+        </view> -->
         <text wx:if="{{isOwner}}" class="overview-visitor">{{visitorOverviewText}}</text>
         <scroll-view class="stats-scroll" scroll-x enable-flex>
           <view class="stats stats-inline">

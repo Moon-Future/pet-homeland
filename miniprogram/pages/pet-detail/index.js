@@ -493,7 +493,7 @@ Page({
     const todayInteractions = summary.visitorInteractionCountToday || 0
     const allTimeVisitors = summary.visitorCountAllTime || 0
 
-    return `今天有 ${todayVisitors} 位朋友来过，留下 ${todayInteractions} 次轻互动；累计有 ${allTimeVisitors} 位朋友访问过。`
+    return `今天有 ${todayVisitors} 位朋友来过，留下 ${todayInteractions} 次互动；累计有 ${allTimeVisitors} 位朋友访问过。`
   },
 
   getStatsGridClass(stats = {}, lifeStatus, isOwner = this.data.isOwner, visitorSummary = this.data.visitorSummary) {

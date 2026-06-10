@@ -15,7 +15,7 @@
     <view class="shade"></view>
 
     <view class="top-copy">
-      <text class="eyebrow">Identity Activation</text>
+      <!-- <text class="eyebrow">Identity Activation</text> -->
       <text class="headline">{{pet.heroStatement}}</text>
     </view>
 
