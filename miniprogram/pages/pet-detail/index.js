@@ -14,6 +14,7 @@ Page({
     pet: null,
     rawPet: null,
     interacting: false,
+    interactingText: '',
     identityClaiming: false,
     isOwner: false,
     canSharePet: false,
@@ -800,7 +801,8 @@ Page({
       return
     }
 
-    this.setData({ interacting: true })
+    const interactingText = action ? `${action.label}中...` : '互动中...'
+    this.setData({ interacting: true, interactingText })
 
     try {
       const { result } = await wx.cloud.callFunction({
@@ -839,6 +841,7 @@ Page({
 
       this.setData({
         interacting: false,
+        interactingText: '',
         rawPet,
         actions: this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts),
         stats: this.normalizeStats(nextStats, rawPet.lifeStatus),
@@ -850,7 +853,7 @@ Page({
         icon: 'none',
       })
     } catch (error) {
-      this.setData({ interacting: false })
+      this.setData({ interacting: false, interactingText: '' })
       wx.showToast({
         title: error.message || '互动失败，请稍后重试',
         icon: 'none',

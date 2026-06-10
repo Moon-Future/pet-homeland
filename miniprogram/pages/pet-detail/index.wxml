@@ -57,7 +57,7 @@
         <view class="feature-button tap-feedback-strong" hover-class="tap-feedback-strong-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
       </view>
 
-      <view wx:if="{{quickActions.length}}" class="section-card">
+      <view wx:if="{{quickActions.length}}" class="section-card interaction-card {{!primaryAction ? 'first-card' : ''}}">
         <view class="section-head">
           <!-- <text class="section-title">轻互动</text> -->
           <text class="section-tip">留下一点陪伴痕迹</text>
@@ -175,5 +175,12 @@
     <text class="empty-title">登录后查看宠物小窝</text>
     <text class="empty-desc">保存照片、故事和陪伴时光。</text>
     <button class="login-button" bindtap="goLogin">去登录</button>
+  </view>
+
+  <view wx:if="{{interacting}}" class="interaction-mask" catchtouchmove="noop">
+    <view class="interaction-loading">
+      <view class="interaction-spinner"></view>
+      <text>{{interactingText || '互动中...'}}</text>
+    </view>
   </view>
 </view>
