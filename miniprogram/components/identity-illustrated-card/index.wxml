@@ -40,8 +40,8 @@
         </view>
       </view>
     </view>
-    <view class="illustrated-qr-shell">
+    <!-- <view class="illustrated-qr-shell">
       <image class="illustrated-qr" src="{{assets.qrCodeUrl}}" mode="aspectFill"></image>
-    </view>
+    </view> -->
   </view>
 </view>

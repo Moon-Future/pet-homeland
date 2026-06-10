@@ -98,14 +98,6 @@ async function drawPoster({ page, canvasId, pet }) {
     ctx.drawImage(backgroundAsset.path, 0, 0, width, height)
   }
 
-  if (elementAsset.path) {
-    const elementWidth = width * elementLayer.widthRatio
-    const elementHeight = height * elementLayer.heightRatio
-    const elementX = (width - elementWidth) / 2
-    const elementY = elementLayer.alignBottom ? (height - elementHeight) : 0
-    ctx.drawImage(elementAsset.path, elementX, elementY, elementWidth, elementHeight)
-  }
-
   const avatarShellX = Math.round(avatar.x * scale)
   const avatarShellY = Math.round(avatar.y * scale)
   const avatarShellW = Math.round(avatar.width * scale)
@@ -215,9 +207,10 @@ async function drawPoster({ page, canvasId, pet }) {
   ctx.fillText(info.descLabel, infoLabelX, rowY + Math.round(2 * scale))
   ctx.setFillStyle('#5f3c25')
   ctx.setFontSize(Math.round(info.valueFont * scale))
+  const oneLineDescription = pet.oneLineDescription ? pet.oneLineDescription.slice(0, 15) : '-'
   drawWrappedText(
     ctx,
-    pet.oneLineDescription || '-',
+    oneLineDescription,
     infoValueX,
     rowY,
     Math.round(info.descWidth * scale),
@@ -225,6 +218,15 @@ async function drawPoster({ page, canvasId, pet }) {
     info.descLines,
     'left'
   )
+
+  if (elementAsset.path) {
+    const elementWidth = width * elementLayer.widthRatio
+    const elementHeight = height * elementLayer.heightRatio
+    const elementX = (width - elementWidth) / 2
+    const elementY = elementLayer.alignBottom ? (height - elementHeight) : 0
+    ctx.save()
+    ctx.drawImage(elementAsset.path, elementX, elementY, elementWidth, elementHeight)
+  }
 
   const qrSize = Math.round(qr.size * scale)
   const qrX = width - Math.round(qr.right * scale) - qrSize

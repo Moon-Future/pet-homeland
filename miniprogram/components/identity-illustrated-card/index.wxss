@@ -85,10 +85,16 @@
   font-weight: 800;
 }
 
+.illustrated-row text {
+  flex-shrink: 0;
+  max-width: 300rpx;
+  overflow: hidden;
+}
+
 .illustrated-row text:last-child {
   color: #5d3820;
   word-break: break-all;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .illustrated-row .highlight {
