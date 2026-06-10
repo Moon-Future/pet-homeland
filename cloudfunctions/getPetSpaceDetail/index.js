@@ -38,7 +38,7 @@ exports.main = async (event = {}) => {
     const safePetSpace = sanitizePetSpace(petSpace)
     safePetSpace.stats = {
       ...(safePetSpace.stats || {}),
-      ...(await getVisibleStats(petSpace._id, isOwner, isAdmin)),
+      ...(await getVisibleStats(petSpace, isOwner, isAdmin)),
     }
     attachPetImageUrls(safePetSpace)
 
@@ -56,8 +56,15 @@ exports.main = async (event = {}) => {
   }
 }
 
-async function getVisibleStats(petSpaceId, isOwner, isAdmin) {
+async function getVisibleStats(petSpace, isOwner, isAdmin) {
   const canSeeAll = isOwner || isAdmin
+  if (canSeeAll) {
+    return {
+      memoryCount: (petSpace.stats || {}).memoryCount || 0,
+      mediaCount: (petSpace.stats || {}).mediaCount || 0,
+    }
+  }
+  const petSpaceId = petSpace._id
   const where = {
     petSpaceId,
     status: canSeeAll ? _.neq('deleted') : 'active',

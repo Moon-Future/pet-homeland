@@ -247,11 +247,15 @@ Page({
         name: 'updateMemory',
         data: {
           memoryId: this.data.memoryId,
+          sessionGrant: auth.getSessionGrant(),
           memory: payload.memory,
         },
       } : {
         name: 'addMemory',
-        data: payload,
+        data: {
+          ...payload,
+          sessionGrant: auth.getSessionGrant(),
+        },
       })
 
       if (!result || !result.ok) {

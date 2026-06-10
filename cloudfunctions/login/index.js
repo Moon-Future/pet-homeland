@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
 const grant = require('./grant')
 const storage = require('./storage')
+const uploadRef = require('./upload-ref')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -37,6 +38,13 @@ exports.main = async (event = {}) => {
 
   if (!current) {
     const uid = await generateUniqueUid()
+    if (profile.avatarRef) {
+      profile.avatarRef = uploadRef.assertRef(profile.avatarRef, {
+        uid,
+        type: 'avatar',
+        message: '头像上传来源无效，请重新选择',
+      })
+    }
     const user = {
       openid,
       uid,
@@ -74,6 +82,7 @@ exports.main = async (event = {}) => {
     lastLoginAt: now,
     updatedAt: now,
   }
+  const uid = current.uid || await generateUniqueUid()
 
   if (profile.nickname) {
     updateData.nickname = profile.nickname
@@ -83,6 +92,13 @@ exports.main = async (event = {}) => {
   const oldAvatarRef = current.avatarRef || null
 
   if (profile.avatarRef !== undefined) {
+    if (profile.avatarRef) {
+      profile.avatarRef = uploadRef.assertRef(profile.avatarRef, {
+        uid,
+        type: 'avatar',
+        message: '头像上传来源无效，请重新选择',
+      })
+    }
     // Use _.set to replace the whole field. Plain object assignment is treated
     // as a deep merge by wx-server-sdk, which fails when the current value is
     // null because it tries to create sub-fields inside null.
@@ -92,7 +108,7 @@ exports.main = async (event = {}) => {
   // Backfill uid for users created before the qiniu migration. Should be a
   // one-time write per user during the rollout window.
   if (!current.uid) {
-    updateData.uid = await generateUniqueUid()
+    updateData.uid = uid
   }
 
   await users.doc(current._id).update({
@@ -105,7 +121,8 @@ exports.main = async (event = {}) => {
   if (profile.avatarRef !== undefined) {
     const newAvatarRef = profile.avatarRef || null
     if (oldAvatarRef && (!newAvatarRef || oldAvatarRef.key !== newAvatarRef.key)) {
-      await storage.deleteObjects([oldAvatarRef]).catch(() => {})
+      const removable = uploadRef.filterUserOwnedRefs([oldAvatarRef], uid)
+      await storage.deleteObjects(removable).catch(() => {})
     }
   }
 

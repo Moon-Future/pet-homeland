@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk')
 const storage = require('./storage')
+const uploadRef = require('./upload-ref')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -16,6 +17,8 @@ exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
   const memoryId = sanitizeString(event.memoryId, 64)
   const action = sanitizeString(event.action, 16) || 'update'
+  let reservedMediaDelta = 0
+  let memoryUpdated = false
 
   if (!openid) {
     return { ok: false, message: '无法获取微信登录态' }
@@ -40,6 +43,7 @@ exports.main = async (event = {}) => {
     if (existing.ownerOpenid !== openid) {
       return { ok: false, message: '只有小窝主人可以编辑' }
     }
+    const uid = await uploadRef.getUserUid(db, openid)
 
     if (action === 'delete') {
       await db.collection('memories').doc(memoryId).update({
@@ -53,7 +57,7 @@ exports.main = async (event = {}) => {
           status: 'deleted',
         },
       }).catch(() => {})
-      await storage.deleteObjects(existing.mediaRefs || [])
+      await storage.deleteObjects(uploadRef.filterUserOwnedRefs(existing.mediaRefs || [], uid))
       await adjustStats(existing.petSpaceId, openid, -1, -(existing.mediaRefs || []).length)
       return { ok: true }
     }
@@ -69,19 +73,32 @@ exports.main = async (event = {}) => {
       return security
     }
 
+    const petSpace = await db.collection('pet_spaces').doc(existing.petSpaceId).get()
+    const shouldReview = petSpace.data && petSpace.data.visibility === 'discover'
+    const reviewStatus = shouldReview ? 'pending_review' : 'not_required'
+    memory.mediaRefs = uploadRef.assertRefs(memory.mediaRefs, {
+      uid,
+      petSpaceId: existing.petSpaceId,
+      type: 'memory',
+      message: '记录图片上传来源无效，请重新选择',
+    })
     const oldRefs = existing.mediaRefs || []
     const nextRefs = memory.mediaRefs
     const oldKeys = new Set(oldRefs.map((ref) => ref.key))
     const nextKeys = new Set(nextRefs.map((ref) => ref.key))
     const removedRefs = oldRefs.filter((ref) => !nextKeys.has(ref.key))
     const addedRefs = nextRefs.filter((ref) => !oldKeys.has(ref.key))
-
-    const petSpace = await db.collection('pet_spaces').doc(existing.petSpaceId).get()
-    const shouldReview = petSpace.data && petSpace.data.visibility === 'discover'
-    const reviewStatus = shouldReview ? 'pending_review' : 'not_required'
     const quota = await checkMemoryImageQuota(openid, oldRefs, nextRefs.length)
     if (!quota.ok) {
       return quota
+    }
+    const mediaDelta = addedRefs.length - removedRefs.length
+    if (mediaDelta > 0) {
+      const reserved = await reserveUserMediaQuota(openid, mediaDelta)
+      if (!reserved.ok) {
+        return reserved
+      }
+      reservedMediaDelta = mediaDelta
     }
 
     await db.collection('memories').doc(memoryId).update({
@@ -100,11 +117,12 @@ exports.main = async (event = {}) => {
         updatedAt: db.serverDate(),
       },
     })
+    memoryUpdated = true
 
     await Promise.all(removedRefs.map((ref) => db.collection('media').where({ memoryId, key: ref.key }).update({
       data: { status: 'deleted' },
     }).catch(() => {})))
-    await storage.deleteObjects(removedRefs)
+    await storage.deleteObjects(uploadRef.filterUserOwnedRefs(removedRefs, uid))
 
     if (nextRefs.length) {
       await db.collection('media').where({
@@ -133,7 +151,7 @@ exports.main = async (event = {}) => {
       },
     })))
 
-    await adjustStats(existing.petSpaceId, openid, 0, addedRefs.length - removedRefs.length)
+    await adjustStats(existing.petSpaceId, openid, 0, mediaDelta, { userMediaReserved: reservedMediaDelta > 0 })
     const saved = await db.collection('memories').doc(memoryId).get()
 
     return {
@@ -141,6 +159,9 @@ exports.main = async (event = {}) => {
       memory: saved.data,
     }
   } catch (error) {
+    if (reservedMediaDelta && !memoryUpdated) {
+      await releaseUserMediaQuota(openid, reservedMediaDelta).catch(() => {})
+    }
     return {
       ok: false,
       message: error.message || error.errMsg || '保存记录失败',
@@ -148,23 +169,76 @@ exports.main = async (event = {}) => {
   }
 }
 
-async function adjustStats(petSpaceId, openid, memoryDelta, mediaDelta) {
-  const data = {
+async function adjustStats(petSpaceId, openid, memoryDelta, mediaDelta, options = {}) {
+  const petData = {
+    updatedAt: db.serverDate(),
+  }
+  const userData = {
     updatedAt: db.serverDate(),
   }
 
   if (memoryDelta) {
-    data['stats.memoryCount'] = _.inc(memoryDelta)
+    petData['stats.memoryCount'] = _.inc(memoryDelta)
+    userData['stats.memoryCount'] = _.inc(memoryDelta)
   }
 
   if (mediaDelta) {
-    data['stats.mediaCount'] = _.inc(mediaDelta)
+    petData['stats.mediaCount'] = _.inc(mediaDelta)
+    if (!options.userMediaReserved) {
+      userData['stats.mediaCount'] = _.inc(mediaDelta)
+    }
   }
 
   if (memoryDelta || mediaDelta) {
-    await db.collection('pet_spaces').doc(petSpaceId).update({ data })
-    await db.collection('users').where({ openid }).update({ data }).catch(() => {})
+    await db.collection('pet_spaces').doc(petSpaceId).update({ data: petData })
+    await db.collection('users').where({ openid }).update({ data: userData }).catch(() => {})
   }
+}
+
+async function reserveUserMediaQuota(openid, nextImageCount) {
+  if (!nextImageCount) {
+    return { ok: true }
+  }
+
+  await ensureCollection('users')
+  const result = await db.collection('users').where({
+    openid,
+    'stats.mediaCount': _.lte(memoryImageLimit - nextImageCount),
+  }).update({
+    data: {
+      'stats.mediaCount': _.inc(nextImageCount),
+      updatedAt: db.serverDate(),
+    },
+  })
+
+  if (getUpdatedCount(result) > 0) {
+    return { ok: true }
+  }
+
+  const used = await getUsedMemoryImageCount(openid)
+  return {
+    ok: false,
+    message: `图片额度不足，每人最多可上传${memoryImageLimit}张回忆图片`,
+    limit: memoryImageLimit,
+    used,
+    remaining: Math.max(memoryImageLimit - used, 0),
+  }
+}
+
+async function releaseUserMediaQuota(openid, imageCount) {
+  if (!imageCount) {
+    return
+  }
+  await db.collection('users').where({ openid }).update({
+    data: {
+      'stats.mediaCount': _.inc(-imageCount),
+      updatedAt: db.serverDate(),
+    },
+  })
+}
+
+function getUpdatedCount(result = {}) {
+  return Number((result.stats && result.stats.updated) || result.updated || 0)
 }
 
 async function checkMemoryImageQuota(openid, oldRefs, nextImageCount) {

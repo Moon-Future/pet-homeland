@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk')
 const storage = require('./storage')
+const uploadRef = require('./upload-ref')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -38,6 +39,22 @@ exports.main = async (event = {}) => {
 
     if (!petSpace || petSpace.ownerOpenid !== openid || petSpace.status === 'deleted') {
       return { ok: false, message: '无权编辑这个小窝' }
+    }
+
+    const uid = await uploadRef.getUserUid(db, openid)
+    pet.avatarRef = uploadRef.assertRef(pet.avatarRef, {
+      uid,
+      petSpaceId,
+      type: 'petCover',
+      message: '宠物照片上传来源无效，请重新选择',
+    })
+    if (pet.coverRef) {
+      pet.coverRef = uploadRef.assertRef(pet.coverRef, {
+        uid,
+        petSpaceId,
+        type: 'petCover',
+        message: '宠物封面上传来源无效，请重新选择',
+      })
     }
 
     const coverRef = pet.coverRef || pet.avatarRef
@@ -97,7 +114,7 @@ exports.main = async (event = {}) => {
     // each file once.
     const removedRefs = collectRemovedImageRefs(petSpace, pet.avatarRef, coverRef)
     if (removedRefs.length) {
-      await storage.deleteObjects(removedRefs).catch(() => {})
+      await storage.deleteObjects(uploadRef.filterUserOwnedRefs(removedRefs, uid)).catch(() => {})
     }
 
     if (enteringDiscover) {

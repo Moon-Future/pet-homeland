@@ -24,11 +24,13 @@ const SHARED_DIR = path.join(ROOT, 'cloudfunctions', '_shared')
 // sites can keep `require('./storage')` regardless of which variant they use.
 const MANIFEST = {
   // Write-side: needs deleteObjects (qiniu SDK dependency)
-  updateMemory:    { 'storage.js':      'storage.js' },
   cleanupUserMedia:{ 'storage.js':      'storage.js' },
-  login:           { 'storage.js':      'storage.js', 'grant.js': 'grant.js' },
-  updatePetSpace:  { 'storage.js':      'storage.js' },
   cleanupRefs:     { 'storage.js':      'storage.js', 'grant.js': 'grant.js' },
+  createPetSpace:  { 'grant.js':        'grant.js', 'upload-ref.js': 'upload-ref.js' },
+  addMemory:       { 'upload-ref.js':   'upload-ref.js' },
+  updateMemory:    { 'storage.js':      'storage.js', 'upload-ref.js': 'upload-ref.js' },
+  updatePetSpace:  { 'storage.js':      'storage.js', 'upload-ref.js': 'upload-ref.js' },
+  login:           { 'storage.js':      'storage.js', 'grant.js': 'grant.js', 'upload-ref.js': 'upload-ref.js' },
 
   // Read-side: only needs buildUrl (no qiniu SDK)
   resolvePetIdentity:   { 'storage.lite.js': 'storage.js' },

@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const _ = db.command
 
 const maxLimit = 20
 
@@ -13,6 +14,7 @@ exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
   const filter = sanitizeString(event.filter, 16) || 'all'
   const limit = Math.min(Math.max(Number(event.limit) || maxLimit, 1), maxLimit)
+  const cursor = Number(event.cursor || 0)
 
   if (!openid) {
     return { ok: false, message: '无法获取微信登录态', petSpaces: [] }
@@ -35,13 +37,21 @@ exports.main = async (event = {}) => {
       where.petType = filter
     }
 
+    if (cursor > 0) {
+      where.updatedAt = _.lt(new Date(cursor))
+    }
+
     const result = await db.collection('pet_spaces')
       .where(where)
       .orderBy('updatedAt', 'desc')
-      .limit(100)
+      .limit(filter === 'recent' || cursor > 0 ? limit + 1 : 100)
       .get()
 
-    const source = filter === 'recent' ? (result.data || []) : shuffle(result.data || [])
+    const page = result.data || []
+    const pagedMode = filter === 'recent' || cursor > 0
+    const hasMore = pagedMode && page.length > limit
+    const pageItems = pagedMode && hasMore ? page.slice(0, limit) : page
+    const source = pagedMode ? pageItems : shuffle(page).slice(0, limit)
     const petSpaces = source
       .slice(0, limit)
       .map((item) => sanitizePetSpace(item, openid))
@@ -51,6 +61,7 @@ exports.main = async (event = {}) => {
       ok: true,
       petSpaces,
       total: petSpaces.length,
+      nextCursor: hasMore ? getCursorValue(pageItems[pageItems.length - 1]) : 0,
     }
   } catch (error) {
     if (isCollectionNotFound(error)) {
@@ -63,6 +74,15 @@ exports.main = async (event = {}) => {
       petSpaces: [],
     }
   }
+}
+
+function getCursorValue(item = {}) {
+  const value = item.updatedAt
+  if (!value) {
+    return 0
+  }
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime()
 }
 
 function sanitizePetSpace(item = {}, openid) {

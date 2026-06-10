@@ -57,7 +57,7 @@ exports.main = async (event = {}) => {
     }
 
     const isOwner = petSpace.ownerOpenid === openid
-    if (!isOwner && !['share', 'discover'].includes(petSpace.visibility)) {
+    if (!isOwner && !canVisitorInteract(petSpace)) {
       return { ok: false, message: '这个小窝暂时不可互动' }
     }
 
@@ -75,6 +75,7 @@ exports.main = async (event = {}) => {
     const record = query.data && query.data[0]
     const currentCount = record ? (record.count || 0) : 0
     const dailyLimit = isOwner ? ownerDailyLimit : 1
+    const isFirstVisitorInteraction = !isOwner ? !await hasVisitorInteractedBefore(petSpaceId, openid) : false
 
     if (currentCount >= dailyLimit) {
       return { ok: false, message: isOwner ? '今天这个互动次数已用完' : '今天已经互动过啦' }
@@ -121,11 +122,15 @@ exports.main = async (event = {}) => {
     }
 
     const statField = statFieldByType[type]
+    const statUpdate = {
+      [`stats.${statField}`]: _.inc(1),
+      updatedAt: db.serverDate(),
+    }
+    if (isFirstVisitorInteraction) {
+      statUpdate['stats.visitorCountAllTime'] = _.inc(1)
+    }
     await db.collection('pet_spaces').doc(petSpaceId).update({
-      data: {
-        [`stats.${statField}`]: _.inc(1),
-        updatedAt: db.serverDate(),
-      },
+      data: statUpdate,
     })
 
     const saved = await db.collection('pet_spaces').doc(petSpaceId).get()
@@ -144,6 +149,34 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '互动失败',
     }
   }
+}
+
+async function hasVisitorInteractedBefore(petSpaceId, openid) {
+  const result = await db.collection('interactions')
+    .where({ petSpaceId, openid, isOwner: false })
+    .limit(1)
+    .get()
+    .catch((error) => {
+      if (isCollectionNotFound(error)) {
+        return { data: [] }
+      }
+      throw error
+    })
+
+  return Boolean((result.data || []).length)
+}
+
+function canVisitorInteract(petSpace = {}) {
+  if (petSpace.status !== 'active') {
+    return false
+  }
+
+  if (petSpace.visibility === 'share') {
+    return true
+  }
+
+  return petSpace.visibility === 'discover'
+    && (petSpace.reviewStatus || 'approved') === 'approved'
 }
 
 async function ensureCollection(name) {

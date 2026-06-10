@@ -30,7 +30,6 @@ exports.main = async () => {
       .get()
 
     const petSpaces = result.data || []
-    await attachExactStats(petSpaces)
     attachPetImageUrls(petSpaces)
 
     return {

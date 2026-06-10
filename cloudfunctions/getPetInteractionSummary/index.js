@@ -28,7 +28,7 @@ exports.main = async (event = {}) => {
     }
 
     const isOwner = petSpace.ownerOpenid === openid
-    if (!isOwner && !['share', 'discover'].includes(petSpace.visibility)) {
+    if (!isOwner && !canVisitorViewSummary(petSpace)) {
       return { ok: false, message: '这个小窝暂时不可访问' }
     }
 
@@ -62,7 +62,7 @@ exports.main = async (event = {}) => {
         })
 
         visitorCountToday = Object.keys(visitorOpenids).length
-        visitorCountAllTime = await countAllTimeVisitors(petSpaceId)
+        visitorCountAllTime = (petSpace.stats && petSpace.stats.visitorCountAllTime) || 0
       }
     } catch (error) {
       if (!isCollectionNotFound(error)) {
@@ -85,6 +85,19 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '读取互动次数失败',
     }
   }
+}
+
+function canVisitorViewSummary(petSpace = {}) {
+  if (petSpace.status !== 'active') {
+    return false
+  }
+
+  if (petSpace.visibility === 'share') {
+    return true
+  }
+
+  return petSpace.visibility === 'discover'
+    && (petSpace.reviewStatus || 'approved') === 'approved'
 }
 
 async function countAllTimeVisitors(petSpaceId) {

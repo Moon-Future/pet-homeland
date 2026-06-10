@@ -270,6 +270,8 @@ Page({
         name: 'createPetSpace',
         data: {
           _id: this.data.reservedPetSpaceId || undefined,
+          sessionGrant: auth.getSessionGrant(),
+          petUploadGrant: this.data.petUploadGrant,
           pet: {
             petName: form.petName,
             petType: form.petType,

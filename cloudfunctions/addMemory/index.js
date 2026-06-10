@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const uploadRef = require('./upload-ref')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -15,6 +16,8 @@ exports.main = async (event = {}) => {
   const { OPENID: openid } = cloud.getWXContext()
   const petSpaceId = sanitizeString(event.petSpaceId, 64)
   const memory = sanitizeMemory(event.memory)
+  let reservedMediaCount = 0
+  let memoryCreated = false
 
   if (!openid) {
     return { ok: false, message: '无法获取微信登录态' }
@@ -50,10 +53,19 @@ exports.main = async (event = {}) => {
       return { ok: false, message: '只有小窝主人可以记录' }
     }
 
-    const quota = await checkMemoryImageQuota(openid, memory.mediaRefs.length)
+    const uid = await uploadRef.getUserUid(db, openid)
+    memory.mediaRefs = uploadRef.assertRefs(memory.mediaRefs, {
+      uid,
+      petSpaceId,
+      type: 'memory',
+      message: '记录图片上传来源无效，请重新选择',
+    })
+
+    const quota = await reserveUserMediaQuota(openid, memory.mediaRefs.length)
     if (!quota.ok) {
       return quota
     }
+    reservedMediaCount = memory.mediaRefs.length
 
     const now = db.serverDate()
     const reviewStatus = petSpace.visibility === 'discover' ? 'pending_review' : 'not_required'
@@ -76,6 +88,7 @@ exports.main = async (event = {}) => {
         updatedAt: now,
       },
     })
+    memoryCreated = true
 
     await Promise.all(memory.mediaRefs.map((ref, index) => db.collection('media').add({
       data: {
@@ -100,7 +113,7 @@ exports.main = async (event = {}) => {
         updatedAt: db.serverDate(),
       },
     })
-    await incrementUserStats(openid, memory.mediaRefs.length)
+    await incrementUserStats(openid)
 
     const saved = await db.collection('memories').doc(added._id).get()
 
@@ -109,6 +122,9 @@ exports.main = async (event = {}) => {
       memory: saved.data,
     }
   } catch (error) {
+    if (reservedMediaCount && !memoryCreated) {
+      await releaseUserMediaQuota(openid, reservedMediaCount).catch(() => {})
+    }
     return {
       ok: false,
       message: error.message || error.errMsg || '保存记录失败',
@@ -116,19 +132,64 @@ exports.main = async (event = {}) => {
   }
 }
 
-async function incrementUserStats(openid, mediaCount) {
+async function incrementUserStats(openid) {
   try {
     await ensureCollection('users')
     await db.collection('users').where({ openid }).update({
       data: {
         'stats.memoryCount': _.inc(1),
-        'stats.mediaCount': _.inc(mediaCount),
         updatedAt: db.serverDate(),
       },
     })
   } catch (error) {
     // User stats are secondary; the pet space record is the source of truth.
   }
+}
+
+async function reserveUserMediaQuota(openid, nextImageCount) {
+  if (!nextImageCount) {
+    return { ok: true }
+  }
+
+  await ensureCollection('users')
+  const result = await db.collection('users').where({
+    openid,
+    'stats.mediaCount': _.lte(memoryImageLimit - nextImageCount),
+  }).update({
+    data: {
+      'stats.mediaCount': _.inc(nextImageCount),
+      updatedAt: db.serverDate(),
+    },
+  })
+
+  if (getUpdatedCount(result) > 0) {
+    return { ok: true }
+  }
+
+  const used = await getUsedMemoryImageCount(openid)
+  return {
+    ok: false,
+    message: `图片额度不足，每人最多可上传${memoryImageLimit}张回忆图片`,
+    limit: memoryImageLimit,
+    used,
+    remaining: Math.max(memoryImageLimit - used, 0),
+  }
+}
+
+async function releaseUserMediaQuota(openid, imageCount) {
+  if (!imageCount) {
+    return
+  }
+  await db.collection('users').where({ openid }).update({
+    data: {
+      'stats.mediaCount': _.inc(-imageCount),
+      updatedAt: db.serverDate(),
+    },
+  })
+}
+
+function getUpdatedCount(result = {}) {
+  return Number((result.stats && result.stats.updated) || result.updated || 0)
 }
 
 async function checkMemoryImageQuota(openid, nextImageCount) {

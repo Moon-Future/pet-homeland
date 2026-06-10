@@ -1,4 +1,6 @@
 const cloud = require('wx-server-sdk')
+const grant = require('./grant')
+const uploadRef = require('./upload-ref')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -35,8 +37,41 @@ exports.main = async (event = {}) => {
     return security
   }
 
-  await ensureCollection('pet_spaces')
-  const identity = await generatePetIdentity()
+  let identity = null
+  try {
+    await ensureCollection('pet_spaces')
+    await ensureCollection('users')
+    const uid = await uploadRef.getUserUid(db, openid)
+    const grantCheck = verifyCreateUploadGrant({
+      token: event.petUploadGrant,
+      uid,
+      petSpaceId: reservedId,
+    })
+    if (!grantCheck.ok) {
+      return grantCheck
+    }
+
+    pet.avatarRef = uploadRef.assertRef(pet.avatarRef, {
+      uid,
+      petSpaceId: reservedId,
+      type: 'petCover',
+      message: '宠物照片上传来源无效，请重新选择',
+    })
+    if (pet.coverRef) {
+      pet.coverRef = uploadRef.assertRef(pet.coverRef, {
+        uid,
+        petSpaceId: reservedId,
+        type: 'petCover',
+        message: '宠物封面上传来源无效，请重新选择',
+      })
+    }
+    identity = await generatePetIdentity()
+  } catch (error) {
+    return {
+      ok: false,
+      message: error.message || error.errMsg || '创建宠物小窝失败',
+    }
+  }
 
   const coverRef = pet.coverRef || pet.avatarRef
 
@@ -104,6 +139,30 @@ exports.main = async (event = {}) => {
       message: error.message || error.errMsg || '创建宠物小窝失败',
     }
   }
+}
+
+function verifyCreateUploadGrant({ token, uid, petSpaceId }) {
+  if (!petSpaceId) {
+    return { ok: false, message: '缺少预分配小窝ID，请重新进入创建页' }
+  }
+
+  let payload = null
+  try {
+    payload = grant.verifyGrant(token)
+  } catch (error) {
+    return { ok: false, message: error.message || '上传授权已失效，请重新进入创建页' }
+  }
+
+  if (!payload || payload.uid !== uid || payload.petSpaceId !== petSpaceId) {
+    return { ok: false, message: '上传授权不匹配，请重新进入创建页' }
+  }
+
+  const scope = Array.isArray(payload.scope) ? payload.scope : []
+  if (!scope.includes('petCover')) {
+    return { ok: false, message: '上传授权缺少宠物照片权限' }
+  }
+
+  return { ok: true }
 }
 
 function sanitizePet(pet = {}) {

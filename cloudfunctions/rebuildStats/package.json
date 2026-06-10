@@ -1,0 +1,9 @@
+{
+  "name": "rebuildStats",
+  "version": "1.0.0",
+  "description": "Admin tool to rebuild user and pet space counters from source collections",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

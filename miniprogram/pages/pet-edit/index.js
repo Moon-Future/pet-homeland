@@ -244,6 +244,7 @@ Page({
         name: 'updatePetSpace',
         data: {
           petSpaceId: this.data.petSpaceId,
+          sessionGrant: auth.getSessionGrant(),
           pet: {
             petName: form.petName,
             petType: form.petType,
