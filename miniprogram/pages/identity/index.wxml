@@ -59,7 +59,7 @@
 
       <view class="action-grid">
         <button class="primary action-button" loading="{{posterBusy}}" bindtap="savePoster">保存分享图</button>
-        <button class="plain action-button" loading="{{posterBusy}}" bindtap="previewPoster">预览朋友圈版</button>
+        <button class="plain action-button" loading="{{posterBusy}}" bindtap="previewPoster">预览</button>
       </view>
 
       <view class="action-grid secondary">
