@@ -1,6 +1,8 @@
 const storage = require('../../utils/storage')
 const illustratedTemplate = require('./templates/illustrated/config')
 const illustratedPoster = require('./templates/illustrated/poster')
+const residentTemplate = require('./templates/resident/config')
+const residentPoster = require('./templates/resident/poster')
 
 const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
@@ -8,6 +10,10 @@ const TEMPLATES = {
   illustrated: {
     config: illustratedTemplate,
     drawPoster: illustratedPoster.drawPoster,
+  },
+  resident: {
+    config: residentTemplate,
+    drawPoster: residentPoster.drawPoster,
   },
 }
 
@@ -20,6 +26,10 @@ Page({
     activeTemplate: 'illustrated',
     posterBusy: false,
     posterPath: '',
+    templateOptions: [
+      { id: 'illustrated', name: '插画档案' },
+      { id: 'resident', name: '居民身份卡' },
+    ],
     visitorOverviewText: '',
     posterCanvasStyle: '',
     posterCanvasWidth: 0,
@@ -108,6 +118,8 @@ Page({
       nfcStatusText: nfc.status === 'bound' ? '已绑定' : '未绑定',
       petName: item.petName || '未命名宠物',
       petType,
+      gender: item.gender || 'unknown',
+      genderSymbol: this.getGenderSymbol(item.gender),
       breed,
       phaseText: isInStars ? '数字纪念档案' : '数字生命档案',
       subline: isInStars ? '爱会继续被保存' : '星宠乡正式居民',
@@ -119,7 +131,6 @@ Page({
       cover: themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
       story,
       oneLineDescription: story || (isInStars ? `想念${item.petName || '它'}的每一天。` : `${item.petName || '它'}正在星宠乡认真生活。`),
-      residentDate: item.arrivalDate || item.birthDate || '',
       heroStatement: isInStars
         ? `${item.petName || '它'}已经把陪伴写成了永远有效的纪念身份。`
         : `${item.petName || '它'}已经正式领取星宠乡身份编号。`,
@@ -142,6 +153,18 @@ Page({
     }
 
     return '特别居民'
+  },
+
+  getGenderSymbol(gender) {
+    if (gender === 'male') {
+      return '♂'
+    }
+
+    if (gender === 'female') {
+      return '♀'
+    }
+
+    return ''
   },
 
   buildIdentityTags(item = {}) {
@@ -211,6 +234,16 @@ Page({
       posterCanvasWidth: posterWidthPx,
       posterCanvasHeight: posterHeightPx,
     })
+  },
+
+  selectTemplate(e) {
+    const templateId = e.currentTarget.dataset.template
+    if (!templateId || templateId === this.data.activeTemplate) {
+      return
+    }
+
+    this.applyActiveTemplate(templateId)
+    this.setData({ posterPath: '' })
   },
 
   openPetSpace() {

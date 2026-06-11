@@ -483,14 +483,14 @@ Page({
     if (!isOwner) {
       return decorate([
         { label: '贴贴', icon: '/assets/icons/heart.svg', type: 'cuddle' },
-        { label: '喂食', icon: '/assets/icons/flower.svg', type: 'feed' },
+        { label: '喂食', icon: 'https://qiniu.cdn.cl8023.com/project/star-pet/assets/icons/food.png', type: 'feed' },
         { label: '留爪印', icon: '/assets/icons/paw.svg', type: 'paw' },
       ])
     }
 
     return decorate([
       { label: '贴贴', icon: '/assets/icons/heart.svg', type: 'cuddle' },
-      { label: '喂食', icon: '/assets/icons/flower.svg', type: 'feed' },
+      { label: '喂食', icon: 'https://qiniu.cdn.cl8023.com/project/star-pet/assets/icons/food.png', type: 'feed' },
       { label: '留爪印', icon: '/assets/icons/paw.svg', type: 'paw' },
       { label: '记录今天', icon: '/assets/icons/timeline.svg', type: 'checkin' },
     ])

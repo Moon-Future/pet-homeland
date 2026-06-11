@@ -121,3 +121,206 @@
   display: block;
   border-radius: 50%;
 }
+
+.resident-card {
+  min-height: 376rpx;
+  padding: 18rpx;
+  display: grid;
+  grid-template-columns: 210rpx minmax(0, 1fr);
+  gap: 16rpx;
+  border: 3rpx solid rgba(151, 121, 236, .46);
+  border-radius: 30rpx;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(255, 235, 152, .36), transparent 14%),
+    linear-gradient(135deg, #fbf8ff 0%, #f1ebff 48%, #fff7ff 100%);
+  box-shadow: 0 18rpx 38rpx rgba(132, 104, 214, .2);
+  box-sizing: border-box;
+}
+
+.resident-photo-shell {
+  position: relative;
+  min-height: 340rpx;
+  overflow: hidden;
+  border: 4rpx solid rgba(159, 130, 232, .44);
+  border-radius: 22rpx;
+  background: #fff;
+  box-shadow: 0 12rpx 24rpx rgba(132, 104, 214, .16);
+}
+
+.resident-avatar {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.resident-main {
+  min-width: 0;
+}
+
+.resident-brand {
+  height: 62rpx;
+  display: grid;
+  grid-template-columns: 112rpx minmax(0, 1fr) 54rpx;
+  align-items: center;
+  gap: 12rpx;
+  color: #2f2dc4;
+}
+
+.resident-logo {
+  display: block;
+  color: #2622bd;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.resident-slogan {
+  min-width: 0;
+  padding-left: 10rpx;
+  border-left: 2rpx dashed rgba(86, 78, 214, .24);
+  color: #4438d2;
+  font-size: 17rpx;
+  font-weight: 900;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resident-star {
+  justify-self: end;
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.resident-info-panel {
+  position: relative;
+  min-height: 262rpx;
+  margin-top: 10rpx;
+  padding: 20rpx 86rpx 18rpx 20rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, .68);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .72);
+  box-sizing: border-box;
+}
+
+.resident-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.resident-name {
+  max-width: 86rpx;
+  color: #11165f;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.resident-gender {
+  color: #3e99ef;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.resident-gender.gender-female {
+  color: #f45c88;
+}
+
+.resident-breed {
+  max-width: 200rpx;
+  height: 38rpx;
+  padding: 0 12rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  color: #fff;
+  background: #8260e8;
+  font-size: 18rpx;
+  font-weight: 900;
+  line-height: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.resident-code-label {
+  margin-top: 18rpx;
+  color: #3b31c7;
+  font-size: 19rpx;
+  font-weight: 900;
+}
+
+.resident-code {
+  display: block;
+  margin-top: 6rpx;
+  color: #12145d;
+  font-size: 27rpx;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
+.resident-line {
+  width: 100%;
+  height: 2rpx;
+  margin: 14rpx 0 12rpx;
+  background: linear-gradient(90deg, rgba(68, 56, 210, .34), transparent);
+}
+
+.resident-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.resident-fact {
+  display: grid;
+  grid-template-columns: 26rpx 84rpx minmax(0, 1fr);
+  align-items: center;
+  gap: 8rpx;
+  color: #2c2aae;
+  font-size: 18rpx;
+  font-weight: 900;
+}
+
+.resident-fact-icon {
+  width: 26rpx;
+  height: 26rpx;
+  margin-top: -2rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  color: #fff;
+  background: #6f5be5;
+  font-size: 16rpx;
+}
+
+.resident-fact-label {
+  white-space: nowrap;
+}
+
+.resident-fact-value {
+  color: #14207d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resident-badge {
+  position: absolute;
+  right: 16rpx;
+  top: 58rpx;
+  width: 82rpx;
+  height: 82rpx;
+}

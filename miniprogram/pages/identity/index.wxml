@@ -30,7 +30,7 @@
         <text class="activation-code">{{pet.identityNo}}</text>
         <view class="activation-divider"></view>
         <text class="activation-subline">星宠乡认证 · 终身唯一</text>
-        <image class="activation-stamp" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/%E2%80%8Cstamp.png" mode="aspectFit"></image>
+        <image class="activation-stamp" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/%E2%80%8Cidentity-stamp.png" mode="aspectFit"></image>
         <view class="activation-tags">
           <text wx:for="{{pet.tags}}" wx:key="*this">{{item}}</text>
         </view>
@@ -45,7 +45,16 @@
 
     <view class="workshop">
       <view class="preview-shell">
-        <identity-illustrated-card pet="{{pet}}" bind:previewavatar="previewAvatar"></identity-illustrated-card>
+        <view class="template-tabs">
+          <view
+            wx:for="{{templateOptions}}"
+            wx:key="id"
+            class="template-tab {{activeTemplate === item.id ? 'active' : ''}}"
+            data-template="{{item.id}}"
+            bindtap="selectTemplate"
+          >{{item.name}}</view>
+        </view>
+        <identity-illustrated-card pet="{{pet}}" template-id="{{activeTemplate}}" bind:previewavatar="previewAvatar"></identity-illustrated-card>
       </view>
 
       <view class="action-grid">

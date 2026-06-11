@@ -1,4 +1,55 @@
-<view class="share-card illustrated-card">
+<view wx:if="{{templateId === 'resident'}}" class="share-card resident-card">
+  <view class="resident-photo-shell">
+    <image class="resident-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
+  </view>
+
+  <view class="resident-main">
+    <view class="resident-brand">
+      <view>
+        <text class="resident-logo">星宠乡</text>
+      </view>
+      <view class="resident-slogan">记录每一份爱与陪伴</view>
+      <image class="resident-star" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/cards/card02-star.png" mode="aspectFit"></image>
+    </view>
+
+    <view class="resident-info-panel">
+      <view class="resident-title-row">
+        <text class="resident-name">{{pet.petName}}</text>
+        <text wx:if="{{pet.genderSymbol}}" class="resident-gender gender-{{pet.gender}}">{{pet.genderSymbol}}</text>
+        <text class="resident-breed">{{pet.breed}}</text>
+      </view>
+      <view class="resident-code-label">身份编号：</view>
+      <text class="resident-code">{{pet.identityNo}}</text>
+      <view class="resident-line"></view>
+
+      <view class="resident-facts">
+        <view wx:if="{{pet.birthDate}}" class="resident-fact">
+          <text class="resident-fact-icon">生</text>
+          <text class="resident-fact-label">出生时间</text>
+          <text class="resident-fact-value">{{pet.birthDate}}</text>
+        </view>
+        <view wx:if="{{pet.arrivalDate}}" class="resident-fact">
+          <text class="resident-fact-icon">家</text>
+          <text class="resident-fact-label">来到身边</text>
+          <text class="resident-fact-value">{{pet.arrivalDate}}</text>
+        </view>
+        <view class="resident-fact">
+          <text class="resident-fact-icon">档</text>
+          <text class="resident-fact-label">宠物档案</text>
+          <text class="resident-fact-value">{{pet.oneLineDescription}}</text>
+        </view>
+        <view wx:if="{{pet.lifeStatus === 'in_stars' && pet.deathDate}}" class="resident-fact">
+          <text class="resident-fact-icon">星</text>
+          <text class="resident-fact-label">离去时间</text>
+          <text class="resident-fact-value">{{pet.deathDate}}</text>
+        </view>
+      </view>
+      <image class="resident-badge" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/cards/card02-resident.png" mode="aspectFit"></image>
+    </view>
+  </view>
+</view>
+
+<view wx:else class="share-card illustrated-card">
   <image class="illustrated-bg" src="{{assets.backgroundUrl}}" mode="widthFix"></image>
   <view class="illustrated-elements">
     <image class="illustrated-ele-item" src="{{assets.elementUrl}}" mode="widthFix"></image>

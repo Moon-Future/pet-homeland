@@ -6,6 +6,10 @@ Component({
       type: Object,
       value: null,
     },
+    templateId: {
+      type: String,
+      value: 'illustrated',
+    },
   },
 
   data: {

@@ -68,9 +68,9 @@ button::after {
 
 .shade {
   background:
-    radial-gradient(circle at 20% 12%, rgba(255, 226, 198, .55), transparent 24%),
-    radial-gradient(circle at 78% 18%, rgba(255, 214, 229, .42), transparent 22%),
-    linear-gradient(180deg, rgba(83, 45, 25, .16) 0%, rgba(83, 45, 25, .24) 32%, rgba(255, 243, 234, .94) 72%, #fff3ea 100%);
+    radial-gradient(circle at 20% 12%, rgba(255, 226, 198, .34), transparent 24%),
+    radial-gradient(circle at 78% 18%, rgba(255, 214, 229, .28), transparent 22%),
+    linear-gradient(180deg, rgba(83, 45, 25, .08) 0%, rgba(83, 45, 25, .12) 34%, rgba(255, 243, 234, .52) 78%, rgba(255, 243, 234, .68) 100%);
 }
 
 .top-copy,
@@ -291,6 +291,34 @@ button::after {
 
 .preview-shell {
   margin-top: 8rpx;
+}
+
+.template-tabs {
+  display: flex;
+  gap: 12rpx;
+  margin: 2rpx 0 16rpx;
+}
+
+.template-tab {
+  flex: 1;
+  height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid rgba(190, 142, 93, .16);
+  border-radius: 999rpx;
+  color: #8a7064;
+  background: rgba(255, 255, 255, .66);
+  font-size: 23rpx;
+  font-weight: 900;
+  box-sizing: border-box;
+}
+
+.template-tab.active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #8b5cf6, #f45c88);
+  box-shadow: 0 10rpx 22rpx rgba(139, 92, 246, .18);
 }
 
 .action-grid {
