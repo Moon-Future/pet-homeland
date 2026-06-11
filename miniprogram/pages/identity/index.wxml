@@ -21,10 +21,16 @@
 
     <view class="activation-shell">
       <view class="activation-card stage-{{activationStep}}">
-        <image class="activation-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
-        <text class="activation-name">{{pet.petName}}</text>
+        <image class="activation-card-bg" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/icons/cardbg.png" mode="aspectFill"></image>
+        <view class="activation-brand">
+          <image class="activation-badge" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/icons/badge.png" mode="aspectFit"></image>
+          <text>数字身份证</text>
+        </view>
+        <image class="activation-chip" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/icons/sim.png" mode="aspectFit"></image>
         <text class="activation-code">{{pet.identityNo}}</text>
-        <view class="activation-stamp">已认证</view>
+        <view class="activation-divider"></view>
+        <text class="activation-subline">星宠乡认证 · 终身唯一</text>
+        <image class="activation-stamp" src="https://qiniu.cdn.cl8023.com/project/star-pet/assets/images/%E2%80%8Cstamp.png" mode="aspectFit"></image>
         <view class="activation-tags">
           <text wx:for="{{pet.tags}}" wx:key="*this">{{item}}</text>
         </view>
