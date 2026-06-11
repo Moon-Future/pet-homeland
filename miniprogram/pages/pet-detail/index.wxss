@@ -82,7 +82,7 @@ page { min-height: 100vh; background: #fff4f2; }
 .timeline-title-icon { background: #ff9b65; }
 .timeline-arrow { width: 30rpx; height: 30rpx; opacity: .62; }
 .story-actions { display: flex; align-items: center; gap: 16rpx; flex-shrink: 0; }
-.record-button { display: inline-flex; align-items: center; justify-content: center; min-width: 0; height: 52rpx; padding: 0 18rpx; border-radius: 999rpx; color: #fff; background: #f06f5b; font-size: 21rpx; font-weight: 900; line-height: 1; white-space: nowrap; }
+.record-button { display: inline-flex; align-items: center; justify-content: center; min-width: 0; height: 52rpx; padding: 0 18rpx; border: 2rpx solid rgba(244,92,136,.22); border-radius: 999rpx; color: #f45c88; background: rgba(244,92,136,.1); font-size: 22rpx; font-weight: 900; line-height: 1; white-space: nowrap; }
 .edit { color: #b98b73; }
 .story { display: block; margin-top: 14rpx; color: #5e526f; font-size: 24rpx; line-height: 1.55; font-weight: 700; }
 .story-empty-action { margin-top: 18rpx; height: 72rpx; display: inline-flex; align-items: center; justify-content: center; padding: 0 28rpx; border-radius: 999rpx; color: #f06f5b; background: rgba(240,111,91,.12); font-size: 23rpx; font-weight: 900; }

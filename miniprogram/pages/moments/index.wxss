@@ -6,6 +6,7 @@ page { min-height: 100vh; background: #f5f6f8; }
 .cover-copy { position: absolute; left: 34rpx; right: 34rpx; bottom: 92rpx; color: #fff; text-shadow: 0 4rpx 14rpx rgba(0,0,0,.24); }
 .cover-title { display: block; font-size: 42rpx; font-weight: 900; }
 .cover-subtitle { display: block; margin-top: 10rpx; font-size: 24rpx; font-weight: 700; opacity: .92; }
+.cover-record-button { width: 152rpx; height: 58rpx; margin-top: 18rpx; display: flex; align-items: center; justify-content: center; border: 2rpx solid rgba(255,255,255,.58); border-radius: 999rpx; color: #fff; background: rgba(255,255,255,.18); box-shadow: 0 8rpx 20rpx rgba(0,0,0,.12); backdrop-filter: blur(10rpx); font-size: 23rpx; font-weight: 900; text-shadow: none; box-sizing: border-box; }
 .pet-profile { position: absolute; right: 28rpx; bottom: -52rpx; display: flex; align-items: center; gap: 18rpx; }
 .pet-name { color: #fff; font-size: 30rpx; font-weight: 900; text-shadow: 0 4rpx 14rpx rgba(0,0,0,.28); }
 .pet-avatar { width: 116rpx; height: 116rpx; border: 6rpx solid #fff; border-radius: 14rpx; background: #fff; box-shadow: 0 10rpx 24rpx rgba(30,34,46,.18); }

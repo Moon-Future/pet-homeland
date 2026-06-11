@@ -328,6 +328,7 @@ Page({
       name: item.petName || '宠物小窝',
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       cover: themeBackgrounds[item.theme] || defaultPetImage,
+      lifeStatus: item.lifeStatus || 'with_me',
       birthDate: item.birthDate || '',
       arrivalDate: item.arrivalDate || '',
       deathDate: item.deathDate || '',
@@ -369,7 +370,7 @@ Page({
       return '日期待补充'
     }
 
-    return `${Number(parts[1])}月${Number(parts[2])}日`
+    return `${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日`
   },
 
   goMemoryDetail(e) {
@@ -390,6 +391,17 @@ Page({
 
     wx.navigateTo({
       url: `/pages/memory-detail/index?petSpaceId=${this.data.petSpaceId}&memoryId=${memoryId}`,
+    })
+  },
+
+  goCreateMemory() {
+    if (!this.data.isOwner || !this.data.petSpaceId) {
+      return
+    }
+
+    const entryMode = (this.data.pet && this.data.pet.lifeStatus) === 'in_stars' ? 'memorial' : 'daily'
+    wx.navigateTo({
+      url: `/pages/memory-create/index?petSpaceId=${this.data.petSpaceId}&entryMode=${entryMode}`,
     })
   },
 

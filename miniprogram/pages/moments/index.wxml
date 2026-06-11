@@ -39,6 +39,7 @@
     <view class="cover-copy">
       <text class="cover-title">{{pet.name}}的朋友圈</text>
       <text class="cover-subtitle">把每一天都发给未来的自己看</text>
+      <view wx:if="{{isOwner}}" class="cover-record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="goCreateMemory">＋ 记录</view>
     </view>
     <view class="pet-profile">
       <text class="pet-name">{{pet.name}}</text>
