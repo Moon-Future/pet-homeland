@@ -55,7 +55,7 @@
             data-id="{{item.id}}"
             catchtap="onSelectPet"
           >
-            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
+            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}"></image>
             <text>{{item.petName}}</text>
           </view>
         </view>
