@@ -1,0 +1,119 @@
+<view class="page">
+  <view wx:if="{{initialLoading}}" class="timeline-skeleton">
+    <view class="skeleton-cover">
+      <view class="skeleton-copy">
+        <view class="skeleton-line title"></view>
+        <view class="skeleton-line subtitle"></view>
+      </view>
+      <view class="skeleton-profile">
+        <view class="skeleton-line name"></view>
+        <view class="skeleton-avatar"></view>
+      </view>
+    </view>
+    <view class="skeleton-tabs">
+      <view wx:for="{{tabs}}" wx:key="id" class="skeleton-tab"></view>
+    </view>
+    <view class="skeleton-list">
+      <view wx:for="{{skeletonDays}}" wx:key="*this" class="skeleton-day">
+        <view class="skeleton-date">
+          <view class="skeleton-line date"></view>
+          <view class="skeleton-line count"></view>
+        </view>
+        <view class="skeleton-post">
+          <view class="skeleton-avatar small"></view>
+          <view class="skeleton-post-main">
+            <view class="skeleton-line post-name"></view>
+            <view class="skeleton-line post-title"></view>
+            <view class="skeleton-line post-text"></view>
+            <view class="skeleton-line post-text short"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <block wx:else>
+  <view class="moments-cover">
+    <image class="cover-img" src="{{pet.cover}}" mode="aspectFill"></image>
+    <view class="cover-shade"></view>
+    <view class="cover-copy">
+      <text class="cover-title">{{pet.name}}的朋友圈</text>
+      <text class="cover-subtitle">把每一天都发给未来的自己看</text>
+    </view>
+    <view class="pet-profile">
+      <text class="pet-name">{{pet.name}}</text>
+      <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewPetAvatar"></image>
+    </view>
+  </view>
+
+  <scroll-view class="tabs" scroll-x>
+    <view class="tab-list">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="id"
+        class="tab {{item.id === activeTab ? 'active' : ''}}"
+        data-tab="{{item.id}}"
+        bindtap="selectTab"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loading}}" class="state">正在读取动态...</view>
+
+  <view wx:elif="{{groups.length}}" class="moments-list">
+    <view wx:for="{{groups}}" wx:key="key" class="day-section">
+      <view class="day-label">
+        <text class="day-date">{{item.date}}</text>
+        <text class="day-count">{{item.countText}}</text>
+      </view>
+
+      <view class="day-posts">
+        <view
+          wx:for="{{item.items}}"
+          wx:for-item="memory"
+          wx:key="id"
+          class="moment {{memory.isSystem ? 'system-moment' : ''}}"
+          data-id="{{memory.id}}"
+          data-system="{{memory.isSystem}}"
+          bindtap="goMemoryDetail"
+        >
+          <image class="moment-avatar" src="{{pet.avatar}}" mode="aspectFill" catchtap="previewPetAvatar"></image>
+          <view class="moment-main">
+            <view class="moment-head">
+              <text class="moment-name">{{pet.name}}</text>
+              <text class="type">{{memory.typeLabel}}</text>
+            </view>
+            <text class="moment-title">{{memory.title}}</text>
+            <text class="moment-text">{{memory.desc}}</text>
+
+            <view wx:if="{{memory.mediaUrls.length}}" class="photo-grid photo-count-{{memory.photoCount}}">
+              <view
+                wx:for="{{memory.mediaUrls}}"
+                wx:for-item="photo"
+                wx:key="*this"
+                class="photo"
+                data-id="{{memory.id}}"
+                data-url="{{photo}}"
+                catchtap="previewMemoryImage"
+              >
+                <image src="{{photo}}" mode="aspectFill"></image>
+              </view>
+            </view>
+
+            <view class="moment-foot">
+              <text>{{memory.date}}</text>
+              <text>查看详情</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <image src="{{defaultPetImage}}" mode="aspectFill"></image>
+    <text class="empty-title">还没有朋友圈动态</text>
+    <text class="empty-desc">记录一次日常，{{pet.name}}的朋友圈就会更新。</text>
+  </view>
+  </block>
+</view>

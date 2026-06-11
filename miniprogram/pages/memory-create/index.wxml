@@ -19,6 +19,14 @@
       </view>
     </view>
 
+    <view class="timeline-option">
+      <view class="timeline-copy">
+        <text class="timeline-title">加入成长时间轴</text>
+        <text class="timeline-desc">开启后会作为重要节点展示在小窝时间轴里。</text>
+      </view>
+      <switch checked="{{form.showOnTimeline}}" color="#8b5cf6" bindchange="onTimelineSwitchChange" />
+    </view>
+
     <view class="field">
       <text class="field-label">{{entryMode === 'memorial' ? '想留下什么' : '今天发生了什么'}}</text>
       <textarea class="textarea" value="{{form.content}}" placeholder="{{entryMode === 'memorial' ? '写下想念、梦见的片段，或还想继续说的话' : '写下今天想记住的瞬间'}}" bindinput="onContentInput" maxlength="500" />

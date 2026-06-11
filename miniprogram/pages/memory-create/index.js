@@ -9,6 +9,7 @@ const memoryTypes = [
   { id: 'travel', label: '旅行' },
   { id: 'birthday', label: '生日' },
 ]
+const timelineDefaultTypes = ['growth', 'health', 'travel', 'birthday']
 
 Page({
   data: {
@@ -25,6 +26,7 @@ Page({
       content: '',
       memoryDate: '',
       type: 'daily',
+      showOnTimeline: false,
     },
     memoryTypes,
     images: [],
@@ -107,6 +109,7 @@ Page({
           content: memory.content || '',
           memoryDate: memory.memoryDate || this.data.today,
           type: memory.type || 'daily',
+          showOnTimeline: memory.showOnTimeline === true,
         },
         images: mediaRefs.map((ref, index) => ({
           tempFilePath: mediaUrls[index] || storage.buildUrl(ref),
@@ -160,7 +163,15 @@ Page({
   },
 
   selectType(e) {
-    this.setData({ 'form.type': e.currentTarget.dataset.type })
+    const type = e.currentTarget.dataset.type
+    this.setData({
+      'form.type': type,
+      'form.showOnTimeline': timelineDefaultTypes.includes(type),
+    })
+  },
+
+  onTimelineSwitchChange(e) {
+    this.setData({ 'form.showOnTimeline': Boolean(e.detail.value) })
   },
 
   onMemoryImageChange(e) {
@@ -240,6 +251,7 @@ Page({
           content: this.data.form.content,
           memoryDate: this.data.form.memoryDate,
           type: this.data.form.type,
+          showOnTimeline: this.data.form.showOnTimeline,
           mediaRefs,
         },
       }

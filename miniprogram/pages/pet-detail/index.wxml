@@ -66,7 +66,7 @@
           </view>
           <view class="story-actions">
             <text wx:if="{{primaryAction}}" class="record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</text>
-            <text class="edit" bindtap="goTimeline">更多 ›</text>
+            <text class="edit" bindtap="goMoments">更多 ›</text>
           </view>
         </view>
         <view wx:if="{{recentMemories.length}}" class="recent-list">
@@ -85,10 +85,11 @@
         </view>
       </view>
 
-      <view wx:if="{{timelineNodes.length}}" class="timeline-card">
+      <view wx:if="{{timelineNodes.length}}" class="timeline-card tap-feedback" hover-class="tap-feedback-hover" bindtap="goPetTimeline">
         <view class="section-title-row">
           <view class="section-icon timeline-title-icon">时</view>
           <text>成长时间轴</text>
+          <image class="timeline-arrow" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
         <scroll-view class="timeline-scroll" scroll-x enable-flex>
           <view class="timeline-track">
@@ -113,7 +114,7 @@
               <image wx:for="{{albumPreviewImages}}" wx:key="*this" src="{{item}}" mode="aspectFill"></image>
             </view>
           </view>
-          <view class="entry friends-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline">
+          <view class="entry friends-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goMoments">
             <view class="entry-head">
               <image src="/assets/icons/user.svg"></image>
               <text class="entry-label">朋友圈</text>

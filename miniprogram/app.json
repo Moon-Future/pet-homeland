@@ -9,6 +9,7 @@
     "pages/memory-detail/index",
     "pages/memory-create/index",
     "pages/timeline/index",
+    "pages/moments/index",
     "pages/album/index",
     "pages/star-space/index",
     "pages/profile/index",

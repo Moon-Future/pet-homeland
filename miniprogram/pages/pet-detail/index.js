@@ -329,6 +329,8 @@ Page({
           title: item.title || '今天的记录',
           content: item.content || '留下了这些照片。',
           date: item.memoryDate || '',
+          type: item.type || 'daily',
+          showOnTimeline: item.showOnTimeline === true,
           img: (item.mediaUrls || [])[0] || '',
         }))
 
@@ -590,19 +592,32 @@ Page({
       })
     }
 
-    addNode(rawPet.birthDate, '出生', '奶', false)
-    addNode(rawPet.arrivalDate, '来到我身边', '家', false)
+    addNode(rawPet.birthDate, '出生', '生', false)
+    addNode(rawPet.arrivalDate, '来到我身边', '到', false)
 
-    const latestMemory = recentMemories[0]
-    if (latestMemory) {
-      addNode(latestMemory.date, latestMemory.title || '最新记录', '记', true)
-    }
+    recentMemories
+      .filter((item) => item.showOnTimeline || ['growth', 'travel', 'birthday', 'health'].includes(item.type))
+      .slice(0, 2)
+      .forEach((item) => {
+        addNode(item.date, item.title || '重要记录', this.getTimelineIcon(item.type), true)
+      })
 
     if ((rawPet.lifeStatus || 'with_me') === 'in_stars') {
       addNode(rawPet.deathDate, '去了星星', '星', true)
     }
 
     return nodes
+  },
+
+  getTimelineIcon(type) {
+    const iconByType = {
+      growth: '长',
+      travel: '游',
+      birthday: '岁',
+      health: '护',
+    }
+
+    return iconByType[type] || '记'
   },
 
   getInteractionStatField(type) {
@@ -1201,7 +1216,12 @@ Page({
     }
   },
 
-  goTimeline() {
+  goMoments() {
+    const petSpaceId = this.data.pet && this.data.pet.id
+    wx.navigateTo({ url: `/pages/moments/index?petSpaceId=${petSpaceId || ''}` })
+  },
+
+  goPetTimeline() {
     const petSpaceId = this.data.pet && this.data.pet.id
     wx.navigateTo({ url: `/pages/timeline/index?petSpaceId=${petSpaceId || ''}` })
   },

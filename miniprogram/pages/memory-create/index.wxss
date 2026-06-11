@@ -89,6 +89,40 @@ page {
   box-shadow: 0 10rpx 22rpx rgba(139, 92, 246, .2);
 }
 
+.timeline-option {
+  margin-bottom: 28rpx;
+  padding: 22rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+  border: 2rpx solid rgba(139, 92, 246, .14);
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, .72);
+  box-sizing: border-box;
+}
+
+.timeline-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.timeline-title {
+  color: #2f2940;
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.timeline-desc {
+  color: #8e7ba6;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .image-head {
   display: flex;
   align-items: center;

@@ -108,6 +108,7 @@ exports.main = async (event = {}) => {
         content: memory.content,
         memoryDate: memory.memoryDate,
         type: memory.type,
+        showOnTimeline: memory.showOnTimeline,
         mediaRefs: _.set(nextRefs),
         sortOrder: new Date(memory.memoryDate).getTime() || existing.sortOrder || Date.now(),
         reviewStatus,
@@ -318,6 +319,7 @@ function sanitizeMemory(memory = {}) {
     content: sanitizeString(memory.content, 500),
     memoryDate: sanitizeDate(memory.memoryDate) || getChinaDateKey(new Date()),
     type: allowValue(memory.type, allowedTypes, 'daily'),
+    showOnTimeline: Boolean(memory.showOnTimeline),
     mediaRefs,
   }
 }

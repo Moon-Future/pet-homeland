@@ -2,32 +2,29 @@ const storage = require('../../utils/storage')
 
 const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
-const typeLabelMap = {
-  birth: '出生',
-  arrival: '到家',
-  farewell: '纪念',
-  identity: '身份',
-  growth: '成长',
-  travel: '旅行',
-  birthday: '生日',
-  health: '健康',
-  daily: '日常',
-}
-const typeIconMap = {
-  birth: '生',
-  arrival: '家',
-  farewell: '星',
-  identity: '证',
-  growth: '长',
-  travel: '游',
-  birthday: '岁',
-  health: '护',
-  daily: '记',
-}
-const featuredTypes = ['growth', 'travel', 'birthday', 'health']
+const tabs = [
+  { id: 'all', label: '全部' },
+  { id: 'growth', label: '成长' },
+  { id: 'travel', label: '旅行' },
+  { id: 'daily', label: '日常' },
+  { id: 'birthday', label: '生日' },
+  { id: 'health', label: '健康' },
+]
+
+const typeLabels = tabs.reduce((map, item) => {
+  map[item.id] = item.label
+  return map
+}, {})
+typeLabels.birth = '成长'
+typeLabels.arrival = '成长'
+typeLabels.farewell = '纪念'
+typeLabels.identity = '身份'
 
 Page({
   data: {
+    tabs,
+    skeletonDays: [1, 2, 3],
+    activeTab: 'all',
     petSpaceId: '',
     pet: {
       name: '宠物小窝',
@@ -35,28 +32,40 @@ Page({
       cover: defaultPetImage,
     },
     defaultPetImage,
-    skeletonNodes: [1, 2, 3, 4],
     initialLoading: true,
     loading: false,
-    nodes: [],
+    groups: [],
+    dirtyVersion: 0,
     isOwner: false,
   },
 
   onLoad(options = {}) {
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
+      dirtyVersion: this.getDirtyVersion(),
     })
     this.initializeTimeline()
   },
 
+  onShow() {
+    const dirtyVersion = this.getDirtyVersion()
+    if (this.data.petSpaceId && dirtyVersion !== this.data.dirtyVersion) {
+      this.setData({ dirtyVersion })
+      this.initializeTimeline()
+    }
+  },
+
   async initializeTimeline() {
-    this.setData({ initialLoading: true })
+    if (!this.data.groups.length) {
+      this.setData({ initialLoading: true })
+    }
+
     const loaded = await this.loadPetProfile()
     if (!loaded) {
       this.setData({ initialLoading: false })
       return
     }
-    this.loadTimelineNodes()
+    this.loadMemories()
   },
 
   async loadPetProfile() {
@@ -66,7 +75,7 @@ Page({
           name: 'getPetSpaceDetail',
           data: {
             petSpaceId: this.data.petSpaceId,
-            source: wx.getStorageSync('viewSource') || 'timeline',
+            source: wx.getStorageSync('viewSource') || 'moments',
           },
         })
 
@@ -80,7 +89,7 @@ Page({
         }
 
         if (result && !result.ok) {
-          throw new Error(result.message || '无法访问这个时间轴')
+          throw new Error(result.message || '无法访问这个宠物档案')
         }
       }
 
@@ -108,16 +117,26 @@ Page({
 
       return true
     } catch (error) {
-      this.setData({ loading: false, nodes: [] })
+      this.setData({ loading: false, groups: [] })
       wx.showToast({
-        title: error.message || '无法访问这个时间轴',
+        title: error.message || '无法访问这个宠物档案',
         icon: 'none',
       })
       return false
     }
   },
 
-  async loadTimelineNodes() {
+  selectTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (!tab || tab === this.data.activeTab) {
+      return
+    }
+
+    this.setData({ activeTab: tab })
+    this.loadMemories()
+  },
+
+  async loadMemories() {
     if (!this.data.petSpaceId || this.data.loading) {
       return
     }
@@ -129,163 +148,191 @@ Page({
         name: 'getMemories',
         data: {
           petSpaceId: this.data.petSpaceId,
-          type: 'all',
+          type: this.getMemoryQueryType(),
           limit: 80,
         },
       })
 
       if (!result || !result.ok) {
-        throw new Error((result && result.message) || '读取时间轴失败')
+        throw new Error((result && result.message) || '读取朋友圈失败')
       }
 
       this.setData({
         loading: false,
         initialLoading: false,
-        nodes: this.buildNodes(result.memories || []),
+        dirtyVersion: this.getDirtyVersion(),
+        groups: this.groupTimelineItems(result.memories || []),
       })
     } catch (error) {
-      this.setData({ loading: false, initialLoading: false, nodes: this.buildNodes([]) })
+      this.setData({ loading: false, initialLoading: false, groups: [] })
       wx.showToast({
-        title: error.message || '读取时间轴失败',
+        title: error.message || '读取朋友圈失败',
         icon: 'none',
       })
     }
   },
 
-  buildNodes(memories = []) {
-    const nodes = [
-      ...this.getSystemNodes(),
-      ...memories
-        .filter((item) => this.shouldShowMemoryOnTimeline(item))
-        .map((item) => this.normalizeMemoryNode(item)),
+  getMemoryQueryType() {
+    return this.data.activeTab === 'growth' ? 'all' : this.data.activeTab
+  },
+
+  groupTimelineItems(memories) {
+    const groups = []
+    const groupMap = {}
+    const items = [
+      ...this.getSystemEvents(),
+      ...memories.map((memory) => this.normalizeMemory(memory)),
     ]
       .filter((item) => item.memoryDate)
+      .filter((item) => this.data.activeTab === 'all' || item.type === this.data.activeTab || item.category === this.data.activeTab)
       .sort((left, right) => {
         if (left.memoryDate === right.memoryDate) {
           return (right.sortOrder || 0) - (left.sortOrder || 0)
         }
 
-        return left.memoryDate.localeCompare(right.memoryDate)
+        return right.memoryDate.localeCompare(left.memoryDate)
       })
 
-    return nodes.map((item, index) => ({
-      ...item,
-      isFirst: index === 0,
-      isLast: index === nodes.length - 1,
-    }))
+    items.forEach((item) => {
+      const key = item.memoryDate || 'unknown'
+
+      if (!groupMap[key]) {
+        groupMap[key] = {
+          key,
+          year: item.year,
+          date: item.date,
+          items: [],
+          countText: '',
+        }
+        groups.push(groupMap[key])
+      }
+
+      groupMap[key].items.push(item)
+      groupMap[key].countText = `${groupMap[key].items.length}条动态`
+    })
+
+    return groups
   },
 
-  shouldShowMemoryOnTimeline(memory = {}) {
-    if (memory.showOnTimeline === true) {
-      return true
-    }
-
-    return featuredTypes.includes(memory.type)
-  },
-
-  getSystemNodes() {
+  getSystemEvents() {
     const pet = this.data.pet || {}
     const name = pet.name || '宠物'
-    const nodes = []
+    const events = []
 
     if (pet.birthDate) {
-      nodes.push(this.createSystemNode({
+      events.push(this.createSystemEvent({
         id: 'system-birth',
         date: pet.birthDate,
         title: `${name} 出生了`,
-        desc: '生命档案从这一天开始。',
+        desc: '这一天，是生命档案的起点。',
         type: 'birth',
-        sortOrder: 40,
+        category: 'growth',
+        typeLabel: '成长',
+        sortOrder: 30,
       }))
     }
 
     if (pet.arrivalDate) {
-      nodes.push(this.createSystemNode({
+      events.push(this.createSystemEvent({
         id: 'system-arrival',
         date: pet.arrivalDate,
         title: `${name} 来到身边`,
         desc: '从这一天起，彼此的生活有了新的陪伴。',
         type: 'arrival',
-        sortOrder: 30,
-      }))
-    }
-
-    if (pet.identityClaimedDate) {
-      nodes.push(this.createSystemNode({
-        id: 'system-identity',
-        date: pet.identityClaimedDate,
-        title: `${name} 获得数字身份`,
-        desc: pet.identityNo ? `身份编号 ${pet.identityNo}` : '这份档案将被长期保留。',
-        type: 'identity',
+        category: 'growth',
+        typeLabel: '成长',
         sortOrder: 20,
       }))
     }
 
     if (pet.deathDate) {
-      nodes.push(this.createSystemNode({
+      events.push(this.createSystemEvent({
         id: 'system-farewell',
         date: pet.deathDate,
         title: `${name} 去了星星`,
         desc: '陪伴进入纪念，爱会继续被保存。',
         type: 'farewell',
+        category: 'all',
+        typeLabel: '纪念',
         sortOrder: 10,
       }))
     }
 
-    return nodes
+    if (pet.identityClaimedDate) {
+      events.push(this.createSystemEvent({
+        id: 'system-identity',
+        date: pet.identityClaimedDate,
+        title: `${name} 获得数字身份`,
+        desc: pet.identityNo ? `身份编号 ${pet.identityNo}` : '这份档案将被长期保留。',
+        type: 'identity',
+        category: 'all',
+        typeLabel: '身份',
+        sortOrder: 5,
+      }))
+    }
+
+    return events
   },
 
-  createSystemNode(node) {
+  createSystemEvent(event) {
     return {
-      id: node.id,
-      memoryDate: node.date,
-      dateText: this.formatDate(node.date),
-      yearText: node.date.slice(0, 4) || '未知',
-      title: node.title,
-      desc: node.desc,
-      type: node.type,
-      typeLabel: typeLabelMap[node.type] || '节点',
-      icon: typeIconMap[node.type] || '记',
-      image: '',
+      id: event.id,
+      memoryDate: event.date,
+      year: event.date.slice(0, 4) || '未知',
+      date: this.formatDate(event.date),
+      title: event.title,
+      desc: event.desc,
+      type: event.type,
+      category: event.category,
+      typeLabel: event.typeLabel,
+      img: '',
+      mediaUrls: [],
+      photoCount: 0,
       isSystem: true,
-      sortOrder: node.sortOrder || 0,
+      sortOrder: event.sortOrder || 0,
     }
   },
 
-  normalizeMemoryNode(item = {}) {
+  normalizeMemory(item = {}) {
     const date = item.memoryDate || ''
-    const type = item.type || 'daily'
     const mediaUrls = item.mediaUrls || []
 
     return {
       id: item._id,
       memoryDate: date,
-      dateText: this.formatDate(date),
-      yearText: date.slice(0, 4) || '未知',
-      title: item.title || typeLabelMap[type] || '重要记录',
-      desc: item.content || '这一天被加入了成长时间轴。',
-      type,
-      typeLabel: typeLabelMap[type] || '记录',
-      icon: typeIconMap[type] || '记',
-      image: mediaUrls[0] || '',
+      year: date.slice(0, 4) || '未知',
+      date: this.formatDate(date),
+      title: item.title || typeLabels[item.type] || '今天的记录',
+      desc: item.content || '这一天留下了这些照片。',
+      type: item.type,
+      category: this.getMemoryCategory(item.type),
+      typeLabel: typeLabels[item.type] || '日常',
+      img: mediaUrls[0] || '',
+      mediaUrls,
+      photoCount: mediaUrls.length,
       isSystem: false,
       sortOrder: item.sortOrder || 0,
     }
   },
 
-  normalizePet(item = {}) {
-    const companionDays = this.getDaysSince(item.arrivalDate)
+  getMemoryCategory(type) {
+    if (type === 'birth' || type === 'home') {
+      return 'growth'
+    }
 
+    return type || 'daily'
+  },
+
+  normalizePet(item = {}) {
     return {
       name: item.petName || '宠物小窝',
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
-      cover: themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
+      cover: themeBackgrounds[item.theme] || defaultPetImage,
       birthDate: item.birthDate || '',
       arrivalDate: item.arrivalDate || '',
       deathDate: item.deathDate || '',
       identityNo: item.identityNo || '',
       identityClaimedDate: this.normalizeCloudDate(item.identityClaimedAt),
-      summary: companionDays === null ? '把重要瞬间串成一条生命轨迹' : `已经陪伴 ${companionDays} 天`,
     }
   },
 
@@ -325,20 +372,6 @@ Page({
     return `${Number(parts[1])}月${Number(parts[2])}日`
   },
 
-  getDaysSince(dateText) {
-    if (!dateText) {
-      return null
-    }
-
-    const date = new Date(dateText)
-    if (Number.isNaN(date.getTime())) {
-      return null
-    }
-
-    const diff = Date.now() - date.getTime()
-    return Math.max(0, Math.floor(diff / 86400000))
-  },
-
   goMemoryDetail(e) {
     const memoryId = e.currentTarget.dataset.id
     const isSystem = e.currentTarget.dataset.system === true || e.currentTarget.dataset.system === 'true'
@@ -360,15 +393,45 @@ Page({
     })
   },
 
-  previewNodeImage(e) {
+  previewMemoryImage(e) {
+    const memoryId = e.currentTarget.dataset.id
     const url = e.currentTarget.dataset.url
-    if (!url) {
+
+    if (!memoryId || !url) {
+      return
+    }
+
+    const memory = this.data.groups.reduce((found, group) => {
+      if (found) {
+        return found
+      }
+
+      return group.items.find((item) => item.id === memoryId)
+    }, null)
+
+    if (!memory || !memory.mediaUrls.length) {
       return
     }
 
     wx.previewImage({
       current: url,
-      urls: [url],
+      urls: memory.mediaUrls,
     })
+  },
+
+  previewPetAvatar() {
+    const pet = this.data.pet || {}
+    if (!pet.avatar) {
+      return
+    }
+
+    wx.previewImage({
+      current: pet.avatar,
+      urls: [pet.avatar],
+    })
+  },
+
+  getDirtyVersion() {
+    return Number(wx.getStorageSync('memoryListDirty') || 0)
   },
 })
