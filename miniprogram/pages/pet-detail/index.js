@@ -31,12 +31,15 @@ Page({
     },
     storySectionTitle: '最近记录',
     visitorOverviewText: '',
+    showVisitorOverview: false,
     visitorSummary: {
       visitorCountToday: 0,
       visitorInteractionCountToday: 0,
       visitorCountAllTime: 0,
     },
     recentMemories: [],
+    timelineNodes: [],
+    albumPreviewImages: [],
     reviewNotice: null,
     skeletonActions: [1, 2, 3],
     skeletonStats: [1, 2, 3, 4],
@@ -71,6 +74,8 @@ Page({
         stats: [],
         entryStats: this.getEntryStats(),
         recentMemories: [],
+        timelineNodes: [],
+        albumPreviewImages: [],
         reviewNotice: null,
       })
       return
@@ -140,6 +145,7 @@ Page({
         mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
       }
       rawPet.stats = displayStats
+      const timelineNodes = this.buildTimelineNodes(rawPet, memorySummary.recentMemories)
       this.setData({
         loadingPet: false,
         hasPet: true,
@@ -150,12 +156,15 @@ Page({
         viewingPetSpaceId: '',
         viewingSource: '',
         recentMemories: memorySummary.recentMemories,
+        timelineNodes,
+        albumPreviewImages: this.getAlbumPreviewImages(memorySummary.recentMemories, pet.avatar),
         ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts, displayStats),
         stats: this.normalizeStats(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
         statsGridClass: this.getStatsGridClass(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
-        entryStats: this.getEntryStats(displayStats),
+        entryStats: this.getEntryStats(displayStats, interactionSummary),
         visitorSummary: this.normalizeVisitorSummary(interactionSummary),
         visitorOverviewText: this.getVisitorOverviewText(interactionSummary),
+        showVisitorOverview: this.shouldShowVisitorOverview(rawPet, isOwner),
         reviewNotice: this.getReviewNotice(rawPet, isOwner),
         storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
       })
@@ -197,7 +206,8 @@ Page({
       memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
       mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
     }
-    rawPet.stats = displayStats
+      rawPet.stats = displayStats
+    const timelineNodes = this.buildTimelineNodes(rawPet, memorySummary.recentMemories)
 
     this.setData({
       loadingPet: false,
@@ -209,12 +219,15 @@ Page({
       viewingPetSpaceId: petSpaceId,
       viewingSource,
       recentMemories: memorySummary.recentMemories,
+      timelineNodes,
+      albumPreviewImages: this.getAlbumPreviewImages(memorySummary.recentMemories, pet.avatar),
       ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts, displayStats),
       stats: this.normalizeStats(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
       statsGridClass: this.getStatsGridClass(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
-      entryStats: this.getEntryStats(displayStats),
+      entryStats: this.getEntryStats(displayStats, interactionSummary),
       visitorSummary: this.normalizeVisitorSummary(interactionSummary),
       visitorOverviewText: this.getVisitorOverviewText(interactionSummary),
+      showVisitorOverview: this.shouldShowVisitorOverview(rawPet, isOwner),
       reviewNotice: this.getReviewNotice(rawPet, isOwner),
       storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
     })
@@ -253,14 +266,17 @@ Page({
       viewingPetSpaceId: '',
       viewingSource: '',
       recentMemories: cache.recentMemories || [],
+      timelineNodes: cache.timelineNodes || this.buildTimelineNodes(cache.rawPet, cache.recentMemories || []),
+      albumPreviewImages: cache.albumPreviewImages || this.getAlbumPreviewImages(cache.recentMemories || [], cache.pet.avatar),
       actions: actionState.actions,
       primaryAction: actionState.primaryAction,
       quickActions: actionState.quickActions,
       stats: cache.stats || [],
       statsGridClass: cache.statsGridClass || 'stats-four',
-      entryStats: cache.entryStats || this.getEntryStats(cache.rawPet.stats),
+      entryStats: cache.entryStats || this.getEntryStats(cache.rawPet.stats, cache.visitorSummary),
       visitorSummary: cache.visitorSummary || this.data.visitorSummary,
       visitorOverviewText: cache.visitorOverviewText || '',
+      showVisitorOverview: this.shouldShowVisitorOverview(cache.rawPet, Boolean(cache.isOwner)),
       reviewNotice: cache.reviewNotice || null,
       storySectionTitle: cache.storySectionTitle || '最近记录',
     })
@@ -277,6 +293,8 @@ Page({
       isOwner: this.data.isOwner,
       canSharePet: this.data.canSharePet,
       recentMemories: this.data.recentMemories,
+      timelineNodes: this.data.timelineNodes,
+      albumPreviewImages: this.data.albumPreviewImages,
       actions: this.data.actions,
       primaryAction: this.data.primaryAction,
       quickActions: this.data.quickActions,
@@ -285,6 +303,7 @@ Page({
       entryStats: this.data.entryStats,
       visitorSummary: this.data.visitorSummary,
       visitorOverviewText: this.data.visitorOverviewText,
+      showVisitorOverview: this.data.showVisitorOverview,
       reviewNotice: this.data.reviewNotice,
       storySectionTitle: this.data.storySectionTitle,
       cachedAt: Date.now(),
@@ -348,6 +367,12 @@ Page({
     const dateText = this.getDateText(item)
     const metrics = this.getPetMetrics(item)
     const identityClaimed = Boolean(item.identityClaimed || item.identityClaimedAt)
+    const companionDays = this.getDaysSince(item.arrivalDate)
+    const genderSymbolByType = {
+      female: '♀',
+      male: '♂',
+      unknown: '',
+    }
 
     return {
       id: item._id,
@@ -358,13 +383,23 @@ Page({
       nfcStatusText: item.nfc && item.nfc.status === 'bound' ? '已绑定' : '未绑定',
       phaseText: isInStars ? '数字纪念档案' : '数字生命档案',
       name: item.petName || '未命名小窝',
+      breed: item.breed || '',
+      gender: item.gender || 'unknown',
+      genderSymbol: genderSymbolByType[item.gender || 'unknown'] || '',
+      genderClass: item.gender || 'unknown',
       status: isInStars ? '已去星星' : '陪伴中',
       dateText,
+      birthDate: item.birthDate || '',
+      arrivalDate: item.arrivalDate || '',
+      deathDate: item.deathDate || '',
       metrics,
       dayText: metrics.length ? metrics.join(' · ') : '日期待补充',
+      companionDayNumber: companionDays === null ? 0 : companionDays,
+      companionDayLabel: isInStars ? '陪伴了' : '陪伴了',
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       cover: themeBackgrounds[item.theme] || item.coverUrl || item.avatarUrl || defaultPetImage,
       story: item.story || '还没有故事，去写下第一段回忆吧。',
+      quote: item.story || (isInStars ? '它的一生很短，但值得被认真记录。' : '把每一天的小事，都认真留在这里。'),
     }
   },
 
@@ -515,11 +550,59 @@ Page({
       ]
   },
 
-  getEntryStats(stats = {}) {
+  getEntryStats(stats = {}, visitorSummary = this.data.visitorSummary) {
     return {
       memoryText: `${stats.memoryCount || 0} 条记录`,
       mediaText: `${stats.mediaCount || 0} 张照片`,
+      visitorText: `${(visitorSummary && visitorSummary.visitorCountAllTime) || 0} 访客`,
+      friendHint: ((visitorSummary && visitorSummary.visitorCountAllTime) || 0) ? '去看看动态' : '还没有访客哦',
     }
+  },
+
+  getAlbumPreviewImages(memories = [], fallback = defaultPetImage) {
+    const images = []
+    memories.forEach((memory) => {
+      if (memory.img && images.length < 2) {
+        images.push(memory.img)
+      }
+    })
+
+    if (!images.length && fallback) {
+      images.push(fallback)
+    }
+
+    return images
+  },
+
+  buildTimelineNodes(rawPet = {}, recentMemories = []) {
+    const nodes = []
+    const addNode = (date, label, icon, active = false) => {
+      if (!date || nodes.length >= 5) {
+        return
+      }
+
+      nodes.push({
+        id: `${date}-${label}`,
+        date: date.replace(/-/g, '.'),
+        label,
+        icon,
+        active,
+      })
+    }
+
+    addNode(rawPet.birthDate, '出生', '奶', false)
+    addNode(rawPet.arrivalDate, '来到我身边', '家', false)
+
+    const latestMemory = recentMemories[0]
+    if (latestMemory) {
+      addNode(latestMemory.date, latestMemory.title || '最新记录', '记', true)
+    }
+
+    if ((rawPet.lifeStatus || 'with_me') === 'in_stars') {
+      addNode(rawPet.deathDate, '去了星星', '星', true)
+    }
+
+    return nodes
   },
 
   getInteractionStatField(type) {
@@ -549,6 +632,10 @@ Page({
     const allTimeVisitors = summary.visitorCountAllTime || 0
 
     return `今日访客 ${todayVisitors} 位，互动 ${todayInteractions} 次；总访客 ${allTimeVisitors} 位。`
+  },
+
+  shouldShowVisitorOverview(pet = {}, isOwner = this.data.isOwner) {
+    return Boolean(isOwner && pet.visibility && pet.visibility !== 'private')
   },
 
   getStatsGridClass(stats = {}, lifeStatus, isOwner = this.data.isOwner, visitorSummary = this.data.visitorSummary) {
@@ -812,6 +899,18 @@ Page({
         throw new Error((result && result.message) || '下架失败')
       }
 
+      const rawPet = {
+        ...this.data.rawPet,
+        visibility: 'private',
+        reviewStatus: 'not_required',
+      }
+      this.setData({
+        rawPet,
+        canSharePet: this.canSharePet(rawPet),
+        showVisitorOverview: false,
+        reviewNotice: this.getReviewNotice(rawPet, this.data.isOwner),
+      })
+      this.savePetDetailCache()
       wx.showToast({ title: '已隐藏公开展示', icon: 'none' })
       this.refreshPetDetail()
     } catch (error) {

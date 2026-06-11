@@ -45,7 +45,7 @@
 
     <view class="sheet">
       <view wx:if="{{quickActions.length}}" class="section-card interaction-card first-card {{interactionSyncing ? 'syncing' : ''}}">
-        <text wx:if="{{isOwner}}" class="overview-visitor">{{visitorOverviewText}}</text>
+        <text wx:if="{{showVisitorOverview}}" class="overview-visitor">{{visitorOverviewText}}</text>
         <view class="actions">
           <view wx:for="{{quickActions}}" wx:key="type" class="action {{item.syncing ? 'active-sync' : ''}} tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
             <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
@@ -59,7 +59,10 @@
 
       <view class="story-card">
         <view class="story-head">
-          <text>{{storySectionTitle}}</text>
+          <view class="section-title-row">
+            <view class="section-icon record-icon">记</view>
+            <text>{{isOwner ? '今日记录' : storySectionTitle}}</text>
+          </view>
           <view class="story-actions">
             <text wx:if="{{primaryAction}}" class="record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</text>
             <text class="edit" bindtap="goTimeline">更多 ›</text>
@@ -81,10 +84,45 @@
         </view>
       </view>
 
+      <view wx:if="{{timelineNodes.length}}" class="timeline-card">
+        <view class="section-title-row">
+          <view class="section-icon timeline-title-icon">时</view>
+          <text>成长时间轴</text>
+        </view>
+        <scroll-view class="timeline-scroll" scroll-x enable-flex>
+          <view class="timeline-track">
+            <view wx:for="{{timelineNodes}}" wx:key="id" class="timeline-node {{item.active ? 'active' : ''}}">
+              <view class="timeline-dot">{{item.icon}}</view>
+              <text class="timeline-date">{{item.date}}</text>
+              <text class="timeline-label">{{item.label}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
       <view class="section-card entry-section">
         <view class="entry-grid">
-          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text class="entry-label">朋友圈</text><text class="entry-count">{{entryStats.memoryText}}</text></view>
-          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text class="entry-label">回忆相册</text><text class="entry-count">{{entryStats.mediaText}}</text></view>
+          <view class="entry album-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum">
+            <view class="entry-head">
+              <image src="/assets/icons/album.svg"></image>
+              <text class="entry-label">回忆相册</text>
+              <text class="entry-count">{{entryStats.mediaText}} ›</text>
+            </view>
+            <view class="album-preview">
+              <image wx:for="{{albumPreviewImages}}" wx:key="*this" src="{{item}}" mode="aspectFill"></image>
+            </view>
+          </view>
+          <view class="entry friends-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline">
+            <view class="entry-head">
+              <image src="/assets/icons/user.svg"></image>
+              <text class="entry-label">朋友圈</text>
+              <text class="entry-count">{{entryStats.visitorText}} ›</text>
+            </view>
+            <view class="friends-empty">
+              <text class="friends-illus">♡</text>
+              <text>{{entryStats.friendHint}}</text>
+            </view>
+          </view>
         </view>
       </view>
 
