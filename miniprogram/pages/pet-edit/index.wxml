@@ -102,15 +102,18 @@
     </view>
   </view>
 
-  <button class="save-button" disabled="{{saving || loading}}" bindtap="savePetSpace">
+  <button class="save-button" disabled="{{saving || deleting || loading}}" bindtap="savePetSpace">
     <text>{{saving ? '保存中...' : '保存小窝'}}</text>
   </button>
+  <button class="delete-button" disabled="{{saving || deleting || loading}}" bindtap="deletePetSpace">
+    <text>{{deleting ? '删除中...' : '删除这个小窝'}}</text>
+  </button>
 
-  <view wx:if="{{saving}}" class="submit-mask" catchtouchmove="noop">
+  <view wx:if="{{saving || deleting}}" class="submit-mask" catchtouchmove="noop">
     <view class="submit-dialog">
       <view class="submit-spinner"></view>
-      <text class="submit-title">正在保存</text>
-      <text class="submit-desc">请稍候，正在处理照片和资料</text>
+      <text class="submit-title">{{deleting ? '正在删除' : '正在保存'}}</text>
+      <text class="submit-desc">{{deleting ? '请稍候，正在清理小窝和回忆' : '请稍候，正在处理照片和资料'}}</text>
     </view>
   </view>
 </view>

@@ -2,12 +2,15 @@ const storage = require('../../utils/storage')
 const auth = require('../../utils/auth')
 
 const defaultPetImage = storage.defaultPetImage
+const homePetSpacesCacheKey = 'homePetSpacesCache:v1'
+const petDetailCacheKey = 'petDetailCache:v1'
 
 Page({
   data: {
     petSpaceId: '',
     loading: false,
     saving: false,
+    deleting: false,
     today: '',
     form: {
       petName: '',
@@ -220,7 +223,7 @@ Page({
   },
 
   async savePetSpace() {
-    if (this.data.saving || !this.validateForm()) {
+    if (this.data.saving || this.data.deleting || !this.validateForm()) {
       return
     }
 
@@ -283,6 +286,74 @@ Page({
     } finally {
       this.setData({ saving: false })
     }
+  },
+
+  deletePetSpace() {
+    if (!this.data.petSpaceId || this.data.saving || this.data.deleting) {
+      return
+    }
+
+    wx.showModal({
+      title: '删除这个小窝？',
+      content: '删除后小窝、回忆和照片将不再显示，此操作不可撤销。',
+      confirmText: '删除',
+      confirmColor: '#ef4444',
+      success: async (res) => {
+        if (!res.confirm) {
+          return
+        }
+
+        this.setData({ deleting: true })
+
+        try {
+          const { result } = await wx.cloud.callFunction({
+            name: 'deletePetSpace',
+            data: {
+              petSpaceId: this.data.petSpaceId,
+            },
+          })
+
+          if (!result || !result.ok) {
+            throw new Error((result && result.message) || '删除失败')
+          }
+
+          this.clearDeletedPetState(result)
+          this.setData({ pendingUploadedRefs: [] })
+          wx.showToast({ title: '已删除', icon: 'success' })
+
+          setTimeout(() => {
+            wx.switchTab({ url: '/pages/index/index' })
+          }, 500)
+        } catch (error) {
+          this.setData({ deleting: false })
+          wx.showToast({
+            title: error.message || '删除失败，请稍后重试',
+            icon: 'none',
+          })
+        }
+      },
+    })
+  },
+
+  clearDeletedPetState(result = {}) {
+    const deletedPetSpaceId = result.deletedPetSpaceId || this.data.petSpaceId
+    const nextPetSpaceId = result.nextPetSpaceId || ''
+
+    if (wx.getStorageSync('selectedPetSpaceId') === deletedPetSpaceId) {
+      if (nextPetSpaceId) {
+        wx.setStorageSync('selectedPetSpaceId', nextPetSpaceId)
+      } else {
+        wx.removeStorageSync('selectedPetSpaceId')
+      }
+    }
+
+    if (wx.getStorageSync('viewPetSpaceId') === deletedPetSpaceId) {
+      wx.removeStorageSync('viewPetSpaceId')
+    }
+
+    wx.removeStorageSync(homePetSpacesCacheKey)
+    wx.removeStorageSync(petDetailCacheKey)
+    wx.setStorageSync('memoryListDirty', Date.now())
   },
 
   formatDate(date) {

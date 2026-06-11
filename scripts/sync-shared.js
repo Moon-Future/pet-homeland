@@ -30,6 +30,7 @@ const MANIFEST = {
   addMemory:       { 'upload-ref.js':   'upload-ref.js' },
   updateMemory:    { 'storage.js':      'storage.js', 'upload-ref.js': 'upload-ref.js' },
   updatePetSpace:  { 'storage.js':      'storage.js', 'upload-ref.js': 'upload-ref.js' },
+  deletePetSpace:  { 'storage.js':      'storage.js', 'upload-ref.js': 'upload-ref.js' },
   login:           { 'storage.js':      'storage.js', 'grant.js': 'grant.js', 'upload-ref.js': 'upload-ref.js' },
 
   // Read-side: only needs buildUrl (no qiniu SDK)

@@ -1,0 +1,10 @@
+{
+  "name": "deletePetSpace",
+  "version": "1.0.0",
+  "description": "Soft delete a pet space and related content",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "qiniu": "^7.13.0"
+  }
+}
