@@ -246,7 +246,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '星宠乡：记录陪伴，也安放心念',
+      title: '星宠乡：记录它的一生，也治愈你的余生',
       path: '/pages/index/index',
       imageUrl: storage.defaultPetImage,
     }
