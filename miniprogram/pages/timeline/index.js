@@ -154,7 +154,7 @@ Page({
       })
 
       if (!result || !result.ok) {
-        throw new Error((result && result.message) || '读取时间轴失败')
+        throw new Error((result && result.message) || '读取朋友圈失败')
       }
 
       this.setData({
@@ -166,7 +166,7 @@ Page({
     } catch (error) {
       this.setData({ loading: false, initialLoading: false, groups: [] })
       wx.showToast({
-        title: error.message || '读取时间轴失败',
+        title: error.message || '读取朋友圈失败',
         icon: 'none',
       })
     }

@@ -44,52 +44,26 @@
     </view>
 
     <view class="sheet">
-      <view wx:if="{{primaryAction}}" class="feature-card">
-        <view class="feature-copy">
-          <view class="feature-icon">
-            <image src="{{primaryAction.icon}}" mode="aspectFit"></image>
-          </view>
-          <view class="feature-text">
-            <text class="feature-title">{{primaryAction.label}}</text>
-            <text class="feature-desc">{{primaryAction.desc}}</text>
-          </view>
-        </view>
-        <view class="feature-button tap-feedback-strong" hover-class="tap-feedback-strong-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</view>
-      </view>
-
-      <view wx:if="{{quickActions.length}}" class="section-card interaction-card {{!primaryAction ? 'first-card' : ''}}">
-        <view class="section-head">
-          <!-- <text class="section-title">轻互动</text> -->
-          <text class="section-tip">留下一点陪伴痕迹</text>
-        </view>
-        <view class="actions">
-          <view wx:for="{{quickActions}}" wx:key="type" class="action tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
-            <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
-            <text class="action-label">{{item.label}}</text>
-            <!-- <text wx:if="{{item.showCount}}" class="action-count">今日 {{item.todayCount}}/{{item.limit}}</text> -->
-          </view>
-        </view>
-      </view>
-
-      <view class="section-card overview-card">
-        <!-- <view class="section-head">
-          <text class="section-title">小窝概览</text>
-        </view> -->
+      <view wx:if="{{quickActions.length}}" class="section-card interaction-card first-card {{interactionSyncing ? 'syncing' : ''}}">
         <text wx:if="{{isOwner}}" class="overview-visitor">{{visitorOverviewText}}</text>
-        <scroll-view class="stats-scroll" scroll-x enable-flex>
-          <view class="stats stats-inline">
-            <view wx:for="{{stats}}" wx:key="label" class="stat stat-inline">
-              <text class="stat-value">{{item.value}}</text>
-              <text class="stat-label">{{item.label}}</text>
+        <view class="actions">
+          <view wx:for="{{quickActions}}" wx:key="type" class="action {{item.syncing ? 'active-sync' : ''}} tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
+            <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
+            <view class="action-copy">
+              <text class="action-label">{{item.label}}</text>
+              <text wx:if="{{item.showCount}}" class="action-count">{{item.totalCountText}}</text>
             </view>
           </view>
-        </scroll-view>
+        </view>
       </view>
 
       <view class="story-card">
         <view class="story-head">
           <text>{{storySectionTitle}}</text>
-          <text class="edit" bindtap="goTimeline">更多 ›</text>
+          <view class="story-actions">
+            <text wx:if="{{primaryAction}}" class="record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="triggerPrimaryAction">{{primaryAction.buttonText}}</text>
+            <text class="edit" bindtap="goTimeline">更多 ›</text>
+          </view>
         </view>
         <view wx:if="{{recentMemories.length}}" class="recent-list">
           <view wx:for="{{recentMemories}}" wx:key="id" class="recent-item tap-feedback" hover-class="tap-feedback-hover" data-id="{{item.id}}" bindtap="goMemoryDetail">
@@ -108,30 +82,29 @@
       </view>
 
       <view class="section-card entry-section">
-        <view class="section-head compact">
-          <text class="section-title">更多入口</text>
-        </view>
         <view class="entry-grid">
-          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text>时间轴</text></view>
-          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text>回忆相册</text></view>
-          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goStarSpace"><image src="/assets/icons/star.svg"></image><text>星空</text></view>
+          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goTimeline"><image src="/assets/icons/timeline.svg"></image><text class="entry-label">朋友圈</text><text class="entry-count">{{entryStats.memoryText}}</text></view>
+          <view class="entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum"><image src="/assets/icons/album.svg"></image><text class="entry-label">回忆相册</text><text class="entry-count">{{entryStats.mediaText}}</text></view>
         </view>
       </view>
 
-      <view wx:if="{{(viewingPetSpaceId && !isOwner) || reviewNotice}}" class="support-panel">
+      <view wx:if="{{(viewingPetSpaceId && !isOwner) || reviewNotice}}" class="support-panel {{reviewNotice ? 'review-panel' : ''}} status-{{reviewNotice.type}}">
         <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="support-copy">
           <text class="support-title">正在访问 {{pet.name}} 的小窝</text>
           <text class="support-desc">可以查看公开回忆、留下轻互动，也可以回到自己的小窝。</text>
         </view>
         <view wx:elif="{{reviewNotice}}" class="support-copy status-{{reviewNotice.type}}">
-          <text class="support-title">公开展示管理</text>
+          <view class="support-title-row">
+            <view class="support-status-dot"></view>
+            <text class="support-title">公开展示状态</text>
+          </view>
           <text class="support-desc">{{reviewNotice.text}}</text>
         </view>
 
         <view class="support-actions">
           <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="support-button primary tap-feedback" hover-class="tap-feedback-hover" bindtap="goMyPetSpace">回我的小窝</view>
           <view wx:if="{{rawPet.visibility === 'discover' && !isOwner}}" class="support-button plain tap-feedback" hover-class="tap-feedback-hover" bindtap="reportPet">举报</view>
-          <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="support-button plain wide tap-feedback" hover-class="tap-feedback-hover" bindtap="unpublishPet">下架公开展示</view>
+          <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="support-button plain wide tap-feedback" hover-class="tap-feedback-hover" bindtap="unpublishPet">隐藏公开展示</view>
         </view>
       </view>
     </view>
@@ -175,12 +148,5 @@
     <text class="empty-title">登录后查看宠物小窝</text>
     <text class="empty-desc">保存照片、故事和陪伴时光。</text>
     <button class="login-button" bindtap="goLogin">去登录</button>
-  </view>
-
-  <view wx:if="{{interacting}}" class="interaction-mask" catchtouchmove="noop">
-    <view class="interaction-loading">
-      <view class="interaction-spinner"></view>
-      <text>{{interactingText || '互动中...'}}</text>
-    </view>
   </view>
 </view>

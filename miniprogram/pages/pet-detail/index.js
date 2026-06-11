@@ -13,18 +13,22 @@ Page({
     hasPet: false,
     pet: null,
     rawPet: null,
-    interacting: false,
-    interactingText: '',
     identityClaiming: false,
     isOwner: false,
     canSharePet: false,
     viewingPetSpaceId: '',
     viewingSource: '',
+    interactionSyncing: false,
+    syncingInteractionType: '',
     actions: [],
     primaryAction: null,
     quickActions: [],
     stats: [],
     statsGridClass: 'stats-four',
+    entryStats: {
+      memoryText: '0 条记录',
+      mediaText: '0 张照片',
+    },
     storySectionTitle: '最近记录',
     visitorOverviewText: '',
     visitorSummary: {
@@ -65,6 +69,7 @@ Page({
         hasPet: false,
         pet: null,
         stats: [],
+        entryStats: this.getEntryStats(),
         recentMemories: [],
         reviewNotice: null,
       })
@@ -134,6 +139,7 @@ Page({
         memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
         mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
       }
+      rawPet.stats = displayStats
       this.setData({
         loadingPet: false,
         hasPet: true,
@@ -144,9 +150,10 @@ Page({
         viewingPetSpaceId: '',
         viewingSource: '',
         recentMemories: memorySummary.recentMemories,
-        ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
+        ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts, displayStats),
         stats: this.normalizeStats(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
         statsGridClass: this.getStatsGridClass(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
+        entryStats: this.getEntryStats(displayStats),
         visitorSummary: this.normalizeVisitorSummary(interactionSummary),
         visitorOverviewText: this.getVisitorOverviewText(interactionSummary),
         reviewNotice: this.getReviewNotice(rawPet, isOwner),
@@ -190,6 +197,7 @@ Page({
       memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
       mediaCount: memorySummary.mediaCount !== null ? memorySummary.mediaCount : ((rawPet.stats || {}).mediaCount || 0),
     }
+    rawPet.stats = displayStats
 
     this.setData({
       loadingPet: false,
@@ -201,9 +209,10 @@ Page({
       viewingPetSpaceId: petSpaceId,
       viewingSource,
       recentMemories: memorySummary.recentMemories,
-      ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts),
+      ...this.buildActionState(rawPet.lifeStatus, isOwner, interactionSummary.todayCounts, displayStats),
       stats: this.normalizeStats(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
       statsGridClass: this.getStatsGridClass(displayStats, rawPet.lifeStatus, isOwner, interactionSummary),
+      entryStats: this.getEntryStats(displayStats),
       visitorSummary: this.normalizeVisitorSummary(interactionSummary),
       visitorOverviewText: this.getVisitorOverviewText(interactionSummary),
       reviewNotice: this.getReviewNotice(rawPet, isOwner),
@@ -226,6 +235,14 @@ Page({
       return
     }
 
+    const cacheTodayCounts = this.getActionCountsMap(cache.actions || [])
+    const actionState = this.buildActionState(
+      cache.rawPet.lifeStatus,
+      Boolean(cache.isOwner),
+      cacheTodayCounts,
+      cache.rawPet.stats || {},
+    )
+
     this.setData({
       loadingPet: false,
       hasPet: true,
@@ -236,11 +253,12 @@ Page({
       viewingPetSpaceId: '',
       viewingSource: '',
       recentMemories: cache.recentMemories || [],
-      actions: cache.actions || [],
-      primaryAction: cache.primaryAction || null,
-      quickActions: cache.quickActions || cache.actions || [],
+      actions: actionState.actions,
+      primaryAction: actionState.primaryAction,
+      quickActions: actionState.quickActions,
       stats: cache.stats || [],
       statsGridClass: cache.statsGridClass || 'stats-four',
+      entryStats: cache.entryStats || this.getEntryStats(cache.rawPet.stats),
       visitorSummary: cache.visitorSummary || this.data.visitorSummary,
       visitorOverviewText: cache.visitorOverviewText || '',
       reviewNotice: cache.reviewNotice || null,
@@ -264,6 +282,7 @@ Page({
       quickActions: this.data.quickActions,
       stats: this.data.stats,
       statsGridClass: this.data.statsGridClass,
+      entryStats: this.data.entryStats,
       visitorSummary: this.data.visitorSummary,
       visitorOverviewText: this.data.visitorOverviewText,
       reviewNotice: this.data.reviewNotice,
@@ -398,12 +417,21 @@ Page({
     return { todayCounts: {}, visitorCountToday: 0, visitorInteractionCountToday: 0, visitorCountAllTime: 0 }
   },
 
-  normalizeActions(lifeStatus, isOwner = this.data.isOwner, todayCounts = {}) {
+  normalizeActions(
+    lifeStatus,
+    isOwner = this.data.isOwner,
+    todayCounts = {},
+    stats = (this.data.rawPet && this.data.rawPet.stats) || {},
+    syncingType = this.data.syncingInteractionType,
+  ) {
     const limit = isOwner ? 10 : 1
     const decorate = (actions) => actions.map((item) => ({
       ...item,
       limit,
       todayCount: todayCounts[item.type] || 0,
+      totalCount: stats[this.getInteractionStatField(item.type)] || 0,
+      totalCountText: String(stats[this.getInteractionStatField(item.type)] || 0),
+      syncing: item.type === syncingType,
       showCount: item.type !== 'checkin',
     }))
 
@@ -431,8 +459,14 @@ Page({
     ])
   },
 
-  buildActionState(lifeStatus, isOwner = this.data.isOwner, todayCounts = {}) {
-    const actions = this.normalizeActions(lifeStatus, isOwner, todayCounts)
+  buildActionState(
+    lifeStatus,
+    isOwner = this.data.isOwner,
+    todayCounts = {},
+    stats = (this.data.rawPet && this.data.rawPet.stats) || {},
+    syncingType = this.data.syncingInteractionType,
+  ) {
+    const actions = this.normalizeActions(lifeStatus, isOwner, todayCounts, stats, syncingType)
     let primaryAction = null
     let quickActions = actions
 
@@ -481,6 +515,26 @@ Page({
       ]
   },
 
+  getEntryStats(stats = {}) {
+    return {
+      memoryText: `${stats.memoryCount || 0} 条记录`,
+      mediaText: `${stats.mediaCount || 0} 张照片`,
+    }
+  },
+
+  getInteractionStatField(type) {
+    const fieldByType = {
+      cuddle: 'cuddleCount',
+      feed: 'feedCount',
+      paw: 'pawCount',
+      miss: 'missCount',
+      flower: 'flowerCount',
+      star: 'starCount',
+    }
+
+    return fieldByType[type] || ''
+  },
+
   normalizeVisitorSummary(summary = {}) {
     return {
       visitorCountToday: summary.visitorCountToday || 0,
@@ -494,7 +548,7 @@ Page({
     const todayInteractions = summary.visitorInteractionCountToday || 0
     const allTimeVisitors = summary.visitorCountAllTime || 0
 
-    return `今天有 ${todayVisitors} 位朋友来过，留下 ${todayInteractions} 次互动；累计有 ${allTimeVisitors} 位朋友访问过。`
+    return `今日访客 ${todayVisitors} 位，互动 ${todayInteractions} 次；总访客 ${allTimeVisitors} 位。`
   },
 
   getStatsGridClass(stats = {}, lifeStatus, isOwner = this.data.isOwner, visitorSummary = this.data.visitorSummary) {
@@ -728,9 +782,9 @@ Page({
     }
 
     wx.showModal({
-      title: '下架公开展示',
-      content: '下架后小窝会转为私密，不再出现在星空广场。',
-      confirmText: '下架',
+      title: '隐藏公开展示',
+      content: '隐藏后小窝会转为私密，不再出现在星空广场。',
+      confirmText: '隐藏',
       confirmColor: '#8b5cf6',
       success: async (res) => {
         if (!res.confirm) {
@@ -750,7 +804,7 @@ Page({
           targetType: 'pet_space',
           targetId: this.data.pet.id,
           action: 'unpublish',
-          reason: '主人主动下架公开展示',
+          reason: '主人主动隐藏公开展示',
         },
       })
 
@@ -758,7 +812,7 @@ Page({
         throw new Error((result && result.message) || '下架失败')
       }
 
-      wx.showToast({ title: '已下架公开展示', icon: 'none' })
+      wx.showToast({ title: '已隐藏公开展示', icon: 'none' })
       this.refreshPetDetail()
     } catch (error) {
       wx.showToast({ title: error.message || '下架失败，请稍后重试', icon: 'none' })
@@ -766,11 +820,11 @@ Page({
   },
 
   async interact(e) {
-    if (this.data.interacting) {
+    if (!this.requireLoginToProfile('请先到“我的”登录后再互动')) {
       return
     }
 
-    if (!this.requireLoginToProfile('请先到“我的”登录后再互动')) {
+    if (this.data.interactionSyncing) {
       return
     }
 
@@ -801,8 +855,59 @@ Page({
       return
     }
 
-    const interactingText = action ? `${action.label}中...` : '互动中...'
-    this.setData({ interacting: true, interactingText })
+    this.setData({
+      interactionSyncing: true,
+      syncingInteractionType: type,
+    })
+    this._interactionSnapshot = {
+      rawPet: this.data.rawPet,
+      actions: this.data.actions,
+      quickActions: this.data.quickActions,
+      stats: this.data.stats,
+      entryStats: this.data.entryStats,
+    }
+    this.applyOptimisticInteraction(type)
+    this.syncInteractionToServer(type)
+  },
+
+  applyOptimisticInteraction(type) {
+    const rawPet = this.data.rawPet || {}
+    const lifeStatus = rawPet.lifeStatus || 'with_me'
+    const statField = this.getInteractionStatField(type)
+    const nextStats = {
+      ...(rawPet.stats || {}),
+    }
+
+    if (statField) {
+      nextStats[statField] = (nextStats[statField] || 0) + 1
+    }
+
+    const nextRawPet = {
+      ...rawPet,
+      stats: nextStats,
+    }
+    const currentCounts = this.getActionCountsMap()
+    const todayCounts = {
+      ...currentCounts,
+      [type]: (currentCounts[type] || 0) + 1,
+    }
+    const actions = this.normalizeActions(lifeStatus, this.data.isOwner, todayCounts, nextStats, type)
+
+    this.setData({
+      rawPet: nextRawPet,
+      actions,
+      quickActions: actions.filter((item) => item.type !== 'checkin'),
+      stats: this.normalizeStats(nextStats, lifeStatus),
+      entryStats: this.getEntryStats(nextStats),
+    })
+    this.savePetDetailCache()
+  },
+
+  async syncInteractionToServer(type) {
+    const pet = this.data.pet
+    if (!pet || !pet.id) {
+      return
+    }
 
     try {
       const { result } = await wx.cloud.callFunction({
@@ -818,42 +923,48 @@ Page({
         if (result && result.nextAllowedAt) {
           this.setLocalCooldown(type, result.nextAllowedAt)
         }
-        throw new Error((result && result.message) || '互动失败')
+        throw new Error((result && result.message) || '互动同步失败')
       }
 
+      const rawStats = (this.data.rawPet && this.data.rawPet.stats) || {}
+      const serverStats = result.stats || {}
       const nextStats = {
-        ...result.stats,
-        memoryCount: (this.data.rawPet && this.data.rawPet.stats && this.data.rawPet.stats.memoryCount) || 0,
-        mediaCount: (this.data.rawPet && this.data.rawPet.stats && this.data.rawPet.stats.mediaCount) || 0,
+        ...serverStats,
+        memoryCount: rawStats.memoryCount || 0,
+        mediaCount: rawStats.mediaCount || 0,
       }
+      ;['cuddleCount', 'feedCount', 'pawCount', 'missCount', 'flowerCount', 'starCount'].forEach((field) => {
+        nextStats[field] = Math.max(rawStats[field] || 0, serverStats[field] || 0)
+      })
       const rawPet = {
         ...this.data.rawPet,
         stats: nextStats,
       }
+      const currentCounts = this.getActionCountsMap()
       const todayCounts = {
-        ...this.getActionCountsMap(),
-        [type]: result.countToday,
+        ...currentCounts,
+        [type]: Math.max(result.countToday || 0, currentCounts[type] || 0),
       }
+      const actions = this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts, nextStats, '')
 
       if (this.data.isOwner && result.nextAllowedAt) {
         this.setLocalCooldown(type, result.nextAllowedAt)
       }
 
       this.setData({
-        interacting: false,
-        interactingText: '',
         rawPet,
-        actions: this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts),
+        interactionSyncing: false,
+        syncingInteractionType: '',
+        actions,
+        quickActions: actions.filter((item) => item.type !== 'checkin'),
         stats: this.normalizeStats(nextStats, rawPet.lifeStatus),
+        entryStats: this.getEntryStats(nextStats),
         visitorSummary: this.data.isOwner ? this.data.visitorSummary : this.normalizeVisitorSummary({}),
       })
-
-      wx.showToast({
-        title: this.data.isOwner ? (result.message || '已记录') : this.getVisitorInteractionText(type, pet.name),
-        icon: 'none',
-      })
+      this._interactionSnapshot = null
+      this.savePetDetailCache()
     } catch (error) {
-      this.setData({ interacting: false, interactingText: '' })
+      this.rollbackOptimisticInteraction()
       wx.showToast({
         title: error.message || '互动失败，请稍后重试',
         icon: 'none',
@@ -861,8 +972,42 @@ Page({
     }
   },
 
-  getActionCountsMap() {
-    return this.data.actions.reduce((map, item) => {
+  rollbackOptimisticInteraction() {
+    const snapshot = this._interactionSnapshot
+    this._interactionSnapshot = null
+
+    if (!snapshot) {
+      this.clearInteractionSyncState()
+      return
+    }
+
+    this.setData({
+      ...snapshot,
+      interactionSyncing: false,
+      syncingInteractionType: '',
+    })
+  },
+
+  clearInteractionSyncState() {
+    const rawPet = this.data.rawPet || {}
+    const actions = this.normalizeActions(
+      rawPet.lifeStatus || 'with_me',
+      this.data.isOwner,
+      this.getActionCountsMap(),
+      rawPet.stats || {},
+      '',
+    )
+
+    this.setData({
+      interactionSyncing: false,
+      syncingInteractionType: '',
+      actions,
+      quickActions: actions.filter((item) => item.type !== 'checkin'),
+    })
+  },
+
+  getActionCountsMap(actions = this.data.actions) {
+    return actions.reduce((map, item) => {
       map[item.type] = item.todayCount || 0
       return map
     }, {})
