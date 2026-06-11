@@ -355,6 +355,28 @@ page {
   line-height: 1.2;
 }
 
+.gender-icon {
+  width: 32rpx;
+  height: 32rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 900;
+  line-height: 32rpx;
+  box-shadow: 0 6rpx 14rpx rgba(45, 33, 64, 0.12);
+}
+
+.gender-male {
+  background: linear-gradient(135deg, #67b7ff, #4c7dff);
+}
+
+.gender-female {
+  background: linear-gradient(135deg, #ff9fca, #f45c88);
+}
+
 .status-pill {
   height: 32rpx;
   padding: 0 10rpx;

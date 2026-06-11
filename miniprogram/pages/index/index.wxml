@@ -67,6 +67,7 @@
         <view class="pet-info">
           <view class="pet-name-row">
             <text class="pet-name">{{featuredPet.petName}}</text>
+            <text wx:if="{{featuredPet.genderSymbol}}" class="gender-icon gender-{{featuredPet.genderClass}}">{{featuredPet.genderSymbol}}</text>
             <text class="status-pill {{featuredPet.statusClass}}">{{featuredPet.statusText}}</text>
             <image class="sparkle-icon" src="/assets/icons/sparkle.svg" mode="aspectFit"></image>
           </view>

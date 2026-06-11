@@ -142,6 +142,12 @@ Page({
     const companionDays = this.getDaysSince(item.arrivalDate)
     const awayDays = this.getDaysSince(item.deathDate)
     const metrics = []
+    const gender = item.gender || 'unknown'
+    const genderSymbolByType = {
+      female: '♀',
+      male: '♂',
+      unknown: '',
+    }
 
     if (ageText) {
       metrics.push(`${ageText}`)
@@ -160,6 +166,9 @@ Page({
       raw: item,
       petName: item.petName || '未命名小窝',
       active,
+      gender,
+      genderSymbol: genderSymbolByType[gender] || '',
+      genderClass: gender,
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
       metrics,

@@ -21,6 +21,7 @@
         <view class="hero-copy">
           <view class="hero-main">
             <text class="name">{{pet.name}}</text>
+            <text wx:if="{{pet.genderSymbol}}" class="gender-icon gender-{{pet.genderClass}}">{{pet.genderSymbol}}</text>
             <text class="status-badge">{{pet.status}}</text>
           </view>
           <text class="date">{{pet.dateText}}</text>
