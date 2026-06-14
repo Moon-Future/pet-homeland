@@ -9,7 +9,7 @@
 
     <button wx:if="{{isLoggedIn && hasPetSpaces}}" class="create-button" bindtap="onCreateMemorial">
       <image class="create-icon" src="/assets/icons/plus.svg" mode="aspectFit"></image>
-      <text class="create-lable">创建宠物小窝</text>
+      <text class="create-lable">添加宠物</text>
     </button>
 
     <button wx:elif="{{!isLoggedIn}}" class="create-button" bindtap="goLogin">
@@ -49,14 +49,23 @@
       <scroll-view class="pet-filter-scroll" scroll-x enable-flex>
         <view class="pet-filter-list">
           <view
-            wx:for="{{petSpaces}}"
-            wx:key="id"
-            class="pet-filter {{item.active ? 'active' : ''}}"
-            data-id="{{item.id}}"
-            catchtap="onSelectPet"
+            wx:for="{{groupedPetSpaces}}"
+            wx:for-item="group"
+            wx:key="key"
+            class="pet-filter-group group-{{group.key}}"
           >
-            <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}"></image>
-            <text>{{item.petName}}</text>
+            <text class="pet-filter-group-title">{{group.title}}</text>
+            <view
+              wx:for="{{group.items}}"
+              wx:for-item="item"
+              wx:key="id"
+              class="pet-filter {{item.active ? 'active' : ''}} {{item.groupKey === 'memorial' ? 'memorial' : 'companion'}}"
+              data-id="{{item.id}}"
+              catchtap="onSelectPet"
+            >
+              <image class="filter-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}"></image>
+              <text>{{item.petName}}</text>
+            </view>
           </view>
         </view>
       </scroll-view>

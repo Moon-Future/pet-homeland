@@ -9,6 +9,7 @@ Page({
     hasPetSpaces: false,
     selectedId: '',
     petSpaces: [],
+    groupedPetSpaces: [],
     defaultPetImage,
   },
 
@@ -53,9 +54,10 @@ Page({
         hasPetSpaces: petSpaces.length > 0,
         selectedId: selectedId || '',
         petSpaces,
+        groupedPetSpaces: this.groupPetSpaces(petSpaces),
       })
     } catch (error) {
-      this.setData({ loading: false, hasPetSpaces: false, petSpaces: [] })
+      this.setData({ loading: false, hasPetSpaces: false, petSpaces: [], groupedPetSpaces: [] })
       wx.showToast({
         title: error.message || '读取宠物列表失败',
         icon: 'none',
@@ -76,10 +78,29 @@ Page({
       active,
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
+      groupKey: isInStars ? 'memorial' : 'companion',
+      spaceTypeText: isInStars ? '纪念空间' : '宠物小窝',
+      enterText: active ? (isInStars ? '进入当前纪念空间' : '进入当前小窝') : (isInStars ? '进入纪念空间' : '进入小窝'),
       metricText: metrics.length ? metrics.join(' · ') : '日期待补充',
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
-      story: item.story || '还没有记录，去写下第一段回忆吧',
+      story: item.story || (isInStars ? '还没有回忆，去写下第一段想念吧' : '还没有记录，去写下第一段回忆吧'),
     }
+  },
+
+  groupPetSpaces(petSpaces = []) {
+    const companion = petSpaces.filter((item) => item.groupKey !== 'memorial')
+    const memorial = petSpaces.filter((item) => item.groupKey === 'memorial')
+    const groups = []
+
+    if (companion.length) {
+      groups.push({ key: 'companion', title: '陪伴中', desc: '还在身边的日常小窝', items: companion })
+    }
+
+    if (memorial.length) {
+      groups.push({ key: 'memorial', title: '纪念中', desc: '已去星星的纪念空间', items: memorial })
+    }
+
+    return groups
   },
 
   getPetMetrics(item = {}) {
@@ -158,12 +179,21 @@ Page({
     }
 
     wx.setStorageSync('selectedPetSpaceId', id)
+    const petSpaces = this.data.petSpaces.map((item) => {
+      const active = item.id === id
+      return {
+        ...item,
+        active,
+        enterText: active
+          ? (item.groupKey === 'memorial' ? '进入当前纪念空间' : '进入当前小窝')
+          : (item.groupKey === 'memorial' ? '进入纪念空间' : '进入小窝'),
+      }
+    })
+
     this.setData({
       selectedId: id,
-      petSpaces: this.data.petSpaces.map((item) => ({
-        ...item,
-        active: item.id === id,
-      })),
+      petSpaces,
+      groupedPetSpaces: this.groupPetSpaces(petSpaces),
     })
   },
 

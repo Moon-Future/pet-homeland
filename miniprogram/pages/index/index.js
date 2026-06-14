@@ -13,6 +13,7 @@ Page({
     defaultPetImage,
     featuredPet: null,
     petSpaces: [],
+    groupedPetSpaces: [],
     themePreviews: [
       { id: 'cloud', name: '梦幻花谷', image: storage.themeImages.cloud },
       { id: 'rainbow', name: '日落花海', image: storage.themeImages.rainbow },
@@ -45,6 +46,7 @@ Page({
         hasPetSpaces: false,
         featuredPet: null,
         petSpaces: [],
+        groupedPetSpaces: [],
       })
       return
     }
@@ -91,6 +93,7 @@ Page({
         loadingPets: false,
         hasPetSpaces: petSpaces.length > 0,
         petSpaces,
+        groupedPetSpaces: this.groupPetSpaces(petSpaces),
         featuredPet,
       })
 
@@ -104,6 +107,7 @@ Page({
         loadingPets: false,
         hasPetSpaces: this.data.hasPetSpaces,
         petSpaces: this.data.petSpaces,
+        groupedPetSpaces: this.data.groupedPetSpaces,
         featuredPet: this.data.featuredPet,
       })
       wx.showToast({
@@ -131,6 +135,7 @@ Page({
       loadingPets: false,
       hasPetSpaces: petSpaces.length > 0,
       petSpaces,
+      groupedPetSpaces: this.groupPetSpaces(petSpaces),
       featuredPet,
     })
   },
@@ -171,6 +176,8 @@ Page({
       genderClass: gender,
       statusText: isInStars ? '已去星星' : '陪伴中',
       statusClass: isInStars ? 'status-in-stars' : 'status-with-me',
+      spaceTypeText: isInStars ? '纪念空间' : '宠物小窝',
+      groupKey: isInStars ? 'memorial' : 'companion',
       metrics,
       avatar: item.avatarUrl || item.coverUrl || defaultPetImage,
       cover: item.coverUrl || item.avatarUrl || defaultPetImage,
@@ -179,12 +186,29 @@ Page({
   },
 
   normalizeFeaturedPet(pet) {
+    const isMemorial = pet.raw.lifeStatus === 'in_stars'
     return {
       ...pet,
-      recentTitle: pet.raw.lifeStatus === 'in_stars' ? '最近思念' : '最近陪伴',
+      recentTitle: isMemorial ? '最近思念' : '最近陪伴',
       metricText: pet.metrics.length ? pet.metrics.join(' · ') : '日期待补充',
-      message: pet.story || '还没有记录，去写下第一段回忆吧',
+      message: pet.story || (isMemorial ? '还没有回忆，去写下第一段想念吧' : '还没有记录，去写下第一段回忆吧'),
     }
+  },
+
+  groupPetSpaces(petSpaces = []) {
+    const companion = petSpaces.filter((item) => item.groupKey !== 'memorial')
+    const memorial = petSpaces.filter((item) => item.groupKey === 'memorial')
+    const groups = []
+
+    if (companion.length) {
+      groups.push({ key: 'companion', title: '陪伴中', items: companion })
+    }
+
+    if (memorial.length) {
+      groups.push({ key: 'memorial', title: '纪念中', items: memorial })
+    }
+
+    return groups
   },
 
   getDaysSince(dateText) {
@@ -270,6 +294,7 @@ Page({
 
     this.setData({
       petSpaces,
+      groupedPetSpaces: this.groupPetSpaces(petSpaces),
       featuredPet: selectedPet ? this.normalizeFeaturedPet(selectedPet) : this.data.featuredPet,
     })
   },

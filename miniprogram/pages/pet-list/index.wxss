@@ -59,7 +59,37 @@ page {
   margin-top: 28rpx;
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 30rpx;
+}
+
+.pet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 6rpx;
+}
+
+.group-title {
+  color: #2f2940;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.group-desc {
+  color: #8b7b9c;
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.group-memorial .group-title {
+  color: #5549bd;
 }
 
 .pet-card {
@@ -77,6 +107,17 @@ page {
   border-color: rgba(139, 92, 246, .52);
   background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(239,232,255,.84));
   box-shadow: 0 18rpx 36rpx rgba(126, 84, 230, .2);
+}
+
+.pet-card.memorial {
+  border-color: rgba(127, 140, 255, .24);
+  background: rgba(249, 249, 255, .82);
+}
+
+.pet-card.memorial.active {
+  border-color: rgba(85, 73, 189, .48);
+  background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(235,237,255,.86));
+  box-shadow: 0 18rpx 36rpx rgba(85, 73, 189, .18);
 }
 
 .pet-avatar {

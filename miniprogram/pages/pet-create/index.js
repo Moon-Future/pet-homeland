@@ -52,6 +52,7 @@ Page({
     selectedTheme: 'rainbow',
     reservedPetSpaceId: '',
     petUploadGrant: '',
+    petUploadGrantReservedAt: 0,
     pendingUploadedRefs: [],
   },
 
@@ -68,14 +69,14 @@ Page({
       today: this.formatDate(new Date()),
     })
 
-    this.reservePetSpaceId()
+    this.reservePetSpaceId({ showError: true }).catch(() => {})
   },
 
   onUnload() {
     this.cleanupPendingUploads().catch(() => {})
   },
 
-  async reservePetSpaceId() {
+  async reservePetSpaceId(options = {}) {
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'reservePetSpaceId',
@@ -87,13 +88,71 @@ Page({
         this.setData({
           reservedPetSpaceId: result.petSpaceId,
           petUploadGrant: result.petUploadGrant || '',
+          petUploadGrantReservedAt: Date.now(),
         })
+        return result
       }
+
+      throw new Error((result && result.message) || '小窝预留失败')
     } catch (error) {
-      // Non-critical: if this fails, the user can still fill in the form.
-      // The upload will fail later if petSpaceId is missing, which surfaces
-      // the problem clearly.
+      if (this.isGrantExpiredError(error) && !options.retried) {
+        try {
+          await auth.refreshSessionGrant()
+          return this.reservePetSpaceId({ ...options, retried: true })
+        } catch (refreshError) {
+          const message = this.getFriendlyReserveError(refreshError)
+          if (options.showError) {
+            wx.showToast({ title: message, icon: 'none' })
+          }
+          throw new Error(message)
+        }
+      }
+
+      const message = this.getFriendlyReserveError(error)
+      if (options.showError) {
+        wx.showToast({ title: message, icon: 'none' })
+      }
+      throw new Error(message)
     }
+  },
+
+  async ensureFreshPetSpaceReservation() {
+    const grantAge = Date.now() - Number(this.data.petUploadGrantReservedAt || 0)
+    const grantRefreshMs = 18 * 60 * 1000
+
+    if (!this.data.reservedPetSpaceId || !this.data.petUploadGrant || grantAge > grantRefreshMs) {
+      await this.reservePetSpaceId({ showError: true })
+    }
+  },
+
+  isGrantExpiredError(error = {}) {
+    const message = error.message || error.errMsg || ''
+    return message.includes('grant 已过期')
+      || message.includes('登录态已失效')
+      || message.includes('登录已过期')
+      || message.includes('上传授权已失效')
+  },
+
+  getFriendlyReserveError(error = {}) {
+    const message = error.message || error.errMsg || ''
+    if (this.isGrantExpiredError(error)) {
+      return '登录已过期，请重新登录后再创建'
+    }
+    if (message.includes('grant 无效') || message.includes('grant 签名无效') || message.includes('登录态不匹配')) {
+      return '登录状态异常，请重新登录后再创建'
+    }
+    return message || '创建准备失败，请稍后重试'
+  },
+
+  getFriendlyCreateError(error = {}) {
+    const message = error.message || error.errMsg || ''
+    if (this.isGrantExpiredError(error)) {
+      return '登录已过期，请重新登录后再创建'
+    }
+    if (message.includes('grant 无效') || message.includes('grant 签名无效') || message.includes('登录态不匹配')) {
+      return '登录状态异常，请重新登录后再创建'
+    }
+    return message || '创建失败，请稍后重试'
   },
 
   goStep(e) {
@@ -244,74 +303,107 @@ Page({
     this.setData({ saving: true })
 
     try {
-      // Defensive: if the initial reserve in onLoad hasn't resolved (e.g. slow
-      // network), retry synchronously here so the uploader has a petSpaceId.
-      if (!this.data.reservedPetSpaceId) {
-        await this.reservePetSpaceId()
-      }
-      if (!this.data.reservedPetSpaceId) {
-        throw new Error('网络异常，请稍后重试')
-      }
-
-      const uploader = this.selectComponent('#petCoverUploader')
-      const upload = uploader
-        ? await uploader.uploadCroppedImage()
-        : { ref: this.data.form.coverRef, url: this.data.form.coverUrl, changed: false }
-
-      const ref = upload.ref || this.data.form.coverRef
-
-      if (!ref || !ref.key) {
-        throw new Error('宠物照片上传失败，请重新选择照片')
-      }
-      this.addPendingRef(ref)
-
-      const form = this.data.form
-      const { result } = await wx.cloud.callFunction({
-        name: 'createPetSpace',
-        data: {
-          _id: this.data.reservedPetSpaceId || undefined,
-          sessionGrant: auth.getSessionGrant(),
-          petUploadGrant: this.data.petUploadGrant,
-          pet: {
-            petName: form.petName,
-            petType: form.petType,
-            breed: form.breed,
-            gender: form.gender,
-            lifeStatus: form.lifeStatus,
-            birthDate: form.birthDate,
-            arrivalDate: form.arrivalDate,
-            deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
-            story: form.story,
-            visibility: form.visibility,
-            avatarRef: ref,
-            coverRef: ref,
-            theme: this.data.selectedTheme,
-          },
-        },
-      })
-
-      if (!result || !result.ok) {
-        throw new Error((result && result.message) || '创建失败')
-      }
-
-      wx.setStorageSync('selectedPetSpaceId', result.petSpace._id)
-      this.setData({ pendingUploadedRefs: [] })
-      this.setData({ saving: false })
-      wx.showToast({ title: '创建成功', icon: 'success' })
-
-      setTimeout(() => {
-        wx.switchTab({
-          url: '/pages/pet-detail/index',
-        })
-      }, 500)
+      const result = await this.createPetSpaceWithRetry()
+      this.handleCreateSuccess(result.petSpace)
     } catch (error) {
       await this.cleanupPendingUploads().catch(() => {})
       this.setData({ saving: false })
       wx.showToast({
-        title: error.message || '创建失败，请稍后重试',
+        title: this.getFriendlyCreateError(error),
         icon: 'none',
       })
     }
+  },
+
+  async createPetSpaceWithRetry() {
+    try {
+      return await this.submitPetSpaceOnce()
+    } catch (error) {
+      if (!this.isGrantExpiredError(error)) {
+        throw error
+      }
+
+      await this.cleanupPendingUploads().catch(() => {})
+      await this.resetReservationForRetry()
+      return this.submitPetSpaceOnce()
+    }
+  },
+
+  async resetReservationForRetry() {
+    try {
+      await auth.refreshSessionGrant()
+    } catch (error) {
+      throw new Error(this.getFriendlyCreateError(error))
+    }
+
+    this.setData({
+      reservedPetSpaceId: '',
+      petUploadGrant: '',
+      petUploadGrantReservedAt: 0,
+    })
+    await this.reservePetSpaceId({ showError: true })
+  },
+
+  async submitPetSpaceOnce() {
+    // Defensive: if the initial reserve in onLoad is missing or stale, retry
+    // synchronously here so the uploader has a valid petSpaceId and grant.
+    await this.ensureFreshPetSpaceReservation()
+
+    const uploader = this.selectComponent('#petCoverUploader')
+    const upload = uploader
+      ? await uploader.uploadCroppedImage()
+      : { ref: this.data.form.coverRef, url: this.data.form.coverUrl, changed: false }
+
+    const ref = upload.ref || this.data.form.coverRef
+
+    if (!ref || !ref.key) {
+      throw new Error('宠物照片上传失败，请重新选择照片')
+    }
+    this.addPendingRef(ref)
+
+    const form = this.data.form
+    const { result } = await wx.cloud.callFunction({
+      name: 'createPetSpace',
+      data: {
+        _id: this.data.reservedPetSpaceId || undefined,
+        sessionGrant: auth.getSessionGrant(),
+        petUploadGrant: this.data.petUploadGrant,
+        pet: {
+          petName: form.petName,
+          petType: form.petType,
+          breed: form.breed,
+          gender: form.gender,
+          lifeStatus: form.lifeStatus,
+          birthDate: form.birthDate,
+          arrivalDate: form.arrivalDate,
+          deathDate: form.lifeStatus === 'in_stars' ? form.deathDate : '',
+          story: form.story,
+          visibility: form.visibility,
+          avatarRef: ref,
+          coverRef: ref,
+          theme: this.data.selectedTheme,
+        },
+      },
+    })
+
+    if (!result || !result.ok) {
+      throw new Error((result && result.message) || '创建失败')
+    }
+
+    return result
+  },
+
+  handleCreateSuccess(petSpace) {
+    wx.setStorageSync('selectedPetSpaceId', petSpace._id)
+    this.setData({ pendingUploadedRefs: [] })
+    this.setData({ saving: false })
+    wx.showToast({ title: '创建成功', icon: 'success' })
+
+    setTimeout(() => {
+      wx.switchTab({
+        url: '/pages/pet-detail/index',
+      })
+    }, 500)
   },
 
   formatDate(date) {

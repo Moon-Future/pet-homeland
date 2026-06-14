@@ -62,7 +62,7 @@
         <view class="story-head">
           <view class="section-title-row">
             <view class="section-icon record-icon">记</view>
-            <text>{{isOwner ? '今日记录' : storySectionTitle}}</text>
+            <text>{{storySectionTitle}}</text>
           </view>
           <view class="story-actions">
             <text wx:if="{{primaryAction}}" class="record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="triggerPrimaryAction">＋ 记录</text>
@@ -88,7 +88,7 @@
       <view wx:if="{{timelineNodes.length}}" class="timeline-card tap-feedback" hover-class="tap-feedback-hover" bindtap="goPetTimeline">
         <view class="section-title-row">
           <view class="section-icon timeline-title-icon">时</view>
-          <text>成长时间轴</text>
+          <text>{{pet.timelineSectionTitle}}</text>
           <image class="timeline-arrow" src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
         </view>
         <scroll-view class="timeline-scroll" scroll-x enable-flex>
@@ -107,7 +107,7 @@
           <view class="entry album-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goAlbum">
             <view class="entry-head">
               <image src="/assets/icons/album.svg"></image>
-              <text class="entry-label">回忆相册</text>
+              <text class="entry-label">{{pet.albumEntryLabel}}</text>
               <text class="entry-count">{{entryStats.mediaText}} ›</text>
             </view>
             <view class="album-preview">
@@ -117,7 +117,7 @@
           <view class="entry friends-entry tap-feedback" hover-class="tap-feedback-hover" bindtap="goMoments">
             <view class="entry-head">
               <image src="/assets/icons/user.svg"></image>
-              <text class="entry-label">朋友圈</text>
+              <text class="entry-label">{{pet.socialEntryLabel}}</text>
               <text class="entry-count">{{entryStats.visitorText}} ›</text>
             </view>
             <view class="friends-empty">
@@ -130,8 +130,8 @@
 
       <view wx:if="{{(viewingPetSpaceId && !isOwner) || reviewNotice}}" class="support-panel {{reviewNotice ? 'review-panel' : ''}} status-{{reviewNotice.type}}">
         <view wx:if="{{viewingPetSpaceId && !isOwner}}" class="support-copy">
-          <text class="support-title">正在访问 {{pet.name}} 的小窝</text>
-          <text class="support-desc">可以查看公开回忆、留下轻互动，也可以回到自己的小窝。</text>
+          <text class="support-title">正在访问 {{pet.name}} 的{{pet.spaceTitle}}</text>
+          <text class="support-desc">可以查看公开回忆、留下轻互动，也可以回到自己的宠物小窝。</text>
         </view>
         <view wx:elif="{{reviewNotice}}" class="support-copy status-{{reviewNotice.type}}">
           <view class="support-title-row">

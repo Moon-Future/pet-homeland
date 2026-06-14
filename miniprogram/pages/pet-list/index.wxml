@@ -2,7 +2,7 @@
   <view class="header">
     <view>
       <text class="title">我的宠物</text>
-      <text class="subtitle">选择当前首页展示的小窝</text>
+      <text class="subtitle">选择当前首页展示的宠物小窝</text>
     </view>
     <button class="create-button" bindtap="createPet">
       <image src="/assets/icons/plus.svg" mode="aspectFit"></image>
@@ -15,27 +15,35 @@
   </view>
 
   <view wx:elif="{{hasPetSpaces}}" class="pet-list">
-    <view
-      wx:for="{{petSpaces}}"
-      wx:key="id"
-      class="pet-card {{item.active ? 'active' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="selectPet"
-    >
-      <image class="pet-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
-      <view class="pet-info">
-        <view class="name-row">
-          <text class="pet-name">{{item.petName}}</text>
-          <text class="status-pill {{item.statusClass}}">{{item.statusText}}</text>
-        </view>
-        <text class="pet-metrics">{{item.metricText}}</text>
-        <text wx:if="{{item.identityNo}}" class="pet-identity">{{item.identityNo}}</text>
-        <text wx:elif="{{item.identityClaimed === false}}" class="pet-identity">待领取爱宠身份证</text>
-        <text class="pet-story">{{item.story}}</text>
+    <view wx:for="{{groupedPetSpaces}}" wx:for-item="group" wx:key="key" class="pet-group group-{{group.key}}">
+      <view class="group-head">
+        <text class="group-title">{{group.title}}</text>
+        <text class="group-desc">{{group.desc}}</text>
       </view>
-      <button class="enter-button" data-id="{{item.id}}" catchtap="enterPet">
-        <text>{{item.active ? '进入当前小窝' : '进入小窝'}}</text>
-      </button>
+
+      <view
+        wx:for="{{group.items}}"
+        wx:for-item="item"
+        wx:key="id"
+        class="pet-card {{item.active ? 'active' : ''}} {{item.groupKey === 'memorial' ? 'memorial' : 'companion'}}"
+        data-id="{{item.id}}"
+        bindtap="selectPet"
+      >
+        <image class="pet-avatar" src="{{item.avatar}}" mode="aspectFill" data-url="{{item.avatar}}" catchtap="previewPetAvatar"></image>
+        <view class="pet-info">
+          <view class="name-row">
+            <text class="pet-name">{{item.petName}}</text>
+            <text class="status-pill {{item.statusClass}}">{{item.statusText}}</text>
+          </view>
+          <text class="pet-metrics">{{item.metricText}}</text>
+          <text wx:if="{{item.identityNo}}" class="pet-identity">{{item.identityNo}}</text>
+          <text wx:elif="{{item.identityClaimed === false}}" class="pet-identity">待领取爱宠身份证</text>
+          <text class="pet-story">{{item.story}}</text>
+        </view>
+        <button class="enter-button" data-id="{{item.id}}" catchtap="enterPet">
+          <text>{{item.enterText}}</text>
+        </button>
+      </view>
     </view>
   </view>
 

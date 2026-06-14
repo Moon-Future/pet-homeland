@@ -71,21 +71,12 @@ function buildUrl(refOrKey) {
 // Asks the cloud function for a scoped upload token, then PUTs the cropped
 // temp file straight to qiniu via wx.uploadFile.
 async function uploadToQiniu({ type, petSpaceId, petUploadGrant, filePath, ext }) {
-  const sessionGrant = auth.getSessionGrant()
-  if (!sessionGrant) {
-    throw new Error('登录态已失效，请重新登录')
-  }
+  let result = await requestQiniuUploadToken({ type, petSpaceId, petUploadGrant, ext })
 
-  const { result } = await wx.cloud.callFunction({
-    name: 'getQiniuUploadToken',
-    data: {
-      type,
-      petSpaceId: petSpaceId || '',
-      petUploadGrant: petUploadGrant || '',
-      sessionGrant,
-      ext,
-    },
-  })
+  if (isGrantExpiredResult(result)) {
+    await auth.refreshSessionGrant()
+    result = await requestQiniuUploadToken({ type, petSpaceId, petUploadGrant, ext })
+  }
 
   if (!result || !result.ok) {
     throw new Error((result && result.message) || '获取上传凭证失败')
@@ -110,6 +101,31 @@ async function uploadToQiniu({ type, petSpaceId, petUploadGrant, filePath, ext }
     ref,
     url: url || buildUrl(ref),
   }
+}
+
+async function requestQiniuUploadToken({ type, petSpaceId, petUploadGrant, ext }) {
+  const sessionGrant = auth.getSessionGrant()
+  if (!sessionGrant) {
+    throw new Error('登录态已失效，请重新登录')
+  }
+
+  const { result } = await wx.cloud.callFunction({
+    name: 'getQiniuUploadToken',
+    data: {
+      type,
+      petSpaceId: petSpaceId || '',
+      petUploadGrant: petUploadGrant || '',
+      sessionGrant,
+      ext,
+    },
+  })
+
+  return result
+}
+
+function isGrantExpiredResult(result) {
+  const message = (result && result.message) || ''
+  return message.includes('grant 已过期') || message.includes('登录态已失效') || message.includes('登录已过期')
 }
 
 async function cleanupRefs(refs = []) {

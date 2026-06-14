@@ -78,6 +78,7 @@ Page({
         albumPreviewImages: [],
         reviewNotice: null,
       })
+      this.updateNavigationTitle()
       return
     }
 
@@ -129,6 +130,7 @@ Page({
           stats: [],
           recentMemories: [],
         })
+        this.updateNavigationTitle()
         return
       }
 
@@ -168,6 +170,7 @@ Page({
         reviewNotice: this.getReviewNotice(rawPet, isOwner),
         storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
       })
+      this.updateNavigationTitle(pet)
       this.savePetDetailCache()
     } catch (error) {
       this.setData({
@@ -231,6 +234,7 @@ Page({
       reviewNotice: this.getReviewNotice(rawPet, isOwner),
       storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
     })
+    this.updateNavigationTitle(pet)
   },
 
   applyPetDetailCache() {
@@ -259,7 +263,7 @@ Page({
     this.setData({
       loadingPet: false,
       hasPet: true,
-      pet: cache.pet,
+      pet: this.normalizePet(cache.rawPet),
       rawPet: cache.rawPet,
       isOwner: Boolean(cache.isOwner),
       canSharePet: Boolean(cache.canSharePet),
@@ -278,8 +282,9 @@ Page({
       visitorOverviewText: cache.visitorOverviewText || '',
       showVisitorOverview: this.shouldShowVisitorOverview(cache.rawPet, Boolean(cache.isOwner)),
       reviewNotice: cache.reviewNotice || null,
-      storySectionTitle: cache.storySectionTitle || '最近记录',
+      storySectionTitle: this.getStorySectionTitle(cache.rawPet.lifeStatus, Boolean(cache.isOwner)),
     })
+    this.updateNavigationTitle(this.normalizePet(cache.rawPet))
   },
 
   savePetDetailCache() {
@@ -384,6 +389,10 @@ Page({
       identityStatusText: item.identityStatus === 'archived' ? '已归档' : '永久保留',
       nfcStatusText: item.nfc && item.nfc.status === 'bound' ? '已绑定' : '未绑定',
       phaseText: isInStars ? '数字纪念档案' : '数字生命档案',
+      spaceTitle: isInStars ? '纪念空间' : '小窝',
+      timelineSectionTitle: isInStars ? '生命时间轴' : '成长时间轴',
+      albumEntryLabel: isInStars ? '纪念相册' : '回忆相册',
+      socialEntryLabel: isInStars ? '留言与星光' : '朋友圈',
       name: item.petName || '未命名小窝',
       breed: item.breed || '',
       gender: item.gender || 'unknown',
@@ -403,6 +412,16 @@ Page({
       story: item.story || '还没有故事，去写下第一段回忆吧。',
       quote: item.story || (isInStars ? '它的一生很短，但值得被认真记录。' : '把每一天的小事，都认真留在这里。'),
     }
+  },
+
+  updateNavigationTitle(pet = {}) {
+    if (!wx.setNavigationBarTitle) {
+      return
+    }
+
+    wx.setNavigationBarTitle({
+      title: pet.spaceTitle === '纪念空间' ? '纪念空间' : '我的小窝',
+    })
   },
 
   normalizeCloudDate(value) {
@@ -668,10 +687,10 @@ Page({
 
   getStorySectionTitle(lifeStatus, isOwner) {
     if (!isOwner) {
-      return '公开日常'
+      return lifeStatus === 'in_stars' ? '公开回忆' : '公开日常'
     }
 
-    return lifeStatus === 'in_stars' ? '最近回忆' : '最近记录'
+    return lifeStatus === 'in_stars' ? '最近想念' : '今日记录'
   },
 
   canSharePet(pet = {}) {
@@ -883,9 +902,10 @@ Page({
       return
     }
 
+    const spaceTitle = pet.spaceTitle === '纪念空间' ? '纪念空间' : '小窝'
     wx.showModal({
       title: '隐藏公开展示',
-      content: '隐藏后小窝会转为私密，不再出现在星空广场。',
+      content: `隐藏后${spaceTitle}会转为私密，不再出现在星空广场。`,
       confirmText: '隐藏',
       confirmColor: '#8b5cf6',
       success: async (res) => {
@@ -1176,7 +1196,8 @@ Page({
   onShareAppMessage() {
     const pet = this.data.pet || {}
     const petSpaceId = pet.id || this.data.viewingPetSpaceId || ''
-    const title = pet.name ? `来看看${pet.name}的小窝` : '来看看这个宠物小窝'
+    const spaceTitle = pet.spaceTitle === '纪念空间' ? '纪念空间' : '小窝'
+    const title = pet.name ? `来看看${pet.name}的${spaceTitle}` : `来看看这个宠物${spaceTitle}`
 
     return {
       title,
@@ -1339,7 +1360,7 @@ Page({
   },
 
   goMyPetSpace() {
-    if (!this.requireLoginToProfile('请先到“我的”登录后查看自己的小窝')) {
+    if (!this.requireLoginToProfile('请先到“我的”登录后查看自己的宠物小窝')) {
       return
     }
 

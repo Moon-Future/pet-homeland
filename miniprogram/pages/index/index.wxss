@@ -262,7 +262,26 @@ page {
 
 .pet-filter-list {
   display: flex;
-  gap: 12rpx;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.pet-filter-group {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.pet-filter-group-title {
+  flex: 0 0 auto;
+  color: #8a7aa5;
+  font-size: 20rpx;
+  font-weight: 900;
+}
+
+.group-memorial .pet-filter-group-title {
+  color: #675dc8;
 }
 
 .pet-filter {
@@ -284,6 +303,16 @@ page {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.72);
   background: linear-gradient(135deg, #b46dff, #8b5cf6);
+}
+
+.pet-filter.memorial {
+  border-color: rgba(103, 93, 200, 0.24);
+  background: rgba(244, 244, 255, 0.72);
+}
+
+.pet-filter.memorial.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #7f8cff, #5549bd);
 }
 
 .filter-avatar {
