@@ -38,12 +38,7 @@ Page({
       { id: 'male', label: '男孩' },
       { id: 'female', label: '女孩' },
     ],
-    themes: [
-      { id: 'cloud', name: '梦幻花谷', image: storage.themeImages.cloud },
-      { id: 'rainbow', name: '日落花海', image: storage.themeImages.rainbow },
-      { id: 'starry', name: '星空晨曦', image: storage.themeImages.starry },
-      { id: 'sakura', name: '樱花大道', image: storage.themeImages.sakura },
-    ],
+    themes: storage.getThemeOptionsForLifeStatus('with_me'),
     visibilityOptions: [
       { id: 'private', label: '仅自己可见', note: '不会出现在星空广场' },
       { id: 'share', label: '通过分享可见', note: '别人通过链接可查看' },
@@ -232,9 +227,12 @@ Page({
 
   setLifeStatus(e) {
     const status = e.currentTarget.dataset.status
+    const selectedTheme = storage.resolveThemeForLifeStatus(this.data.selectedTheme, status)
     this.setData({
       'form.lifeStatus': status,
       'form.deathDate': status === 'in_stars' ? this.data.form.deathDate : '',
+      themes: storage.getThemeOptionsForLifeStatus(status),
+      selectedTheme,
     })
   },
 
@@ -400,6 +398,10 @@ Page({
     wx.showToast({ title: '创建成功', icon: 'success' })
 
     setTimeout(() => {
+      wx.setStorageSync('petDetailReturnTarget:v1', {
+        type: 'switchTab',
+        url: '/pages/index/index',
+      })
       wx.switchTab({
         url: '/pages/pet-detail/index',
       })

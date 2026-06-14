@@ -237,6 +237,10 @@ Page({
     }
 
     if (url === '/pages/pet-detail/index') {
+      wx.setStorageSync('petDetailReturnTarget:v1', {
+        type: 'switchTab',
+        url: '/pages/profile/index',
+      })
       wx.switchTab({ url })
       return
     }

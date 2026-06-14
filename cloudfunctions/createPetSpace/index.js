@@ -177,7 +177,7 @@ function sanitizePet(pet = {}) {
     deathDate: sanitizeDate(pet.deathDate),
     avatarRef: sanitizeRef(pet.avatarRef),
     coverRef: sanitizeRef(pet.coverRef),
-    theme: allowValue(pet.theme, ['cloud', 'rainbow', 'starry', 'sakura'], 'rainbow'),
+    theme: sanitizeTheme(pet.theme),
     story: sanitizeString(pet.story, 160),
     visibility: allowValue(pet.visibility, ['private', 'share', 'discover'], 'private'),
   }
@@ -306,6 +306,17 @@ function sanitizeDate(value) {
 
 function allowValue(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback
+}
+
+function sanitizeTheme(value) {
+  const theme = sanitizeString(value, 40)
+  if (['cloud', 'rainbow', 'starry', 'sakura'].includes(theme)) {
+    return theme
+  }
+  if (/^memorial_home_bg_\d{2}$/.test(theme)) {
+    return theme
+  }
+  return 'rainbow'
 }
 
 async function generatePetIdentity() {

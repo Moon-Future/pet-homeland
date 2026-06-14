@@ -3,7 +3,13 @@
     <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="theme-shade"></view>
 
-    <view class="topbar">
+    <view class="topbar" style="{{customTopbarStyle}}">
+      <view class="topbar-left">
+        <button wx:if="{{hideTabBarForMemorial}}" class="back-button" bindtap="goBackFromMemorial">
+          <image src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
+          <text>返回</text>
+        </button>
+      </view>
       <view class="topbar-actions">
         <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
           <image class="share" src="/assets/icons/share.svg" mode="aspectFit"></image>
@@ -15,7 +21,7 @@
       </view>
     </view>
 
-    <view class="hero">
+    <view class="hero" style="{{customHeroStyle}}">
       <view class="hero-top">
         <image class="pet-photo" src="{{pet.avatar}}" mode="aspectFill" bindtap="previewAvatar"></image>
         <view class="hero-copy">

@@ -29,6 +29,41 @@ function assetUrl(relativePath) {
   return `${CDN_HOST}/${KEY_PREFIX}/assets/${clean}`
 }
 
+const MEMORIAL_HOME_THEME_COUNT = 4
+
+function paddedThemeNo(index) {
+  return String(index).padStart(2, '0')
+}
+
+function memorialThemeId(index) {
+  return `memorial_home_bg_${paddedThemeNo(index)}`
+}
+
+function memorialThemeImage(index) {
+  return assetUrl(`themes/${memorialThemeId(index)}.png`)
+}
+
+function memorialThemePreview(index) {
+  return assetUrl(`themes/${memorialThemeId(index)}_preview.png`)
+}
+
+const classicThemeOptions = [
+  { id: 'cloud', name: '梦幻花谷', image: assetUrl('themes/cloud-garden.png') },
+  { id: 'rainbow', name: '日落花海', image: assetUrl('themes/sunset-flowers.png') },
+  { id: 'starry', name: '星空晨曦', image: assetUrl('themes/starry-sky.png') },
+  { id: 'sakura', name: '樱花大道', image: assetUrl('themes/sakura-avenue.png') },
+]
+
+const memorialHomeThemes = []
+for (let index = 1; index <= MEMORIAL_HOME_THEME_COUNT; index += 1) {
+  memorialHomeThemes.push({
+    id: memorialThemeId(index),
+    name: `纪念馆 ${paddedThemeNo(index)}`,
+    image: memorialThemePreview(index),
+    background: memorialThemeImage(index),
+  })
+}
+
 // Theme background images shared across home/identity/timeline/pet-detail/
 // pet-create/pet-edit. Keep keys aligned with pet.theme enum.
 const themeImages = {
@@ -37,6 +72,29 @@ const themeImages = {
   starry: assetUrl('themes/starry-sky.png'),
   sakura: assetUrl('themes/sakura-avenue.png'),
 }
+
+memorialHomeThemes.forEach((theme) => {
+  themeImages[theme.id] = theme.background
+})
+
+const memorialHomeThemeIds = memorialHomeThemes.map((theme) => theme.id)
+
+function isMemorialHomeTheme(theme) {
+  return memorialHomeThemeIds.includes(theme)
+}
+
+function getThemeOptionsForLifeStatus(lifeStatus) {
+  return lifeStatus === 'in_stars' ? memorialHomeThemes : classicThemeOptions
+}
+
+function resolveThemeForLifeStatus(theme, lifeStatus) {
+  const options = getThemeOptionsForLifeStatus(lifeStatus)
+  if (options.some((item) => item.id === theme)) {
+    return theme
+  }
+  return options[0] ? options[0].id : ''
+}
+
 const defaultPetImage = assetUrl('images/default-pet.jpg')
 
 const SUPPORTED_TYPES = ['avatar', 'petCover', 'petAlbum', 'memory']
@@ -185,6 +243,12 @@ module.exports = {
   buildUrl,
   assetUrl,
   themeImages,
+  classicThemeOptions,
+  memorialHomeThemes,
+  memorialHomeThemeIds,
+  isMemorialHomeTheme,
+  getThemeOptionsForLifeStatus,
+  resolveThemeForLifeStatus,
   defaultPetImage,
   config,
   CDN_HOST,

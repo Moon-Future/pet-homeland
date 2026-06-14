@@ -204,6 +204,11 @@ Page({
     }
 
     wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
+    wx.setStorageSync('petDetailReturnTarget:v1', {
+      type: 'navigateTo',
+      url: '/pages/pet-list/index',
+    })
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

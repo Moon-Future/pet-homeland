@@ -215,6 +215,10 @@ Page({
       wx.setStorageSync('viewSource', 'star_square')
     }
 
+    wx.setStorageSync('petDetailReturnTarget:v1', {
+      type: 'switchTab',
+      url: '/pages/star-space/index',
+    })
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })
@@ -223,6 +227,10 @@ Page({
   goMyPetSpace() {
     wx.removeStorageSync('viewPetSpaceId')
     wx.removeStorageSync('viewSource')
+    wx.setStorageSync('petDetailReturnTarget:v1', {
+      type: 'switchTab',
+      url: '/pages/star-space/index',
+    })
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

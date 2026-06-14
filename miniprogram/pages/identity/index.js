@@ -255,6 +255,10 @@ Page({
 
     wx.setStorageSync('viewPetSpaceId', pet.id)
     wx.setStorageSync('viewSource', 'identity')
+    wx.setStorageSync('petDetailReturnTarget:v1', {
+      type: 'navigateTo',
+      url: `/pages/identity/index?code=${encodeURIComponent(pet.identityNo)}`,
+    })
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })

@@ -5,6 +5,7 @@ const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
 const ownerCooldownMs = 10 * 60 * 1000
 const petDetailCacheKey = 'petDetailCache:v1'
+const petDetailReturnTargetKey = 'petDetailReturnTarget:v1'
 
 Page({
   data: {
@@ -13,6 +14,9 @@ Page({
     hasPet: false,
     pet: null,
     rawPet: null,
+    customTopbarStyle: '',
+    customHeroStyle: '',
+    hideTabBarForMemorial: false,
     identityClaiming: false,
     isOwner: false,
     canSharePet: false,
@@ -47,6 +51,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.applyCustomNavigationLayout()
     this._skipNextShow = true
     this.applyShareEntrance(options)
     this.refreshPetDetail({ useCache: true })
@@ -61,6 +66,55 @@ Page({
     this.refreshPetDetail({ useCache: true, silent: this.data.hasPet })
   },
 
+  onHide() {
+    this.showNativeTabBar()
+  },
+
+  onUnload() {
+    this.showNativeTabBar()
+  },
+
+  hideNativeTabBar() {
+    if (wx.hideTabBar) {
+      wx.hideTabBar({ animation: false })
+    }
+  },
+
+  showNativeTabBar() {
+    if (wx.showTabBar) {
+      wx.showTabBar({ animation: false })
+    }
+  },
+
+  applyCustomNavigationLayout() {
+    let statusBarHeight = 24
+    let capsuleBottom = 56
+
+    try {
+      const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+      statusBarHeight = windowInfo.statusBarHeight || statusBarHeight
+    } catch (error) {
+      // Keep the default inset when system metrics are unavailable.
+    }
+
+    try {
+      const capsule = wx.getMenuButtonBoundingClientRect && wx.getMenuButtonBoundingClientRect()
+      if (capsule && capsule.bottom) {
+        capsuleBottom = capsule.bottom
+      }
+    } catch (error) {
+      capsuleBottom = statusBarHeight + 42
+    }
+
+    const topbarTop = Math.max(statusBarHeight + 6, 12)
+    const heroTop = Math.max(capsuleBottom + 18, 74)
+
+    this.setData({
+      customTopbarStyle: `padding-top: ${topbarTop}px;`,
+      customHeroStyle: `padding-top: ${heroTop}px;`,
+    })
+  },
+
   refreshPetDetail(options = {}) {
     const isLoggedIn = auth.isLoggedIn()
     const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
@@ -71,6 +125,7 @@ Page({
         loadingPet: false,
         hasPet: false,
         pet: null,
+        hideTabBarForMemorial: false,
         stats: [],
         entryStats: this.getEntryStats(),
         recentMemories: [],
@@ -78,6 +133,7 @@ Page({
         albumPreviewImages: [],
         reviewNotice: null,
       })
+      this.syncNativeTabBar()
       this.updateNavigationTitle()
       return
     }
@@ -127,9 +183,11 @@ Page({
           loadingPet: false,
           hasPet: false,
           pet: null,
+          hideTabBarForMemorial: false,
           stats: [],
           recentMemories: [],
         })
+        this.syncNativeTabBar()
         this.updateNavigationTitle()
         return
       }
@@ -170,6 +228,7 @@ Page({
         reviewNotice: this.getReviewNotice(rawPet, isOwner),
         storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
       })
+      this.syncNativeTabBar(rawPet)
       this.updateNavigationTitle(pet)
       this.savePetDetailCache()
     } catch (error) {
@@ -234,6 +293,7 @@ Page({
       reviewNotice: this.getReviewNotice(rawPet, isOwner),
       storySectionTitle: this.getStorySectionTitle(rawPet.lifeStatus, isOwner),
     })
+    this.syncNativeTabBar(rawPet)
     this.updateNavigationTitle(pet)
   },
 
@@ -284,7 +344,22 @@ Page({
       reviewNotice: cache.reviewNotice || null,
       storySectionTitle: this.getStorySectionTitle(cache.rawPet.lifeStatus, Boolean(cache.isOwner)),
     })
+    this.syncNativeTabBar(cache.rawPet)
     this.updateNavigationTitle(this.normalizePet(cache.rawPet))
+  },
+
+  syncNativeTabBar(pet = this.data.rawPet) {
+    const shouldHide = Boolean(pet && pet.lifeStatus === 'in_stars')
+    if (this.data.hideTabBarForMemorial !== shouldHide) {
+      this.setData({ hideTabBarForMemorial: shouldHide })
+    }
+
+    if (shouldHide) {
+      this.hideNativeTabBar()
+      return
+    }
+
+    this.showNativeTabBar()
   },
 
   savePetDetailCache() {
@@ -829,6 +904,48 @@ Page({
     wx.switchTab({
       url: '/pages/profile/index',
     })
+  },
+
+  goBackFromMemorial() {
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+    if (pages.length > 1) {
+      wx.navigateBack()
+      return
+    }
+
+    this.showNativeTabBar()
+    const returnTarget = this.consumePetDetailReturnTarget()
+    if (returnTarget && returnTarget.url) {
+      if (returnTarget.type === 'navigateTo') {
+        wx.navigateTo({ url: returnTarget.url })
+        return
+      }
+
+      wx.switchTab({ url: returnTarget.url })
+      return
+    }
+
+    if (this.data.viewingSource === 'star_square') {
+      this.goStarSpace()
+      return
+    }
+
+    wx.switchTab({
+      url: '/pages/index/index',
+    })
+  },
+
+  consumePetDetailReturnTarget() {
+    const target = wx.getStorageSync(petDetailReturnTargetKey)
+    wx.removeStorageSync(petDetailReturnTargetKey)
+    if (!target || typeof target !== 'object' || !target.url) {
+      return null
+    }
+
+    return {
+      type: target.type === 'navigateTo' ? 'navigateTo' : 'switchTab',
+      url: target.url,
+    }
   },
 
   requireLoginToProfile(message = '请先到“我的”登录') {

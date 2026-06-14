@@ -307,6 +307,11 @@ Page({
     }
 
     wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
+    wx.setStorageSync('petDetailReturnTarget:v1', {
+      type: 'switchTab',
+      url: '/pages/index/index',
+    })
     wx.switchTab({
       url: '/pages/pet-detail/index',
     })
