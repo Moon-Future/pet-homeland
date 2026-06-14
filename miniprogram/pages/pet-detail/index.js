@@ -1121,6 +1121,19 @@ Page({
     this.syncInteractionToServer(type)
   },
 
+  interactFromMemorial(e) {
+    const type = e.detail && e.detail.type
+    if (!type) {
+      return
+    }
+
+    this.interact({
+      currentTarget: {
+        dataset: { type },
+      },
+    })
+  },
+
   applyOptimisticInteraction(type) {
     const rawPet = this.data.rawPet || {}
     const lifeStatus = rawPet.lifeStatus || 'with_me'
@@ -1467,6 +1480,19 @@ Page({
 
     wx.navigateTo({
       url: `/pages/memory-detail/index?petSpaceId=${petSpaceId}&memoryId=${memoryId}`,
+    })
+  },
+
+  goMemoryDetailFromMemorial(e) {
+    const id = e.detail && e.detail.id
+    if (!id) {
+      return
+    }
+
+    this.goMemoryDetail({
+      currentTarget: {
+        dataset: { id },
+      },
     })
   },
 

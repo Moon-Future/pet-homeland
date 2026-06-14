@@ -2,5 +2,8 @@
   "navigationStyle": "custom",
   "navigationBarTitleText": "我的小窝",
   "navigationBarBackgroundColor": "#FFF7F2",
-  "navigationBarTextStyle": "black"
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "memorial-home": "/components/memorial-home/index"
+  }
 }

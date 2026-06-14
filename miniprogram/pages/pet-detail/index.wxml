@@ -1,5 +1,26 @@
 <view class="page">
   <block wx:if="{{hasPet}}">
+    <memorial-home
+      wx:if="{{rawPet.lifeStatus === 'in_stars'}}"
+      pet="{{pet}}"
+      raw-pet="{{rawPet}}"
+      is-owner="{{isOwner}}"
+      can-share-pet="{{canSharePet}}"
+      custom-topbar-style="{{customTopbarStyle}}"
+      recent-memories="{{recentMemories}}"
+      timeline-nodes="{{timelineNodes}}"
+      album-preview-images="{{albumPreviewImages}}"
+      interaction-syncing="{{interactionSyncing}}"
+      syncing-interaction-type="{{syncingInteractionType}}"
+      bindback="goBackFromMemorial"
+      bindedit="goEditPet"
+      bindinteract="interactFromMemorial"
+      bindtimeline="goPetTimeline"
+      bindalbum="goAlbum"
+      bindmoments="goMoments"
+      bindmemorydetail="goMemoryDetailFromMemorial"
+    />
+    <block wx:else>
     <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="theme-shade"></view>
 
@@ -154,6 +175,7 @@
         </view>
       </view>
     </view>
+    </block>
   </block>
 
   <view wx:elif="{{loadingPet && !hasPet}}" class="pet-skeleton">

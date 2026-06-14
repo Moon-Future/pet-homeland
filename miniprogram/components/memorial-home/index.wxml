@@ -1,0 +1,97 @@
+<view class="memorial-page {{toneClass}}">
+  <image wx:if="{{theme.background}}" class="memorial-page-bg" src="{{theme.background}}" mode="aspectFill"></image>
+  <view class="memorial-page-tint"></view>
+  <view class="memorial-hero" style="{{heroStyle}}">
+    <image class="pet-avatar-hole" src="{{pet.avatar}}" mode="aspectFill" style="{{avatarStyle}}"></image>
+    <image wx:if="{{theme.background}}" class="memorial-bg" src="{{theme.background}}" mode="aspectFill"></image>
+
+    <view class="memorial-topbar" style="{{customTopbarStyle}}">
+      <view class="topbar-left">
+        <button class="back-button" bindtap="onBack">
+          <image src="/assets/icons/chevron-right.svg" mode="aspectFit"></image>
+          <text>返回</text>
+        </button>
+        <button wx:if="{{isOwner}}" class="edit-button text-button" bindtap="onEdit">
+          <image src="/assets/icons/settings.svg" mode="aspectFit"></image>
+          <text>设置</text>
+        </button>
+      </view>
+      <view class="topbar-actions">
+        <button wx:if="{{canSharePet}}" class="share-button" open-type="share">
+          <image class="share-icon" src="/assets/icons/share.svg" mode="aspectFit"></image>
+        </button>
+      </view>
+    </view>
+
+    <view class="memorial-info" style="{{infoStyle}}">
+      <text class="pet-name">{{pet.name}}</text>
+      <view class="date-row">
+        <text wx:if="{{pet.birthDate}}">☆ {{pet.birthDate}}</text>
+        <text wx:if="{{pet.birthDate && pet.deathDate}}" class="date-sep">-</text>
+        <text wx:if="{{pet.deathDate}}">☁ {{pet.deathDate}}</text>
+      </view>
+      <text class="story-line">{{pet.story}}</text>
+      <text class="wish-line">愿你在彩虹桥的另一端，永远快乐</text>
+    </view>
+
+  </view>
+
+  <view class="memorial-content" style="{{contentStyle}}">
+    <view class="memorial-card" bindtap="onGoTimeline">
+      <view class="card-head">
+        <text class="section-title">时光轴</text>
+        <text class="card-more">更多</text>
+      </view>
+      <scroll-view class="timeline-scroll" scroll-x enable-flex>
+        <view class="timeline-track">
+          <view wx:for="{{timelineNodes}}" wx:key="id" class="timeline-node {{item.active ? 'active' : ''}}">
+            <view class="timeline-dot">{{item.icon}}</view>
+            <text class="timeline-label">{{item.label}}</text>
+            <text class="timeline-date">{{item.date}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="memorial-card" bindtap="onGoAlbum">
+      <view class="card-head">
+        <text class="section-title">回忆相册</text>
+        <text class="card-more">更多</text>
+      </view>
+      <view class="album-row">
+        <image wx:for="{{albumItems}}" wx:key="*this" src="{{item}}" mode="aspectFill"></image>
+        <view class="album-more">•••</view>
+      </view>
+    </view>
+
+    <view class="memorial-card">
+      <view class="card-head">
+        <text class="section-title">爱的留言</text>
+        <text class="card-more" bindtap="onGoMoments">更多</text>
+      </view>
+      <view wx:if="{{recentMemories.length}}" class="message-row">
+        <view wx:for="{{recentMemories}}" wx:key="id" wx:for-item="memory" class="message-card" data-id="{{memory.id}}" bindtap="onGoMemoryDetail">
+          <text class="message-title">❤ {{memory.title}}</text>
+          <text class="message-content">{{memory.content}}</text>
+          <text class="message-date">{{memory.date}}</text>
+        </view>
+      </view>
+      <view wx:else class="empty-message">还没有留言</view>
+    </view>
+  </view>
+
+  <view class="memorial-floating-actions {{interactionSyncing ? 'syncing' : ''}}">
+    <view class="floating-action {{syncingInteractionType === 'miss' ? 'active-sync' : ''}}" data-type="miss" bindtap="onInteract">
+      <view class="floating-icon">🕯</view>
+      <text>点亮</text>
+    </view>
+    <view class="floating-action {{syncingInteractionType === 'flower' ? 'active-sync' : ''}}" data-type="flower" bindtap="onInteract">
+      <view class="floating-icon">🌹</view>
+      <text>献花</text>
+    </view>
+    <view class="floating-action {{syncingInteractionType === 'star' ? 'active-sync' : ''}}" data-type="star" bindtap="onInteract">
+      <view class="floating-icon">⭐</view>
+      <text>祈福</text>
+    </view>
+  </view>
+</view>

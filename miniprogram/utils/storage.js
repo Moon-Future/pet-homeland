@@ -47,6 +47,42 @@ function memorialThemePreview(index) {
   return assetUrl(`themes/${memorialThemeId(index)}_preview.png`)
 }
 
+const memorialHomeThemeLayouts = {
+  memorial_home_bg_01: {
+    aspectRatio: 853 / 1844,
+    heroHeight: 1620,
+    avatar: { left: 30.2, top: 10.6, width: 37.6 },
+    info: { top: 37 },
+    actions: { top: 52 },
+    contentOffset: 800,
+  },
+  memorial_home_bg_02: {
+    aspectRatio: 853 / 1844,
+    heroHeight: 1620,
+    avatar: { left: 30.6, top: 15.6, width: 40 },
+    info: { top: 39 },
+    actions: { top: 58 },
+    contentOffset: 750,
+  },
+  memorial_home_bg_03: {
+    aspectRatio: 853 / 1844,
+    heroHeight: 1620,
+    avatar: { left: 34.2, top: 20.6, width: 33.6 },
+    info: { top: 48.2 },
+    actions: { top: 63.5 },
+    contentOffset: 650,
+  },
+  memorial_home_bg_04: {
+    tone: 'dark',
+    aspectRatio: 853 / 1844,
+    heroHeight: 1620,
+    avatar: { left: 33.8, top: 19.2, width: 33.4 },
+    info: { top: 48.8 },
+    actions: { top: 63.8 },
+    contentOffset: 640,
+  },
+}
+
 const classicThemeOptions = [
   { id: 'cloud', name: '梦幻花谷', image: assetUrl('themes/cloud-garden.png') },
   { id: 'rainbow', name: '日落花海', image: assetUrl('themes/sunset-flowers.png') },
@@ -61,6 +97,7 @@ for (let index = 1; index <= MEMORIAL_HOME_THEME_COUNT; index += 1) {
     name: `纪念馆 ${paddedThemeNo(index)}`,
     image: memorialThemePreview(index),
     background: memorialThemeImage(index),
+    layout: memorialHomeThemeLayouts[memorialThemeId(index)] || memorialHomeThemeLayouts.memorial_home_bg_01,
   })
 }
 
@@ -93,6 +130,10 @@ function resolveThemeForLifeStatus(theme, lifeStatus) {
     return theme
   }
   return options[0] ? options[0].id : ''
+}
+
+function getMemorialHomeTheme(theme) {
+  return memorialHomeThemes.find((item) => item.id === theme) || memorialHomeThemes[0] || null
 }
 
 const defaultPetImage = assetUrl('images/default-pet.jpg')
@@ -249,6 +290,7 @@ module.exports = {
   isMemorialHomeTheme,
   getThemeOptionsForLifeStatus,
   resolveThemeForLifeStatus,
+  getMemorialHomeTheme,
   defaultPetImage,
   config,
   CDN_HOST,
