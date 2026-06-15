@@ -10,8 +10,10 @@
       recent-memories="{{recentMemories}}"
       timeline-nodes="{{timelineNodes}}"
       album-preview-images="{{albumPreviewImages}}"
+      actions="{{actions}}"
       interaction-syncing="{{interactionSyncing}}"
       syncing-interaction-type="{{syncingInteractionType}}"
+      interaction-pulse-type="{{interactionPulseType}}"
       bindback="goBackFromMemorial"
       bindedit="goEditPet"
       bindinteract="interactFromMemorial"
@@ -72,10 +74,10 @@
     </view>
 
     <view class="sheet">
-      <view wx:if="{{quickActions.length}}" class="section-card interaction-card first-card {{interactionSyncing ? 'syncing' : ''}}">
+      <view wx:if="{{quickActions.length}}" class="section-card interaction-card first-card">
         <text wx:if="{{showVisitorOverview}}" class="overview-visitor">{{visitorOverviewText}}</text>
         <view class="actions">
-          <view wx:for="{{quickActions}}" wx:key="type" class="action {{item.syncing ? 'active-sync' : ''}} tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
+          <view wx:for="{{quickActions}}" wx:key="type" class="action {{item.syncing ? 'active-sync is-syncing' : ''}} {{interactionPulseType === item.type ? 'is-pulsing' : ''}} tap-feedback" hover-class="tap-feedback-hover" data-type="{{item.type}}" bindtap="interact">
             <view class="action-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view>
             <view class="action-copy">
               <text class="action-label">{{item.label}}</text>
@@ -180,26 +182,62 @@
 
   <view wx:elif="{{loadingPet && !hasPet}}" class="pet-skeleton">
     <view class="skeleton-bg"></view>
+    <view class="skeleton-topbar" style="{{customTopbarStyle}}">
+      <view class="skeleton-top-actions">
+        <view class="skeleton-round small"></view>
+        <view class="skeleton-pill small"></view>
+      </view>
+    </view>
     <view class="skeleton-hero">
-      <view class="skeleton-photo"></view>
-      <view class="skeleton-line name"></view>
-      <view class="skeleton-line date"></view>
-      <view class="skeleton-pill"></view>
+      <view class="skeleton-hero-row">
+        <view class="skeleton-photo"></view>
+        <view class="skeleton-hero-copy">
+          <view class="skeleton-title-row">
+            <view class="skeleton-line name"></view>
+            <view class="skeleton-round badge"></view>
+          </view>
+          <view class="skeleton-line date"></view>
+          <view class="skeleton-pill"></view>
+        </view>
+      </view>
+      <view class="skeleton-identity"></view>
     </view>
     <view class="skeleton-sheet">
       <view class="skeleton-actions">
         <view wx:for="{{skeletonActions}}" wx:key="*this" class="skeleton-action">
           <view class="skeleton-icon"></view>
-          <view class="skeleton-line short"></view>
+          <view class="skeleton-action-copy">
+            <view class="skeleton-line short"></view>
+            <view class="skeleton-line count"></view>
+          </view>
         </view>
-      </view>
-      <view class="skeleton-stats">
-        <view wx:for="{{skeletonStats}}" wx:key="*this" class="skeleton-stat"></view>
       </view>
       <view class="skeleton-card">
         <view class="skeleton-line card-title"></view>
         <view class="skeleton-line"></view>
         <view class="skeleton-line medium"></view>
+      </view>
+      <view class="skeleton-timeline">
+        <view class="skeleton-line card-title"></view>
+        <view class="skeleton-node-row">
+          <view wx:for="{{skeletonStats}}" wx:key="*this" class="skeleton-node">
+            <view class="skeleton-round node-dot"></view>
+            <view class="skeleton-line tiny"></view>
+          </view>
+        </view>
+      </view>
+      <view class="skeleton-entry-grid">
+        <view class="skeleton-entry">
+          <view class="skeleton-line card-title"></view>
+          <view class="skeleton-album-row">
+            <view wx:for="{{skeletonActions}}" wx:key="*this" class="skeleton-thumb"></view>
+          </view>
+        </view>
+        <view class="skeleton-entry">
+          <view class="skeleton-line card-title short-title"></view>
+          <view class="skeleton-friend-mark"></view>
+          <view class="skeleton-line medium"></view>
+        </view>
       </view>
     </view>
   </view>

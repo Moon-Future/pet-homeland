@@ -25,7 +25,7 @@ exports.main = async () => {
         ownerOpenid: openid,
         status: _.neq('deleted'),
       })
-      .orderBy('updatedAt', 'desc')
+      .orderBy('createdAt', 'asc')
       .limit(20)
       .get()
 

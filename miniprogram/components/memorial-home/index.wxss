@@ -184,6 +184,17 @@ button.edit-button.text-button {
   text-shadow: 0 4rpx 14rpx rgba(0, 0, 0, .34);
 }
 
+.pet-name-row {
+  padding: 8rpx 22rpx;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 248, 238, .14);
+  backdrop-filter: blur(2rpx);
+}
+
 .pet-name {
   color: #7a4b2e;
   font-size: 42rpx;
@@ -191,23 +202,43 @@ button.edit-button.text-button {
   line-height: 1.15;
 }
 
+.tone-dark .pet-name-row {
+  background: rgba(24, 18, 34, .36);
+}
+
 .tone-dark .pet-name {
   color: #fff1d5;
 }
 
+.name-age {
+  color: rgba(145, 94, 62, .7);
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.tone-dark .name-age {
+  color: rgba(255, 232, 201, .76);
+}
+
 .date-row {
   margin-top: 18rpx;
+  padding: 7rpx 18rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 22rpx;
+  border-radius: 999rpx;
   color: #a57451;
+  background: rgba(255, 248, 238, .28);
+  backdrop-filter: blur(10rpx);
   font-size: 24rpx;
   font-weight: 800;
 }
 
 .tone-dark .date-row {
   color: #e6c39d;
+  background: rgba(24, 18, 34, .34);
 }
 
 .date-sep {
@@ -221,7 +252,11 @@ button.edit-button.text-button {
 .story-line,
 .wish-line {
   margin-top: 18rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
   color: #9a6d4f;
+  background: rgba(255, 248, 238, .24);
+  backdrop-filter: blur(10rpx);
   font-size: 24rpx;
   font-weight: 800;
   line-height: 1.5;
@@ -230,6 +265,7 @@ button.edit-button.text-button {
 .tone-dark .story-line,
 .tone-dark .wish-line {
   color: #efd1ad;
+  background: rgba(24, 18, 34, .32);
 }
 
 .wish-line {
@@ -508,14 +544,6 @@ button.edit-button.text-button {
   box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, .28);
 }
 
-.memorial-floating-actions.syncing .floating-action {
-  opacity: .52;
-}
-
-.memorial-floating-actions.syncing .floating-action.active-sync {
-  opacity: 1;
-}
-
 .floating-action {
   min-width: 0;
   min-height: 88rpx;
@@ -523,10 +551,9 @@ button.edit-button.text-button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6rpx;
+  gap: 8rpx;
   border-radius: 999rpx;
   color: #8a5438;
-  font-size: 21rpx;
   font-weight: 900;
   line-height: 1;
 }
@@ -535,18 +562,55 @@ button.edit-button.text-button {
   color: #f1d5b4;
 }
 
-.floating-icon {
-  width: 48rpx;
-  height: 48rpx;
+.floating-main {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 232, 222, .72);
-  font-size: 28rpx;
+  gap: 8rpx;
+}
+
+.floating-label {
+  font-size: 22rpx;
+}
+
+.floating-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex: 0 0 28rpx;
+  opacity: .92;
+}
+
+.floating-count {
+  color: #5f3928;
+  font-size: 34rpx;
+  font-weight: 900;
   line-height: 1;
 }
 
-.tone-dark .floating-icon {
-  background: rgba(255, 241, 213, .12);
+.tone-dark .floating-count {
+  color: #fff1d5;
+}
+
+.floating-action.is-syncing .floating-main {
+  color: #cf7657;
+}
+
+.floating-action.is-pulsing .floating-main {
+  animation: memorialActionTap 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.floating-action.is-pulsing .floating-count {
+  animation: memorialCountLift 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes memorialActionTap {
+  0% { transform: translateY(0) scale(1); text-shadow: none; }
+  45% { transform: translateY(-4rpx) scale(1.04); text-shadow: 0 6rpx 16rpx rgba(238, 142, 112, .22); }
+  100% { transform: translateY(0) scale(1); text-shadow: none; }
+}
+
+@keyframes memorialCountLift {
+  0% { transform: translateY(0); opacity: 1; }
+  45% { transform: translateY(-3rpx); opacity: .9; }
+  100% { transform: translateY(0); opacity: 1; }
 }

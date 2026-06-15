@@ -52,7 +52,7 @@ const memorialHomeThemeLayouts = {
     aspectRatio: 853 / 1844,
     heroHeight: 1620,
     avatar: { left: 30.2, top: 10.6, width: 37.6 },
-    info: { top: 37 },
+    info: { top: 36 },
     actions: { top: 52 },
     contentOffset: 800,
   },
@@ -70,7 +70,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 34.2, top: 20.6, width: 33.6 },
     info: { top: 48.2 },
     actions: { top: 63.5 },
-    contentOffset: 650,
+    contentOffset: 600,
   },
   memorial_home_bg_04: {
     tone: 'dark',
@@ -79,7 +79,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 33.8, top: 19.2, width: 33.4 },
     info: { top: 48.8 },
     actions: { top: 63.8 },
-    contentOffset: 640,
+    contentOffset: 600,
   },
 }
 

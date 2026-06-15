@@ -5,6 +5,7 @@ const defaultPetImage = storage.defaultPetImage
 const themeBackgrounds = storage.themeImages
 const ownerCooldownMs = 10 * 60 * 1000
 const petDetailCacheKey = 'petDetailCache:v1'
+const petDetailCacheKeyPrefix = 'petDetailCache:v1:'
 const petDetailReturnTargetKey = 'petDetailReturnTarget:v1'
 
 Page({
@@ -24,6 +25,7 @@ Page({
     viewingSource: '',
     interactionSyncing: false,
     syncingInteractionType: '',
+    interactionPulseType: '',
     actions: [],
     primaryAction: null,
     quickActions: [],
@@ -51,6 +53,10 @@ Page({
   },
 
   onLoad(options = {}) {
+    this._interactionQueue = []
+    this._interactionProcessing = false
+    this._interactionProcessingType = ''
+    this._interactionPulseTimer = null
     this.applyCustomNavigationLayout()
     this._skipNextShow = true
     this.applyShareEntrance(options)
@@ -71,6 +77,10 @@ Page({
   },
 
   onUnload() {
+    if (this._interactionPulseTimer) {
+      clearTimeout(this._interactionPulseTimer)
+      this._interactionPulseTimer = null
+    }
     this.showNativeTabBar()
   },
 
@@ -118,6 +128,9 @@ Page({
   refreshPetDetail(options = {}) {
     const isLoggedIn = auth.isLoggedIn()
     const viewingPetSpaceId = wx.getStorageSync('viewPetSpaceId') || ''
+    const targetPetSpaceId = this.getTargetPetSpaceId()
+    const currentPetSpaceId = (this.data.rawPet && this.data.rawPet._id) || (this.data.pet && this.data.pet.id) || ''
+    const isSwitchingPet = Boolean(targetPetSpaceId && currentPetSpaceId && targetPetSpaceId !== currentPetSpaceId)
     this.setData({ isLoggedIn })
 
     if (!isLoggedIn && !viewingPetSpaceId) {
@@ -138,11 +151,15 @@ Page({
       return
     }
 
-    if (options.useCache) {
-      this.applyPetDetailCache()
+    if (isSwitchingPet) {
+      this.clearStalePetDetail()
     }
 
-    this.loadPetDetail({ silent: options.silent || this.data.hasPet })
+    if (options.useCache) {
+      this.applyPetDetailCache(targetPetSpaceId)
+    }
+
+    this.loadPetDetail({ silent: !isSwitchingPet && (options.silent || this.data.hasPet) })
   },
 
   async loadPetDetail(options = {}) {
@@ -150,6 +167,9 @@ Page({
       wx.showToast({ title: '请先开通云开发', icon: 'none' })
       return
     }
+
+    const requestSeq = (this._petDetailRequestSeq || 0) + 1
+    this._petDetailRequestSeq = requestSeq
 
     if (!options.silent) {
       this.setData({ loadingPet: true })
@@ -161,7 +181,7 @@ Page({
       const viewingSource = storedSource === 'admin_review' ? '' : storedSource
 
       if (viewingPetSpaceId) {
-        await this.loadViewingPetDetail(viewingPetSpaceId, viewingSource)
+        await this.loadViewingPetDetail(viewingPetSpaceId, viewingSource, requestSeq)
         return
       }
 
@@ -177,6 +197,10 @@ Page({
       const rawList = result.petSpaces || []
       const selectedId = wx.getStorageSync('selectedPetSpaceId')
       const rawPet = rawList.find((item) => item._id === selectedId) || rawList[0]
+
+      if (rawPet && this.isPetDetailRequestStale(requestSeq, rawPet._id)) {
+        return
+      }
 
       if (!rawPet) {
         this.setData({
@@ -199,6 +223,9 @@ Page({
         this.loadInteractionSummary(rawPet._id),
         this.loadMemorySummary(rawPet._id),
       ])
+      if (this.isPetDetailRequestStale(requestSeq, rawPet._id)) {
+        return
+      }
       const displayStats = {
         ...(rawPet.stats || {}),
         memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
@@ -246,7 +273,7 @@ Page({
     }
   },
 
-  async loadViewingPetDetail(petSpaceId, viewingSource = '') {
+  async loadViewingPetDetail(petSpaceId, viewingSource = '', requestSeq = this._petDetailRequestSeq) {
     const { result } = await wx.cloud.callFunction({
       name: 'getPetSpaceDetail',
       data: { petSpaceId, source: viewingSource },
@@ -257,12 +284,19 @@ Page({
     }
 
     const rawPet = result.petSpace
+    if (this.isPetDetailRequestStale(requestSeq, rawPet && rawPet._id)) {
+      return
+    }
+
     const pet = this.normalizePet(rawPet)
     const isOwner = Boolean(result.isOwner)
     const [interactionSummary, memorySummary] = await Promise.all([
       this.loadInteractionSummary(rawPet._id),
       this.loadMemorySummary(rawPet._id),
     ])
+    if (this.isPetDetailRequestStale(requestSeq, rawPet._id)) {
+      return
+    }
     const displayStats = {
       ...(rawPet.stats || {}),
       memoryCount: memorySummary.memoryCount !== null ? memorySummary.memoryCount : ((rawPet.stats || {}).memoryCount || 0),
@@ -297,18 +331,64 @@ Page({
     this.updateNavigationTitle(pet)
   },
 
-  applyPetDetailCache() {
+  getTargetPetSpaceId() {
+    return wx.getStorageSync('viewPetSpaceId') || wx.getStorageSync('selectedPetSpaceId') || ''
+  },
+
+  getPetDetailCacheKey(petSpaceId) {
+    return petSpaceId ? `${petDetailCacheKeyPrefix}${petSpaceId}` : petDetailCacheKey
+  },
+
+  isPetDetailRequestStale(requestSeq, petSpaceId) {
+    const targetPetSpaceId = this.getTargetPetSpaceId()
+    return requestSeq !== this._petDetailRequestSeq
+      || Boolean(targetPetSpaceId && petSpaceId && targetPetSpaceId !== petSpaceId)
+  },
+
+  clearStalePetDetail() {
+    this.setData({
+      loadingPet: true,
+      hasPet: false,
+      pet: null,
+      rawPet: null,
+      hideTabBarForMemorial: false,
+      identityClaiming: false,
+      isOwner: false,
+      canSharePet: false,
+      viewingPetSpaceId: '',
+      viewingSource: '',
+      interactionSyncing: false,
+      syncingInteractionType: '',
+      interactionPulseType: '',
+      actions: [],
+      primaryAction: null,
+      quickActions: [],
+      stats: [],
+      statsGridClass: 'stats-four',
+      entryStats: this.getEntryStats(),
+      visitorSummary: this.normalizeVisitorSummary({}),
+      visitorOverviewText: '',
+      showVisitorOverview: false,
+      recentMemories: [],
+      timelineNodes: [],
+      albumPreviewImages: [],
+      reviewNotice: null,
+      storySectionTitle: '最近记录',
+    })
+    this.showNativeTabBar()
+  },
+
+  applyPetDetailCache(targetPetSpaceId = this.getTargetPetSpaceId()) {
     if (wx.getStorageSync('viewPetSpaceId') || this.data.hasPet) {
       return
     }
 
-    const cache = wx.getStorageSync(petDetailCacheKey)
+    const cache = wx.getStorageSync(this.getPetDetailCacheKey(targetPetSpaceId)) || wx.getStorageSync(petDetailCacheKey)
     if (!cache || !cache.pet || !cache.rawPet) {
       return
     }
 
-    const selectedId = wx.getStorageSync('selectedPetSpaceId')
-    if (selectedId && cache.rawPet._id && selectedId !== cache.rawPet._id) {
+    if (targetPetSpaceId && cache.rawPet._id && targetPetSpaceId !== cache.rawPet._id) {
       return
     }
 
@@ -367,7 +447,7 @@ Page({
       return
     }
 
-    wx.setStorageSync(petDetailCacheKey, {
+    const cache = {
       pet: this.data.pet,
       rawPet: this.data.rawPet,
       isOwner: this.data.isOwner,
@@ -387,7 +467,9 @@ Page({
       reviewNotice: this.data.reviewNotice,
       storySectionTitle: this.data.storySectionTitle,
       cachedAt: Date.now(),
-    })
+    }
+    wx.setStorageSync(this.getPetDetailCacheKey(this.data.rawPet._id), cache)
+    wx.setStorageSync(petDetailCacheKey, cache)
   },
 
   async loadMemorySummary(petSpaceId) {
@@ -1075,10 +1157,6 @@ Page({
       return
     }
 
-    if (this.data.interactionSyncing) {
-      return
-    }
-
     const type = e.currentTarget.dataset.type
     const pet = this.data.pet
 
@@ -1094,6 +1172,10 @@ Page({
       return
     }
 
+    if (this.isInteractionPending(type)) {
+      return
+    }
+
     const action = this.data.actions.find((item) => item.type === type)
     if (action && action.todayCount >= action.limit) {
       wx.showToast({ title: '今天这个互动次数已用完', icon: 'none' })
@@ -1106,19 +1188,9 @@ Page({
       return
     }
 
-    this.setData({
-      interactionSyncing: true,
-      syncingInteractionType: type,
-    })
-    this._interactionSnapshot = {
-      rawPet: this.data.rawPet,
-      actions: this.data.actions,
-      quickActions: this.data.quickActions,
-      stats: this.data.stats,
-      entryStats: this.data.entryStats,
-    }
+    this.triggerInteractionPulse(type)
     this.applyOptimisticInteraction(type)
-    this.syncInteractionToServer(type)
+    this.enqueueInteraction(type)
   },
 
   interactFromMemorial(e) {
@@ -1167,6 +1239,88 @@ Page({
     this.savePetDetailCache()
   },
 
+  isInteractionPending(type) {
+    return this._interactionProcessingType === type
+      || (this._interactionQueue || []).some((item) => item.type === type)
+  },
+
+  triggerInteractionPulse(type) {
+    if (this._interactionPulseTimer) {
+      clearTimeout(this._interactionPulseTimer)
+      this._interactionPulseTimer = null
+    }
+
+    this.setData({ interactionPulseType: '' })
+    const applyPulse = () => {
+      this.setData({ interactionPulseType: type })
+      this._interactionPulseTimer = setTimeout(() => {
+        this.setData({ interactionPulseType: '' })
+        this._interactionPulseTimer = null
+      }, 520)
+    }
+
+    if (wx.nextTick) {
+      wx.nextTick(applyPulse)
+    } else {
+      setTimeout(applyPulse, 0)
+    }
+  },
+
+  enqueueInteraction(type) {
+    if (!this._interactionQueue) {
+      this._interactionQueue = []
+    }
+
+    this._interactionQueue.push({ type })
+    this.processInteractionQueue()
+  },
+
+  async processInteractionQueue() {
+    if (this._interactionProcessing) {
+      return
+    }
+
+    const next = this._interactionQueue && this._interactionQueue.shift()
+    if (!next || !next.type) {
+      this.clearInteractionSyncState()
+      return
+    }
+
+    this._interactionProcessing = true
+    this._interactionProcessingType = next.type
+    this.applyInteractionSyncState(next.type)
+
+    try {
+      await this.syncInteractionToServer(next.type)
+    } finally {
+      this._interactionProcessing = false
+      this._interactionProcessingType = ''
+      if (this._interactionQueue && this._interactionQueue.length) {
+        this.processInteractionQueue()
+      } else {
+        this.clearInteractionSyncState()
+      }
+    }
+  },
+
+  applyInteractionSyncState(type) {
+    const rawPet = this.data.rawPet || {}
+    const actions = this.normalizeActions(
+      rawPet.lifeStatus || 'with_me',
+      this.data.isOwner,
+      this.getActionCountsMap(),
+      rawPet.stats || {},
+      type,
+    )
+
+    this.setData({
+      interactionSyncing: true,
+      syncingInteractionType: type,
+      actions,
+      quickActions: actions.filter((item) => item.type !== 'checkin'),
+    })
+  },
+
   async syncInteractionToServer(type) {
     const pet = this.data.pet
     if (!pet || !pet.id) {
@@ -1209,7 +1363,13 @@ Page({
         ...currentCounts,
         [type]: Math.max(result.countToday || 0, currentCounts[type] || 0),
       }
-      const actions = this.normalizeActions(rawPet.lifeStatus, this.data.isOwner, todayCounts, nextStats, '')
+      const actions = this.normalizeActions(
+        rawPet.lifeStatus,
+        this.data.isOwner,
+        todayCounts,
+        nextStats,
+        this.data.syncingInteractionType,
+      )
 
       if (this.data.isOwner && result.nextAllowedAt) {
         this.setLocalCooldown(type, result.nextAllowedAt)
@@ -1217,18 +1377,15 @@ Page({
 
       this.setData({
         rawPet,
-        interactionSyncing: false,
-        syncingInteractionType: '',
         actions,
         quickActions: actions.filter((item) => item.type !== 'checkin'),
         stats: this.normalizeStats(nextStats, rawPet.lifeStatus),
         entryStats: this.getEntryStats(nextStats),
         visitorSummary: this.data.isOwner ? this.data.visitorSummary : this.normalizeVisitorSummary({}),
       })
-      this._interactionSnapshot = null
       this.savePetDetailCache()
     } catch (error) {
-      this.rollbackOptimisticInteraction()
+      this.rollbackOptimisticInteraction(type)
       wx.showToast({
         title: error.message || '互动失败，请稍后重试',
         icon: 'none',
@@ -1236,20 +1393,43 @@ Page({
     }
   },
 
-  rollbackOptimisticInteraction() {
-    const snapshot = this._interactionSnapshot
-    this._interactionSnapshot = null
-
-    if (!snapshot) {
-      this.clearInteractionSyncState()
-      return
+  rollbackOptimisticInteraction(type) {
+    const rawPet = this.data.rawPet || {}
+    const lifeStatus = rawPet.lifeStatus || 'with_me'
+    const statField = this.getInteractionStatField(type)
+    const nextStats = {
+      ...(rawPet.stats || {}),
     }
 
+    if (statField) {
+      nextStats[statField] = Math.max(0, (nextStats[statField] || 0) - 1)
+    }
+
+    const currentCounts = this.getActionCountsMap()
+    const todayCounts = {
+      ...currentCounts,
+      [type]: Math.max(0, (currentCounts[type] || 0) - 1),
+    }
+    const nextRawPet = {
+      ...rawPet,
+      stats: nextStats,
+    }
+    const actions = this.normalizeActions(
+      lifeStatus,
+      this.data.isOwner,
+      todayCounts,
+      nextStats,
+      this.data.syncingInteractionType,
+    )
+
     this.setData({
-      ...snapshot,
-      interactionSyncing: false,
-      syncingInteractionType: '',
+      rawPet: nextRawPet,
+      actions,
+      quickActions: actions.filter((item) => item.type !== 'checkin'),
+      stats: this.normalizeStats(nextStats, lifeStatus),
+      entryStats: this.getEntryStats(nextStats),
     })
+    this.savePetDetailCache()
   },
 
   clearInteractionSyncState() {

@@ -24,11 +24,14 @@
     </view>
 
     <view class="memorial-info" style="{{infoStyle}}">
-      <text class="pet-name">{{pet.name}}</text>
+      <view class="pet-name-row">
+        <text class="pet-name">{{pet.name}}</text>
+        <text wx:if="{{memorialDates.ageText}}" class="name-age">({{memorialDates.ageText}})</text>
+      </view>
       <view class="date-row">
-        <text wx:if="{{pet.birthDate}}">☆ {{pet.birthDate}}</text>
-        <text wx:if="{{pet.birthDate && pet.deathDate}}" class="date-sep">-</text>
-        <text wx:if="{{pet.deathDate}}">☁ {{pet.deathDate}}</text>
+        <text>{{memorialDates.birthText}}</text>
+        <text class="date-sep">-</text>
+        <text>{{memorialDates.deathText}}</text>
       </view>
       <text class="story-line">{{pet.story}}</text>
       <text class="wish-line">愿你在彩虹桥的另一端，永远快乐</text>
@@ -80,18 +83,19 @@
     </view>
   </view>
 
-  <view class="memorial-floating-actions {{interactionSyncing ? 'syncing' : ''}}">
-    <view class="floating-action {{syncingInteractionType === 'miss' ? 'active-sync' : ''}}" data-type="miss" bindtap="onInteract">
-      <view class="floating-icon">🕯</view>
-      <text>点亮</text>
-    </view>
-    <view class="floating-action {{syncingInteractionType === 'flower' ? 'active-sync' : ''}}" data-type="flower" bindtap="onInteract">
-      <view class="floating-icon">🌹</view>
-      <text>献花</text>
-    </view>
-    <view class="floating-action {{syncingInteractionType === 'star' ? 'active-sync' : ''}}" data-type="star" bindtap="onInteract">
-      <view class="floating-icon">⭐</view>
-      <text>祈福</text>
+  <view class="memorial-floating-actions">
+    <view
+      wx:for="{{floatingActions}}"
+      wx:key="type"
+      class="floating-action {{syncingInteractionType === item.type ? 'active-sync is-syncing' : ''}} {{interactionPulseType === item.type ? 'is-pulsing' : ''}}"
+      data-type="{{item.type}}"
+      bindtap="onInteract"
+    >
+      <view class="floating-main">
+        <text class="floating-label">{{item.label}}</text>
+        <image class="floating-icon" src="{{item.icon}}" mode="aspectFit"></image>
+      </view>
+      <text class="floating-count">{{item.totalCountText}}</text>
     </view>
   </view>
 </view>
