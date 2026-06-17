@@ -30,6 +30,10 @@ Component({
       type: String,
       value: '',
     },
+    reviewNotice: {
+      type: Object,
+      value: null,
+    },
     recentMemories: {
       type: Array,
       value: [],
@@ -235,6 +239,10 @@ Component({
 
     onClaimIdentity() {
       this.triggerEvent('claimidentity')
+    },
+
+    onUnpublish() {
+      this.triggerEvent('unpublish')
     },
 
     onGoMemoryDetail(e) {

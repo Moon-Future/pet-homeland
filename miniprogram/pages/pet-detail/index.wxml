@@ -7,6 +7,7 @@
       is-owner="{{isOwner}}"
       can-share-pet="{{canSharePet}}"
       custom-topbar-style="{{customTopbarStyle}}"
+      review-notice="{{reviewNotice}}"
       recent-memories="{{recentMemories}}"
       timeline-nodes="{{timelineNodes}}"
       album-preview-images="{{albumPreviewImages}}"
@@ -24,6 +25,7 @@
       bindidentity="goIdentity"
       bindclaimidentity="claimIdentity"
       bindmemorydetail="goMemoryDetailFromMemorial"
+      bindunpublish="unpublishPet"
     />
     <block wx:else>
     <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>

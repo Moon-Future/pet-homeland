@@ -99,6 +99,19 @@
         <text wx:if="{{isOwner}}" class="empty-action" bindtap="onAddMemory">新增回忆</text>
       </view>
     </view>
+
+    <view wx:if="{{reviewNotice}}" class="review-notice status-{{reviewNotice.type}}">
+      <view class="review-copy status-{{reviewNotice.type}}">
+        <view class="review-title-row">
+          <view class="review-status-dot"></view>
+          <text class="review-title">公开展示状态</text>
+        </view>
+        <text class="review-desc">{{reviewNotice.text}}</text>
+      </view>
+      <view class="review-actions">
+        <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="review-action" bindtap="onUnpublish">隐藏公开展示</view>
+      </view>
+    </view>
   </view>
 
   <view class="memorial-floating-actions">

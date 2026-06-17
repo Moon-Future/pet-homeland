@@ -99,10 +99,14 @@ Page({
   applyCustomNavigationLayout() {
     let statusBarHeight = 24
     let capsuleBottom = 56
+    let capsuleRightGap = 15
 
     try {
       const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
       statusBarHeight = windowInfo.statusBarHeight || statusBarHeight
+      if (windowInfo.windowWidth) {
+        capsuleRightGap = Math.max(capsuleRightGap, Math.round(windowInfo.windowWidth * 0.04))
+      }
     } catch (error) {
       // Keep the default inset when system metrics are unavailable.
     }
@@ -112,6 +116,13 @@ Page({
       if (capsule && capsule.bottom) {
         capsuleBottom = capsule.bottom
       }
+      if (capsule && capsule.left) {
+        const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+        const windowWidth = windowInfo && windowInfo.windowWidth
+        if (windowWidth) {
+          capsuleRightGap = Math.max(capsuleRightGap, Math.ceil(windowWidth - capsule.left + 8))
+        }
+      }
     } catch (error) {
       capsuleBottom = statusBarHeight + 42
     }
@@ -120,7 +131,7 @@ Page({
     const heroTop = Math.max(capsuleBottom + 18, 74)
 
     this.setData({
-      customTopbarStyle: `padding-top: ${topbarTop}px;`,
+      customTopbarStyle: `padding-top: ${topbarTop}px; padding-right: ${capsuleRightGap}px;`,
       customHeroStyle: `padding-top: ${heroTop}px;`,
     })
   },

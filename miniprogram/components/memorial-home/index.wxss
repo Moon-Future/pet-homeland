@@ -331,6 +331,139 @@ button.edit-button.text-button {
   box-sizing: border-box;
 }
 
+.review-notice {
+  margin-top: 22rpx;
+  padding: 18rpx 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border: 2rpx solid rgba(191, 142, 101, .24);
+  border-radius: 8rpx;
+  background: rgba(255, 248, 238, .52);
+  box-shadow: none;
+  backdrop-filter: blur(10rpx);
+  box-sizing: border-box;
+}
+
+.review-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.review-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.review-status-dot {
+  width: 14rpx;
+  height: 14rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #c08d73;
+}
+
+.review-title {
+  color: #8a5438;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.review-desc {
+  display: block;
+  color: #a57451;
+  font-size: 21rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.review-actions {
+  flex-shrink: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.review-action {
+  width: auto;
+  min-width: 0;
+  height: 56rpx;
+  margin: 0;
+  padding: 0 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  color: #8a5438;
+  background: rgba(255, 248, 238, .72);
+  font-size: 23rpx;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.review-notice.status-approved {
+  border-color: rgba(191, 142, 101, .24);
+  background: rgba(255, 248, 238, .52);
+}
+
+.review-notice.status-approved .review-status-dot {
+  background: #9a8767;
+}
+
+.review-notice.status-rejected,
+.review-notice.status-hidden {
+  border-color: rgba(191, 142, 101, .26);
+  background: rgba(255, 248, 238, .56);
+}
+
+.review-notice.status-rejected .review-status-dot,
+.review-notice.status-hidden .review-status-dot {
+  background: #b26d57;
+}
+
+.tone-dark .review-notice {
+  border-color: rgba(255, 236, 214, .16);
+  background: rgba(31, 25, 45, .62);
+  box-shadow: 0 14rpx 32rpx rgba(0, 0, 0, .18);
+}
+
+.tone-dark .review-status-dot {
+  background: #d6b28f;
+}
+
+.tone-dark .review-title {
+  color: #f5dfc3;
+}
+
+.tone-dark .review-desc {
+  color: #bda68d;
+}
+
+.tone-dark .review-action {
+  color: #f5dfc3;
+  background: rgba(255, 238, 210, .08);
+}
+
+.tone-dark .review-notice.status-approved .review-status-dot {
+  background: #c9b68f;
+}
+
+.tone-dark .review-notice.status-rejected .review-status-dot,
+.tone-dark .review-notice.status-hidden .review-status-dot {
+  background: #d0987e;
+}
+
 .memorial-card {
   margin-top: 22rpx;
   border: 2rpx solid rgba(255, 255, 255, .62);
