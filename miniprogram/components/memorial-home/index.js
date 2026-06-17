@@ -245,6 +245,12 @@ Component({
       this.triggerEvent('unpublish')
     },
 
+    onTabNav(e) {
+      this.triggerEvent('tabnav', {
+        url: e.currentTarget.dataset.url,
+      })
+    },
+
     onGoMemoryDetail(e) {
       this.triggerEvent('memorydetail', {
         id: e.currentTarget.dataset.id,

@@ -327,7 +327,7 @@ button.edit-button.text-button {
 .memorial-content {
   position: relative;
   z-index: 6;
-  padding: 0 30rpx calc(190rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(300rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -784,7 +784,7 @@ button.edit-button.text-button {
   position: fixed;
   left: 28rpx;
   right: 28rpx;
-  bottom: calc(22rpx + env(safe-area-inset-bottom));
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
   z-index: 30;
   min-height: 116rpx;
   padding: 12rpx 18rpx;
@@ -803,6 +803,70 @@ button.edit-button.text-button {
   border-color: rgba(255, 236, 214, .16);
   background: rgba(31, 25, 45, .82);
   box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, .28);
+}
+
+.memorial-tabbar {
+  position: fixed;
+  left: 32rpx;
+  right: 32rpx;
+  bottom: calc(22rpx + env(safe-area-inset-bottom));
+  z-index: 29;
+  height: 88rpx;
+  padding: 8rpx;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6rpx;
+  border: 2rpx solid rgba(255, 255, 255, .44);
+  border-radius: 8rpx;
+  background: rgba(255, 248, 238, .78);
+  box-shadow: 0 12rpx 34rpx rgba(154, 104, 82, .12);
+  backdrop-filter: blur(18rpx);
+  box-sizing: border-box;
+}
+
+.tone-dark .memorial-tabbar {
+  border-color: rgba(255, 236, 214, .14);
+  background: rgba(31, 25, 45, .78);
+  box-shadow: 0 14rpx 36rpx rgba(0, 0, 0, .24);
+}
+
+.memorial-tabbar-item {
+  min-width: 0;
+  height: 68rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  border-radius: 8rpx;
+  color: #a57451;
+  font-size: 19rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.memorial-tabbar-item.active {
+  color: #8a5438;
+  background: rgba(255, 255, 255, .5);
+}
+
+.tone-dark .memorial-tabbar-item {
+  color: #bda68d;
+}
+
+.tone-dark .memorial-tabbar-item.active {
+  color: #f5dfc3;
+  background: rgba(255, 238, 210, .08);
+}
+
+.memorial-tabbar-item image {
+  width: 30rpx;
+  height: 30rpx;
+  opacity: .82;
+}
+
+.memorial-tabbar-item.active image {
+  opacity: 1;
 }
 
 .floating-action {

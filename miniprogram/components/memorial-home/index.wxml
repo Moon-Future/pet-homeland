@@ -129,4 +129,23 @@
       <text class="floating-count">{{item.totalCountText}}</text>
     </view>
   </view>
+
+  <view class="memorial-tabbar">
+    <view class="memorial-tabbar-item" data-url="/pages/index/index" bindtap="onTabNav">
+      <image src="/assets/tabbar/home.png" mode="aspectFit"></image>
+      <text>首页</text>
+    </view>
+    <view class="memorial-tabbar-item active" data-url="/pages/pet-detail/index" bindtap="onTabNav">
+      <image src="/assets/tabbar/paw-active.png" mode="aspectFit"></image>
+      <text>小窝</text>
+    </view>
+    <view class="memorial-tabbar-item" data-url="/pages/star-space/index" bindtap="onTabNav">
+      <image src="/assets/tabbar/star.png" mode="aspectFit"></image>
+      <text>发现</text>
+    </view>
+    <view class="memorial-tabbar-item" data-url="/pages/profile/index" bindtap="onTabNav">
+      <image src="/assets/tabbar/user.png" mode="aspectFit"></image>
+      <text>我的</text>
+    </view>
+  </view>
 </view>

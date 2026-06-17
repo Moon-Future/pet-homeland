@@ -1028,6 +1028,18 @@ Page({
     })
   },
 
+  switchMemorialTab(e) {
+    const url = e.detail && e.detail.url
+    if (!url || url === '/pages/pet-detail/index') {
+      return
+    }
+
+    wx.removeStorageSync('viewPetSpaceId')
+    wx.removeStorageSync('viewSource')
+    this.showNativeTabBar()
+    wx.switchTab({ url })
+  },
+
   consumePetDetailReturnTarget() {
     const target = wx.getStorageSync(petDetailReturnTargetKey)
     wx.removeStorageSync(petDetailReturnTargetKey)

@@ -26,6 +26,7 @@
       bindclaimidentity="claimIdentity"
       bindmemorydetail="goMemoryDetailFromMemorial"
       bindunpublish="unpublishPet"
+      bindtabnav="switchMemorialTab"
     />
     <block wx:else>
     <image class="theme-bg" src="{{pet.cover}}" mode="aspectFill"></image>
