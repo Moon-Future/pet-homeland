@@ -74,6 +74,7 @@ Component({
     albumItems: [],
     floatingActions: [],
     memorialDates: null,
+    showMemorialBook: false,
   },
 
   observers: {
@@ -244,6 +245,16 @@ Component({
     onUnpublish() {
       this.triggerEvent('unpublish')
     },
+
+    openMemorialBook() {
+      this.setData({ showMemorialBook: true })
+    },
+
+    closeMemorialBook() {
+      this.setData({ showMemorialBook: false })
+    },
+
+    noop() {},
 
     onTabNav(e) {
       this.triggerEvent('tabnav', {

@@ -47,74 +47,96 @@
 
   </view>
 
-  <view class="memorial-content" style="{{contentStyle}}">
-    <view class="memorial-card" bindtap="onGoTimeline">
-      <view class="card-head">
-        <text class="section-title">时光轴</text>
-        <text class="card-more">更多</text>
+  <view wx:if="{{showMemorialBook}}" class="memorial-book-layer">
+    <view class="book-backdrop" bindtap="closeMemorialBook"></view>
+    <view class="book-drawer" catchtap="noop">
+      <view class="book-handle"></view>
+      <view class="book-head">
+        <view class="book-title-copy">
+          <text class="book-title">{{pet.name}} 的纪念册</text>
+          <text class="book-subtitle">那些被好好留下来的瞬间</text>
+        </view>
+        <view class="book-close" bindtap="closeMemorialBook">关闭</view>
       </view>
-      <scroll-view class="timeline-scroll" scroll-x enable-flex>
-        <view class="timeline-track">
-          <view wx:for="{{timelineNodes}}" wx:key="id" class="timeline-node {{item.active ? 'active' : ''}}">
-            <view class="timeline-dot">{{item.icon}}</view>
-            <text class="timeline-label">{{item.label}}</text>
-            <text class="timeline-date">{{item.date}}</text>
+
+      <scroll-view class="book-scroll" scroll-y>
+        <view class="memorial-card">
+          <view class="card-head">
+            <text class="section-title">回忆动态</text>
+            <view class="card-actions">
+              <text wx:if="{{isOwner}}" class="card-more primary" bindtap="onAddMemory">新增</text>
+              <text class="card-more" bindtap="onGoMoments">更多</text>
+            </view>
+          </view>
+          <view wx:if="{{recentMemories.length}}" class="moment-row">
+            <view wx:for="{{recentMemories}}" wx:key="id" wx:for-item="memory" class="moment-card" data-id="{{memory.id}}" bindtap="onGoMemoryDetail">
+              <view class="moment-dot"></view>
+              <view class="moment-copy">
+                <text class="moment-title">{{memory.title}}</text>
+                <text class="moment-content">{{memory.content}}</text>
+                <text class="moment-date">{{memory.date}}</text>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-message">
+            <text>还没有回忆动态</text>
+            <text wx:if="{{isOwner}}" class="empty-action" bindtap="onAddMemory">新增回忆</text>
+          </view>
+        </view>
+
+        <view class="memorial-card" bindtap="onGoAlbum">
+          <view class="card-head">
+            <text class="section-title">回忆相册</text>
+            <text class="card-more">更多</text>
+          </view>
+          <view class="album-row">
+            <image wx:for="{{albumItems}}" wx:key="url" class="album-image {{item.placeholder ? 'placeholder' : ''}}" src="{{item.url}}" mode="aspectFill"></image>
+            <view wx:if="{{!albumItems[0].placeholder}}" class="album-more">•••</view>
+            <view wx:else class="album-empty-note">暂无照片</view>
+          </view>
+        </view>
+
+        <view class="memorial-card" bindtap="onGoTimeline">
+          <view class="card-head">
+            <text class="section-title">时光轴</text>
+            <text class="card-more">更多</text>
+          </view>
+          <scroll-view class="timeline-scroll" scroll-x enable-flex>
+            <view class="timeline-track">
+              <view wx:for="{{timelineNodes}}" wx:key="id" class="timeline-node {{item.active ? 'active' : ''}}">
+                <view class="timeline-dot">{{item.icon}}</view>
+                <text class="timeline-label">{{item.label}}</text>
+                <text class="timeline-date">{{item.date}}</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <view wx:if="{{reviewNotice}}" class="review-notice status-{{reviewNotice.type}}">
+          <view class="review-copy status-{{reviewNotice.type}}">
+            <view class="review-title-row">
+              <view class="review-status-dot"></view>
+              <text class="review-title">公开展示状态</text>
+            </view>
+            <text class="review-desc">{{reviewNotice.text}}</text>
+          </view>
+          <view class="review-actions">
+            <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="review-action" bindtap="onUnpublish">隐藏公开展示</view>
           </view>
         </view>
       </scroll-view>
     </view>
-
-    <view class="memorial-card" bindtap="onGoAlbum">
-      <view class="card-head">
-        <text class="section-title">回忆相册</text>
-        <text class="card-more">更多</text>
-      </view>
-      <view class="album-row">
-        <image wx:for="{{albumItems}}" wx:key="url" class="album-image {{item.placeholder ? 'placeholder' : ''}}" src="{{item.url}}" mode="aspectFill"></image>
-        <view wx:if="{{!albumItems[0].placeholder}}" class="album-more">•••</view>
-        <view wx:else class="album-empty-note">暂无照片</view>
-      </view>
-    </view>
-
-    <view class="memorial-card">
-      <view class="card-head">
-        <text class="section-title">回忆动态</text>
-        <view class="card-actions">
-          <text wx:if="{{isOwner}}" class="card-more primary" bindtap="onAddMemory">新增</text>
-          <text class="card-more" bindtap="onGoMoments">更多</text>
-        </view>
-      </view>
-      <view wx:if="{{recentMemories.length}}" class="moment-row">
-        <view wx:for="{{recentMemories}}" wx:key="id" wx:for-item="memory" class="moment-card" data-id="{{memory.id}}" bindtap="onGoMemoryDetail">
-          <view class="moment-dot"></view>
-          <view class="moment-copy">
-            <text class="moment-title">{{memory.title}}</text>
-            <text class="moment-content">{{memory.content}}</text>
-            <text class="moment-date">{{memory.date}}</text>
-          </view>
-        </view>
-      </view>
-      <view wx:else class="empty-message">
-        <text>还没有回忆动态</text>
-        <text wx:if="{{isOwner}}" class="empty-action" bindtap="onAddMemory">新增回忆</text>
-      </view>
-    </view>
-
-    <view wx:if="{{reviewNotice}}" class="review-notice status-{{reviewNotice.type}}">
-      <view class="review-copy status-{{reviewNotice.type}}">
-        <view class="review-title-row">
-          <view class="review-status-dot"></view>
-          <text class="review-title">公开展示状态</text>
-        </view>
-        <text class="review-desc">{{reviewNotice.text}}</text>
-      </view>
-      <view class="review-actions">
-        <view wx:if="{{rawPet.visibility === 'discover' && isOwner}}" class="review-action" bindtap="onUnpublish">隐藏公开展示</view>
-      </view>
-    </view>
   </view>
 
-  <view class="memorial-floating-actions">
+  <view class="memorial-action-island">
+    <view class="book-entry" bindtap="openMemorialBook">
+      <view class="book-entry-copy">
+        <text class="book-entry-title">{{pet.name}} 的纪念册</text>
+        <text class="book-entry-desc">翻看时光、照片和回忆动态。</text>
+      </view>
+      <view class="book-entry-button">打开</view>
+    </view>
+    <view class="floating-actions-row">
     <view
       wx:for="{{floatingActions}}"
       wx:key="type"
@@ -127,6 +149,7 @@
         <image class="floating-icon" src="{{item.icon}}" mode="aspectFit"></image>
       </view>
       <text class="floating-count">{{item.totalCountText}}</text>
+    </view>
     </view>
   </view>
 
