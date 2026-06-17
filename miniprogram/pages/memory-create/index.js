@@ -284,7 +284,7 @@ Page({
     } catch (error) {
       await this.cleanupPendingUploads().catch(() => {})
       wx.showToast({
-        title: error.message || '保存失败，请稍后重试',
+        title: this.getFriendlyErrorMessage(error, '保存失败，请稍后重试'),
         icon: 'none',
       })
     } finally {
@@ -303,18 +303,62 @@ Page({
         continue
       }
 
-      const upload = await storage.uploadImage({
-        type: 'memory',
-        petSpaceId: this.data.petSpaceId,
-        petUploadGrant: this.data.petUploadGrant,
-        filePath: image.tempFilePath,
-        ext: 'jpg',
-      })
+      const upload = await this.uploadMemoryImageWithGrantRetry(image.tempFilePath)
       refs.push(upload.ref)
       this.addPendingRef(upload.ref)
     }
 
     return refs
+  },
+
+  async uploadMemoryImageWithGrantRetry(filePath) {
+    try {
+      return await this.uploadMemoryImage(filePath)
+    } catch (error) {
+      if (!this.isPetUploadGrantInvalid(error)) {
+        throw error
+      }
+
+      await this.loadPetUploadGrant()
+      try {
+        return await this.uploadMemoryImage(filePath)
+      } catch (retryError) {
+        if (this.isPetUploadGrantInvalid(retryError)) {
+          throw new Error('上传授权已失效，请重新进入后再试')
+        }
+        throw retryError
+      }
+    }
+  },
+
+  uploadMemoryImage(filePath) {
+    return storage.uploadImage({
+      type: 'memory',
+      petSpaceId: this.data.petSpaceId,
+      petUploadGrant: this.data.petUploadGrant,
+      filePath,
+      ext: 'jpg',
+    })
+  },
+
+  isPetUploadGrantInvalid(error = {}) {
+    const message = error.message || ''
+    return message.includes('grant 无效')
+      || message.includes('grant 签名无效')
+      || message.includes('上传授权无效')
+      || message.includes('上传授权已失效')
+      || message.includes('上传授权已失效，请重新进入后再试')
+  },
+
+  getFriendlyErrorMessage(error = {}, fallback = '操作失败，请稍后重试') {
+    const message = error.message || ''
+    if (this.isPetUploadGrantInvalid(error)) {
+      return '上传授权已失效，请重新进入后再试'
+    }
+    if (message.includes('grant 已过期') || message.includes('登录态已失效') || message.includes('登录已过期')) {
+      return '登录状态已过期，请重新登录后再试'
+    }
+    return message || fallback
   },
 
   async checkImageQuota() {

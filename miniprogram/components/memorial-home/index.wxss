@@ -249,6 +249,50 @@ button.edit-button.text-button {
   color: rgba(230, 195, 157, .72);
 }
 
+.identity-row {
+  margin-top: 12rpx;
+  padding: 7rpx 16rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  max-width: 100%;
+  border-radius: 999rpx;
+  color: #8a5438;
+  background: rgba(255, 248, 238, .22);
+  backdrop-filter: blur(8rpx);
+  box-sizing: border-box;
+}
+
+.tone-dark .identity-row {
+  color: #f3d7b4;
+  background: rgba(24, 18, 34, .34);
+}
+
+.identity-label {
+  flex: 0 0 auto;
+  font-size: 20rpx;
+  font-weight: 800;
+  opacity: .72;
+}
+
+.identity-no {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.identity-row.claim .identity-no {
+  color: #bd7554;
+}
+
+.tone-dark .identity-row.claim .identity-no {
+  color: #ffd8ad;
+}
+
 .story-line,
 .wish-line {
   margin-top: 18rpx;
@@ -260,6 +304,14 @@ button.edit-button.text-button {
   font-size: 24rpx;
   font-weight: 800;
   line-height: 1.5;
+}
+
+.story-line {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .tone-dark .story-line,
@@ -317,14 +369,29 @@ button.edit-button.text-button {
   margin-bottom: 22rpx;
 }
 
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
 .card-more {
   color: #c08d73;
   font-size: 22rpx;
   font-weight: 900;
 }
 
+.card-more.primary {
+  color: #e77e68;
+}
+
 .tone-dark .card-more {
   color: #d6b28f;
+}
+
+.tone-dark .card-more.primary {
+  color: #ffd09d;
 }
 
 .timeline-scroll {
@@ -422,11 +489,35 @@ button.edit-button.text-button {
   gap: 14rpx;
 }
 
-.album-row image,
+.album-image,
 .album-more {
   width: 100%;
   height: 104rpx;
   border-radius: 8rpx;
+}
+
+.album-image.placeholder {
+  opacity: .72;
+  filter: saturate(.82);
+}
+
+.album-empty-note {
+  grid-column: span 2;
+  min-width: 0;
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  color: #a57451;
+  background: rgba(255, 249, 246, .58);
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.tone-dark .album-empty-note {
+  color: #d9b995;
+  background: rgba(255, 238, 210, .08);
 }
 
 .tone-dark .album-more {
@@ -444,45 +535,67 @@ button.edit-button.text-button {
   font-weight: 900;
 }
 
-.message-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
-}
-
-.message-card {
-  min-height: 120rpx;
-  padding: 18rpx;
+.moment-row {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 14rpx;
+}
+
+.moment-card {
+  min-height: 112rpx;
+  padding: 18rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
   border-radius: 8rpx;
   background: rgba(255, 249, 246, .86);
   box-sizing: border-box;
 }
 
-.tone-dark .message-card {
+.tone-dark .moment-card {
   background: rgba(255, 238, 210, .08);
 }
 
-.message-title {
+.moment-dot {
+  width: 42rpx;
+  height: 42rpx;
+  flex: 0 0 42rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd8d1, #f5a991);
+  box-shadow: 0 8rpx 18rpx rgba(208, 129, 98, .16);
+}
+
+.tone-dark .moment-dot {
+  background: linear-gradient(135deg, rgba(255, 226, 188, .5), rgba(214, 150, 104, .34));
+  box-shadow: none;
+}
+
+.moment-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.moment-title {
   color: #8a5438;
-  font-size: 22rpx;
+  font-size: 23rpx;
   font-weight: 900;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tone-dark .message-title {
+.tone-dark .moment-title {
   color: #f6dfc4;
 }
 
-.message-content {
+.moment-content {
   color: #9b7358;
   font-size: 21rpx;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.38;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -490,26 +603,27 @@ button.edit-button.text-button {
   -webkit-box-orient: vertical;
 }
 
-.tone-dark .message-content {
+.tone-dark .moment-content {
   color: #d8c1a9;
 }
 
-.message-date {
-  margin-top: auto;
+.moment-date {
   color: #c19a83;
   font-size: 18rpx;
   font-weight: 800;
 }
 
-.tone-dark .message-date {
+.tone-dark .moment-date {
   color: #aa927b;
 }
 
 .empty-message {
-  height: 96rpx;
+  min-height: 96rpx;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12rpx;
   color: #a57451;
   font-size: 24rpx;
   font-weight: 900;
@@ -517,6 +631,20 @@ button.edit-button.text-button {
 
 .tone-dark .empty-message {
   color: #d9b995;
+}
+
+.empty-action {
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  background: rgba(231, 126, 104, .86);
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.tone-dark .empty-action {
+  color: #2a1b22;
+  background: rgba(255, 216, 173, .9);
 }
 
 .memorial-floating-actions {

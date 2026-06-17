@@ -114,9 +114,12 @@ Component({
     applyDerivedContent() {
       const images = this.data.albumPreviewImages || []
       const fallback = (this.data.pet && this.data.pet.avatar) || storage.defaultPetImage
-      const albumItems = images.slice(0, 4)
-      while (albumItems.length < 4) {
-        albumItems.push(fallback)
+      const albumItems = images
+        .filter((item) => item && !this.isDefaultPetImage(item))
+        .slice(0, 4)
+        .map((url) => ({ url, placeholder: false }))
+      if (!albumItems.length) {
+        albumItems.push({ url: fallback, placeholder: true })
       }
 
       this.setData({
@@ -124,6 +127,10 @@ Component({
         floatingActions: this.buildFloatingActions(),
         memorialDates: this.buildMemorialDates(),
       })
+    },
+
+    isDefaultPetImage(url = '') {
+      return url === storage.defaultPetImage || String(url).includes('/images/default-pet')
     },
 
     buildMemorialDates() {
@@ -216,6 +223,18 @@ Component({
 
     onGoMoments() {
       this.triggerEvent('moments')
+    },
+
+    onAddMemory() {
+      this.triggerEvent('addmemory')
+    },
+
+    onIdentity() {
+      this.triggerEvent('identity')
+    },
+
+    onClaimIdentity() {
+      this.triggerEvent('claimidentity')
     },
 
     onGoMemoryDetail(e) {

@@ -20,6 +20,7 @@ Page({
     dirtyVersion: 0,
     isOwner: false,
     defaultPetImage: storage.defaultPetImage,
+    emptyImage: '',
   },
 
   onLoad(options = {}) {
@@ -55,7 +56,7 @@ Page({
 
   async loadPetAccess() {
     if (!this.data.petSpaceId) {
-      this.setData({ isOwner: false })
+      this.setData({ isOwner: false, emptyImage: storage.defaultPetImage })
       return
     }
 
@@ -68,11 +69,13 @@ Page({
         },
       })
 
+      const petSpace = result && result.ok ? (result.petSpace || {}) : {}
       this.setData({
         isOwner: Boolean(result && result.ok && result.isOwner),
+        emptyImage: petSpace.avatarUrl || petSpace.coverUrl || storage.defaultPetImage,
       })
     } catch (error) {
-      this.setData({ isOwner: false })
+      this.setData({ isOwner: false, emptyImage: storage.defaultPetImage })
     }
   },
 

@@ -33,6 +33,14 @@
         <text class="date-sep">-</text>
         <text>{{memorialDates.deathText}}</text>
       </view>
+      <view wx:if="{{pet.identityClaimed}}" class="identity-row" bindtap="onIdentity">
+        <text class="identity-label">身份编号</text>
+        <text class="identity-no">{{pet.identityNo}}</text>
+      </view>
+      <view wx:elif="{{isOwner}}" class="identity-row claim" bindtap="onClaimIdentity">
+        <text class="identity-label">身份档案</text>
+        <text class="identity-no">领取身份编号</text>
+      </view>
       <text class="story-line">{{pet.story}}</text>
       <text class="wish-line">愿你在彩虹桥的另一端，永远快乐</text>
     </view>
@@ -62,24 +70,34 @@
         <text class="card-more">更多</text>
       </view>
       <view class="album-row">
-        <image wx:for="{{albumItems}}" wx:key="*this" src="{{item}}" mode="aspectFill"></image>
-        <view class="album-more">•••</view>
+        <image wx:for="{{albumItems}}" wx:key="url" class="album-image {{item.placeholder ? 'placeholder' : ''}}" src="{{item.url}}" mode="aspectFill"></image>
+        <view wx:if="{{!albumItems[0].placeholder}}" class="album-more">•••</view>
+        <view wx:else class="album-empty-note">暂无照片</view>
       </view>
     </view>
 
     <view class="memorial-card">
       <view class="card-head">
-        <text class="section-title">爱的留言</text>
-        <text class="card-more" bindtap="onGoMoments">更多</text>
-      </view>
-      <view wx:if="{{recentMemories.length}}" class="message-row">
-        <view wx:for="{{recentMemories}}" wx:key="id" wx:for-item="memory" class="message-card" data-id="{{memory.id}}" bindtap="onGoMemoryDetail">
-          <text class="message-title">❤ {{memory.title}}</text>
-          <text class="message-content">{{memory.content}}</text>
-          <text class="message-date">{{memory.date}}</text>
+        <text class="section-title">回忆动态</text>
+        <view class="card-actions">
+          <text wx:if="{{isOwner}}" class="card-more primary" bindtap="onAddMemory">新增</text>
+          <text class="card-more" bindtap="onGoMoments">更多</text>
         </view>
       </view>
-      <view wx:else class="empty-message">还没有留言</view>
+      <view wx:if="{{recentMemories.length}}" class="moment-row">
+        <view wx:for="{{recentMemories}}" wx:key="id" wx:for-item="memory" class="moment-card" data-id="{{memory.id}}" bindtap="onGoMemoryDetail">
+          <view class="moment-dot"></view>
+          <view class="moment-copy">
+            <text class="moment-title">{{memory.title}}</text>
+            <text class="moment-content">{{memory.content}}</text>
+            <text class="moment-date">{{memory.date}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-message">
+        <text>还没有回忆动态</text>
+        <text wx:if="{{isOwner}}" class="empty-action" bindtap="onAddMemory">新增回忆</text>
+      </view>
     </view>
   </view>
 

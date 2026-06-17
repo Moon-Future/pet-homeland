@@ -20,6 +20,9 @@
       bindtimeline="goPetTimeline"
       bindalbum="goAlbum"
       bindmoments="goMoments"
+      bindaddmemory="triggerPrimaryAction"
+      bindidentity="goIdentity"
+      bindclaimidentity="claimIdentity"
       bindmemorydetail="goMemoryDetailFromMemorial"
     />
     <block wx:else>

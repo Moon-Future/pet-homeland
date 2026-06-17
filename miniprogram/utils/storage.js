@@ -54,7 +54,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 30.2, top: 10.6, width: 37.6 },
     info: { top: 36 },
     actions: { top: 52 },
-    contentOffset: 800,
+    contentOffset: 730,
   },
   memorial_home_bg_02: {
     aspectRatio: 853 / 1844,
@@ -62,7 +62,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 30.6, top: 15.6, width: 40 },
     info: { top: 39 },
     actions: { top: 58 },
-    contentOffset: 750,
+    contentOffset: 680,
   },
   memorial_home_bg_03: {
     aspectRatio: 853 / 1844,
@@ -70,7 +70,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 34.2, top: 20.6, width: 33.6 },
     info: { top: 48.2 },
     actions: { top: 63.5 },
-    contentOffset: 600,
+    contentOffset: 530,
   },
   memorial_home_bg_04: {
     tone: 'dark',
@@ -79,7 +79,7 @@ const memorialHomeThemeLayouts = {
     avatar: { left: 33.8, top: 19.2, width: 33.4 },
     info: { top: 48.8 },
     actions: { top: 63.8 },
-    contentOffset: 600,
+    contentOffset: 530,
   },
 }
 
@@ -178,7 +178,7 @@ async function uploadToQiniu({ type, petSpaceId, petUploadGrant, filePath, ext }
   }
 
   if (!result || !result.ok) {
-    throw new Error((result && result.message) || '获取上传凭证失败')
+    throw new Error(normalizeUploadTokenMessage((result && result.message) || '获取上传凭证失败'))
   }
 
   const { uploadToken, key, ref, url } = result
@@ -225,6 +225,23 @@ async function requestQiniuUploadToken({ type, petSpaceId, petUploadGrant, ext }
 function isGrantExpiredResult(result) {
   const message = (result && result.message) || ''
   return message.includes('grant 已过期') || message.includes('登录态已失效') || message.includes('登录已过期')
+}
+
+function normalizeUploadTokenMessage(message = '') {
+  if (
+    message.includes('grant 无效')
+    || message.includes('grant 签名无效')
+    || message.includes('上传授权无效')
+    || message.includes('上传授权已失效')
+  ) {
+    return '上传授权已失效，请重新进入后再试'
+  }
+
+  if (message.includes('grant 已过期') || message.includes('登录态已失效') || message.includes('登录已过期')) {
+    return '登录状态已过期，请重新登录后再试'
+  }
+
+  return message || '获取上传凭证失败'
 }
 
 async function cleanupRefs(refs = []) {
