@@ -37,13 +37,30 @@ Page({
     groups: [],
     dirtyVersion: 0,
     isOwner: false,
+    pageCopy: {
+      navTitle: '朋友圈',
+      coverTitle: '宠物小窝的朋友圈',
+      coverSubtitle: '把每一天都发给未来的自己看',
+      loadingText: '正在读取动态...',
+      emptyTitle: '还没有朋友圈动态',
+      emptyDesc: '记录一次日常，宠物小窝的朋友圈就会更新。',
+      readError: '读取朋友圈失败',
+    },
   },
 
   onLoad(options = {}) {
+    const entryMode = options.entryMode === 'memorial' ? 'memorial' : 'daily'
+    const initialPet = {
+      ...this.data.pet,
+      lifeStatus: entryMode === 'memorial' ? 'in_stars' : 'with_me',
+    }
     this.setData({
       petSpaceId: options.petSpaceId || wx.getStorageSync('selectedPetSpaceId') || '',
+      pet: initialPet,
+      pageCopy: this.getPageCopy(initialPet),
       dirtyVersion: this.getDirtyVersion(),
     })
+    this.updateNavigationTitle()
     this.initializeTimeline()
   },
 
@@ -80,11 +97,14 @@ Page({
         })
 
         if (result && result.ok && result.petSpace) {
+          const pet = this.normalizePet(result.petSpace)
           this.setData({
             petSpaceId: result.petSpace._id,
-            pet: this.normalizePet(result.petSpace),
+            pet,
             isOwner: Boolean(result.isOwner),
+            pageCopy: this.getPageCopy(pet),
           })
+          this.updateNavigationTitle()
           return true
         }
 
@@ -109,11 +129,14 @@ Page({
         return false
       }
 
+      const pet = this.normalizePet(selected)
       this.setData({
         petSpaceId: selected._id,
-        pet: this.normalizePet(selected),
+        pet,
         isOwner: true,
+        pageCopy: this.getPageCopy(pet),
       })
+      this.updateNavigationTitle()
 
       return true
     } catch (error) {
@@ -154,7 +177,7 @@ Page({
       })
 
       if (!result || !result.ok) {
-        throw new Error((result && result.message) || '读取朋友圈失败')
+        throw new Error((result && result.message) || this.data.pageCopy.readError)
       }
 
       this.setData({
@@ -166,7 +189,7 @@ Page({
     } catch (error) {
       this.setData({ loading: false, initialLoading: false, groups: [] })
       wx.showToast({
-        title: error.message || '读取朋友圈失败',
+        title: error.message || this.data.pageCopy.readError,
         icon: 'none',
       })
     }
@@ -335,6 +358,43 @@ Page({
       identityNo: item.identityNo || '',
       identityClaimedDate: this.normalizeCloudDate(item.identityClaimedAt),
     }
+  },
+
+  getPageCopy(pet = {}) {
+    const name = pet.name || '宠物小窝'
+    const isInStars = pet.lifeStatus === 'in_stars'
+
+    if (isInStars) {
+      return {
+        navTitle: '回忆动态',
+        coverTitle: `${name}的回忆动态`,
+        coverSubtitle: '把想念、照片和回忆都好好留下',
+        loadingText: '正在读取回忆...',
+        emptyTitle: '还没有回忆动态',
+        emptyDesc: `记录一段回忆，${name}的纪念空间就会更新。`,
+        readError: '读取回忆失败',
+      }
+    }
+
+    return {
+      navTitle: '朋友圈',
+      coverTitle: `${name}的朋友圈`,
+      coverSubtitle: '把每一天都发给未来的自己看',
+      loadingText: '正在读取动态...',
+      emptyTitle: '还没有朋友圈动态',
+      emptyDesc: `记录一次日常，${name}的朋友圈就会更新。`,
+      readError: '读取朋友圈失败',
+    }
+  },
+
+  updateNavigationTitle() {
+    if (!wx.setNavigationBarTitle) {
+      return
+    }
+
+    wx.setNavigationBarTitle({
+      title: this.data.pageCopy.navTitle,
+    })
   },
 
   normalizeCloudDate(value) {

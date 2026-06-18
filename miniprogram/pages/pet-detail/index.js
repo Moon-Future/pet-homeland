@@ -1572,7 +1572,8 @@ Page({
 
   goMoments() {
     const petSpaceId = this.data.pet && this.data.pet.id
-    wx.navigateTo({ url: `/pages/moments/index?petSpaceId=${petSpaceId || ''}` })
+    const entryMode = (this.data.rawPet && this.data.rawPet.lifeStatus) === 'in_stars' ? 'memorial' : 'daily'
+    wx.navigateTo({ url: `/pages/moments/index?petSpaceId=${petSpaceId || ''}&entryMode=${entryMode}` })
   },
 
   goPetTimeline() {

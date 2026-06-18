@@ -37,8 +37,8 @@
     <image class="cover-img" src="{{pet.cover}}" mode="aspectFill"></image>
     <view class="cover-shade"></view>
     <view class="cover-copy">
-      <text class="cover-title">{{pet.name}}的朋友圈</text>
-      <text class="cover-subtitle">把每一天都发给未来的自己看</text>
+      <text class="cover-title">{{pageCopy.coverTitle}}</text>
+      <text class="cover-subtitle">{{pageCopy.coverSubtitle}}</text>
       <view wx:if="{{isOwner}}" class="cover-record-button tap-feedback" hover-class="tap-feedback-hover" bindtap="goCreateMemory">＋ 记录</view>
     </view>
     <view class="pet-profile">
@@ -59,7 +59,7 @@
     </view>
   </scroll-view>
 
-  <view wx:if="{{loading}}" class="state">正在读取动态...</view>
+  <view wx:if="{{loading}}" class="state">{{pageCopy.loadingText}}</view>
 
   <view wx:elif="{{groups.length}}" class="moments-list">
     <view wx:for="{{groups}}" wx:key="key" class="day-section">
@@ -113,8 +113,8 @@
 
   <view wx:else class="empty">
     <image src="{{defaultPetImage}}" mode="aspectFill"></image>
-    <text class="empty-title">还没有朋友圈动态</text>
-    <text class="empty-desc">记录一次日常，{{pet.name}}的朋友圈就会更新。</text>
+    <text class="empty-title">{{pageCopy.emptyTitle}}</text>
+    <text class="empty-desc">{{pageCopy.emptyDesc}}</text>
   </view>
   </block>
 </view>
